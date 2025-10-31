@@ -14,84 +14,84 @@
 *                                   @AcquiredTasteRecordings
 
 # ---- Generic fallbacks by file type (keep ABOVE specific areas) ----
-*.swift                             @services-reviewer
-*.md                                @docs-reviewer
-**/*.xcconfig                       @services-reviewer
-**/Info.plist                       @services-reviewer
-PrivacyInfo.xcprivacy               @services-reviewer
+*.swift                             @AcquiredTasteRecordings
+*.md                                @AcquiredTasteRecordings
+**/*.xcconfig                       @AcquiredTasteRecordings
+**/Info.plist                       @AcquiredTasteRecordings
+PrivacyInfo.xcprivacy               @AcquiredTasteRecordings
 
 # ---- Core architecture & support ----
-SKATEROUTE/Core/**                  @services-reviewer
-SKATEROUTE/Support/**               @services-reviewer
+SKATEROUTE/Core/**                  @AcquiredTasteRecordings
+SKATEROUTE/Support/**               @AcquiredTasteRecordings
 
 # ---- Map & on-device rendering / overlays ----
-SKATEROUTE/Features/Map/**          @map-reviewer @services-reviewer
-SKATEROUTE/Features/Map/SmoothOverlayRenderer.swift  @map-reviewer @services-reviewer
-SKATEROUTE/Features/Map/MapViewContainer.swift       @map-reviewer @services-reviewer
-SKATEROUTE/Features/Map/MapScreen.swift              @map-reviewer @services-reviewer
+SKATEROUTE/Features/Map/**          @AcquiredTasteRecordings
+SKATEROUTE/Features/Map/SmoothOverlayRenderer.swift  @AcquiredTasteRecordings
+SKATEROUTE/Features/Map/MapViewContainer.swift       @AcquiredTasteRecordings
+SKATEROUTE/Features/Map/MapScreen.swift              @AcquiredTasteRecordings
 
 # ---- Routing, scoring & data services ----
-SKATEROUTE/Services/RouteService.swift              @services-reviewer @map-reviewer
-SKATEROUTE/Services/RouteContextBuilder.swift       @services-reviewer @map-reviewer
-SKATEROUTE/Services/SkateRouteScorer.swift          @services-reviewer @map-reviewer
-SKATEROUTE/Services/Matcher.swift                   @services-reviewer @map-reviewer
-SKATEROUTE/Services/ElevationService.swift          @services-reviewer
-SKATEROUTE/Services/SegmentStore.swift              @services-reviewer
-SKATEROUTE/Services/SmoothnessEngine.swift          @services-reviewer
-SKATEROUTE/Services/GeocoderService.swift           @services-reviewer
-SKATEROUTE/Services/CacheManager.swift              @services-reviewer
-SKATEROUTE/Services/AttributionService.swift        @services-reviewer
+SKATEROUTE/Services/RouteService.swift              @AcquiredTasteRecordings
+SKATEROUTE/Services/RouteContextBuilder.swift       @AcquiredTasteRecordings
+SKATEROUTE/Services/SkateRouteScorer.swift          @AcquiredTasteRecordings
+SKATEROUTE/Services/Matcher.swift                   @AcquiredTasteRecordings
+SKATEROUTE/Services/ElevationService.swift          @AcquiredTasteRecordings
+SKATEROUTE/Services/SegmentStore.swift              @AcquiredTasteRecordings
+SKATEROUTE/Services/SmoothnessEngine.swift          @AcquiredTasteRecordings
+SKATEROUTE/Services/GeocoderService.swift           @AcquiredTasteRecordings
+SKATEROUTE/Services/CacheManager.swift              @AcquiredTasteRecordings
+SKATEROUTE/Services/AttributionService.swift        @AcquiredTasteRecordings
 
 # ---- Telemetry: motion, logging, ride sessions ----
-SKATEROUTE/Services/RideRecorder.swift              @services-reviewer
-SKATEROUTE/Services/MotionRoughnessService.swift    @services-reviewer
-SKATEROUTE/Services/SessionLogger.swift             @services-reviewer
+SKATEROUTE/Services/RideRecorder.swift              @AcquiredTasteRecordings
+SKATEROUTE/Services/MotionRoughnessService.swift    @AcquiredTasteRecordings
+SKATEROUTE/Services/SessionLogger.swift             @AcquiredTasteRecordings
 
 # ---- UX / HUD / Haptics / Turn cues / Home ----
-SKATEROUTE/Features/UX/**                           @ux-reviewer
-SKATEROUTE/Features/UX/SpeedHUDView.swift           @ux-reviewer
-SKATEROUTE/Features/UX/RideTelemetryHUD.swift       @ux-reviewer
-SKATEROUTE/Features/UX/TurnCueEngine.swift          @ux-reviewer
-SKATEROUTE/Features/UX/HapticCue.swift              @ux-reviewer
+SKATEROUTE/Features/UX/**                           @AcquiredTasteRecordings
+SKATEROUTE/Features/UX/SpeedHUDView.swift           @AcquiredTasteRecordings
+SKATEROUTE/Features/UX/RideTelemetryHUD.swift       @AcquiredTasteRecordings
+SKATEROUTE/Features/UX/TurnCueEngine.swift          @AcquiredTasteRecordings
+SKATEROUTE/Features/UX/HapticCue.swift              @AcquiredTasteRecordings
 
-SKATEROUTE/Features/Home/**                         @ux-reviewer
+SKATEROUTE/Features/Home/**                         @AcquiredTasteRecordings
 
 # ---- Search & Places ----
-SKATEROUTE/Features/Search/**                       @services-reviewer
-SKATEROUTE/Features/Search/PlaceSearchView.swift    @services-reviewer
-SKATEROUTE/Features/Search/PlaceSearchViewModel.swift @services-reviewer
+SKATEROUTE/Features/Search/**                       @AcquiredTasteRecordings
+SKATEROUTE/Features/Search/PlaceSearchView.swift    @AcquiredTasteRecordings
+SKATEROUTE/Features/Search/PlaceSearchViewModel.swift @AcquiredTasteRecordings
 
 # ---- Community features ----
-SKATEROUTE/Features/Community/**                    @ux-reviewer
-SKATEROUTE/Features/Community/Models/**             @ux-reviewer
-SKATEROUTE/Features/Community/Views/**              @ux-reviewer
+SKATEROUTE/Features/Community/**                    @AcquiredTasteRecordings
+SKATEROUTE/Features/Community/Models/**             @AcquiredTasteRecordings
+SKATEROUTE/Features/Community/Views/**              @AcquiredTasteRecordings
 
 # ---- App entry / composition ----
-SKATEROUTE/DownhillNavigatorApp.swift               @services-reviewer @ux-reviewer
-SKATEROUTE/Core/AppRouter.swift                     @services-reviewer @ux-reviewer
-SKATEROUTE/Core/AppCoordinator.swift                @services-reviewer @ux-reviewer
-SKATEROUTE/Core/AppDI.swift                         @services-reviewer
+SKATEROUTE/DownhillNavigatorApp.swift               @AcquiredTasteRecordings
+SKATEROUTE/Core/AppRouter.swift                     @AcquiredTasteRecordings
+SKATEROUTE/Core/AppCoordinator.swift                @AcquiredTasteRecordings
+SKATEROUTE/Core/AppDI.swift                         @AcquiredTasteRecordings
 
 # ---- Assets & Resources ----
-SKATEROUTE/Assets.xcassets/**                       @ux-reviewer
-SKATEROUTE/**/Assets/**                             @ux-reviewer
+SKATEROUTE/Assets.xcassets/**                       @AcquiredTasteRecordings
+SKATEROUTE/**/Assets/**                             @AcquiredTasteRecordings
 
 # ---- CI / Delivery / Scripts / Config ----
-.github/**                                          @services-reviewer
-.github/workflows/**                                @services-reviewer
-.github/labeler.yml                                 @services-reviewer
-.github/pull_request_template.md                    @services-reviewer @docs-reviewer
-fastlane/**                                         @services-reviewer
-scripts/**                                          @services-reviewer
+.github/**                                          @AcquiredTasteRecordings
+.github/workflows/**                                @AcquiredTasteRecordings
+.github/labeler.yml                                 @AcquiredTasteRecordings
+.github/pull_request_template.md                    @AcquiredTasteRecordings
+fastlane/**                                         @AcquiredTasteRecordings
+scripts/**                                          @AcquiredTasteRecordings
 
 # ---- Documentation ----
-README.md                                           @docs-reviewer
-WHITEPAPER.md                                       @docs-reviewer
-docs/**                                             @docs-reviewer
+README.md                                           @AcquiredTasteRecordings
+WHITEPAPER.md                                       @AcquiredTasteRecordings
+docs/**                                             @AcquiredTasteRecordings
 
 # ---- Tests ----
-SKATEROUTETests/**                                  @services-reviewer
-SKATEROUTEUITests/**                                @ux-reviewer @services-reviewer
+SKATEROUTETests/**                                  @AcquiredTasteRecordings
+SKATEROUTEUITests/**                                @AcquiredTasteRecordings
 
 # ------------------------------------------------------------
 # Tips:
