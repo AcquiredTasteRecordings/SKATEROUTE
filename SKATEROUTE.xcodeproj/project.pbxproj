@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1C2D2A6D2EB20E7E00BCB90A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,10 +31,26 @@
 		1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SKATEROUTE.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+		1C3D978D2EB517E2000BAB43 /* AI_CONTEXT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AI_CONTEXT.md; sourceTree = "<group>"; };
+		1C3D978E2EB517E2000BAB43 /* CODEOWNERS.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CODEOWNERS.txt; sourceTree = "<group>"; };
+		1C3D978F2EB517E2000BAB43 /* Fastfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Fastfile; sourceTree = "<group>"; };
+		1C3D97902EB517E2000BAB43 /* Gemfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Gemfile; sourceTree = "<group>"; };
+		1C3D97912EB517E2000BAB43 /* github:auto_assign.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "github:auto_assign.yml"; sourceTree = "<group>"; };
+		1C3D97922EB517E2000BAB43 /* github:labeler.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "github:labeler.yml"; sourceTree = "<group>"; };
+		1C3D97932EB517E2000BAB43 /* github:pull_request_template.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "github:pull_request_template.md"; sourceTree = "<group>"; };
+		1C3D97942EB517E2000BAB43 /* github:workflows:pr-meta.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "github:workflows:pr-meta.yml"; sourceTree = "<group>"; };
+		1C3D97952EB517E2000BAB43 /* ios-ci.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = "ios-ci.yml"; sourceTree = "<group>"; };
+		1C3D97962EB517E2000BAB43 /* RELEASE_CHECKLIST.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = RELEASE_CHECKLIST.md; sourceTree = "<group>"; };
+		1C3D97972EB517E2000BAB43 /* swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = swiftlint.yml; sourceTree = "<group>"; };
+		1C3D97A12EB51B64000BAB43 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; name = .gitignore; path = Docs/.gitignore; sourceTree = "<group>"; };
+		1C3D97A22EB51B64000BAB43 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; name = LICENSE; path = Docs/LICENSE; sourceTree = "<group>"; };
+		1C3D97A32EB51B64000BAB43 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = Docs/README.md; sourceTree = "<group>"; };
+		1C3D97A42EB51B64000BAB43 /* WHITEPAPER.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = WHITEPAPER.md; path = Docs/WHITEPAPER.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1C2D2A7E2EB20E7E00BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
+		1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -43,19 +63,9 @@
 		1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1C2D2A7E2EB20E7E00BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
 			);
 			path = SKATEROUTE;
-			sourceTree = "<group>";
-		};
-		1C2D2A6F2EB20E7E00BCB90A /* SKATEROUTETests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SKATEROUTETests;
-			sourceTree = "<group>";
-		};
-		1C2D2A792EB20E7E00BCB90A /* SKATEROUTEUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SKATEROUTEUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,9 +98,9 @@
 		1C2D2A522EB20E7C00BCB90A = {
 			isa = PBXGroup;
 			children = (
+				1C3D978C2EB517B3000BAB43 /* Docs */,
+				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
 				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
-				1C2D2A6F2EB20E7E00BCB90A /* SKATEROUTETests */,
-				1C2D2A792EB20E7E00BCB90A /* SKATEROUTEUITests */,
 				1C2D2A5C2EB20E7C00BCB90A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,6 +115,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1C3D978C2EB517B3000BAB43 /* Docs */ = {
+			isa = PBXGroup;
+			children = (
+				1C3D978D2EB517E2000BAB43 /* AI_CONTEXT.md */,
+				1C3D978E2EB517E2000BAB43 /* CODEOWNERS.txt */,
+				1C3D978F2EB517E2000BAB43 /* Fastfile */,
+				1C3D97902EB517E2000BAB43 /* Gemfile */,
+				1C3D97912EB517E2000BAB43 /* github:auto_assign.yml */,
+				1C3D97922EB517E2000BAB43 /* github:labeler.yml */,
+				1C3D97932EB517E2000BAB43 /* github:pull_request_template.md */,
+				1C3D97942EB517E2000BAB43 /* github:workflows:pr-meta.yml */,
+				1C3D97952EB517E2000BAB43 /* ios-ci.yml */,
+				1C3D97962EB517E2000BAB43 /* RELEASE_CHECKLIST.md */,
+				1C3D97972EB517E2000BAB43 /* swiftlint.yml */,
+				1C3D97A12EB51B64000BAB43 /* .gitignore */,
+				1C3D97A22EB51B64000BAB43 /* LICENSE */,
+				1C3D97A32EB51B64000BAB43 /* README.md */,
+				1C3D97A42EB51B64000BAB43 /* WHITEPAPER.md */,
+			);
+			name = Docs;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -112,6 +144,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1C2D2A7F2EB20E7E00BCB90A /* Build configuration list for PBXNativeTarget "SKATEROUTE" */;
 			buildPhases = (
+				1C3D97A52EB51D36000BAB43 /* ShellScript */,
 				1C2D2A572EB20E7C00BCB90A /* Sources */,
 				1C2D2A582EB20E7C00BCB90A /* Frameworks */,
 				1C2D2A592EB20E7C00BCB90A /* Resources */,
@@ -143,9 +176,6 @@
 			dependencies = (
 				1C2D2A6E2EB20E7E00BCB90A /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				1C2D2A6F2EB20E7E00BCB90A /* SKATEROUTETests */,
-			);
 			name = SKATEROUTETests;
 			packageProductDependencies = (
 			);
@@ -166,9 +196,6 @@
 			dependencies = (
 				1C2D2A782EB20E7E00BCB90A /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				1C2D2A792EB20E7E00BCB90A /* SKATEROUTEUITests */,
-			);
 			name = SKATEROUTEUITests;
 			packageProductDependencies = (
 			);
@@ -182,7 +209,7 @@
 		1C2D2A532EB20E7C00BCB90A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
+				BuildIndependentTargetsInParallel = NO;
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
@@ -225,6 +252,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +271,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1C3D97A52EB51D36000BAB43 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint --config \"${SRCROOT}/.swiftlint.yml\"\nelse\n  echo \"warning: SwiftLint not installed; brew install swiftlint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1C2D2A572EB20E7C00BCB90A /* Sources */ = {
@@ -293,7 +341,7 @@
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SKATEROUTE/Info.plist;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -304,6 +352,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -323,7 +372,7 @@
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SKATEROUTE/Info.plist;
+				INFOPLIST_FILE = "";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -334,6 +383,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -344,6 +394,7 @@
 		};
 		1C2D2A822EB20E7E00BCB90A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -408,6 +459,7 @@
 		};
 		1C2D2A832EB20E7E00BCB90A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;

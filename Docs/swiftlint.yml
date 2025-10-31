@@ -1,0 +1,158 @@
+# SwiftLint configuration for SKATEROUTE
+# Goal: keep the codebase tight, readable, and production-safe so AI/codegen changes don’t drift.
+
+reporter: "github-actions-logging"
+
+included:
+  - SKATEROUTE
+
+excluded:
+  - Carthage
+  - Pods
+  - build
+  - DerivedData
+  - fastlane
+  - vendor
+  - "**/*.generated.swift"
+  - "**/GeneratedAssetSymbols.swift"
+  - "**/*.pb.swift"
+  - "**/.build"
+  - "**/.swiftpm"
+
+# Allow short identifiers common in geo/MapKit code (RMS/DEM/MK/etc.)
+disabled_rules:
+  - trailing_whitespace
+  - identifier_name
+  - opening_brace
+  - redundant_optional_initialization
+  - large_tuple
+
+# High-signal optional rules for consistency & safety
+opt_in_rules:
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_first_not_nil
+  - discouraged_optional_collection
+  - empty_count
+  - explicit_init
+  - explicit_self
+  - fatal_error_message
+  - first_where
+  - force_unwrapping
+  - implicit_return
+  - multiline_arguments
+  - multiline_parameters
+  - operator_usage_whitespace
+  - private_action
+  - private_outlet
+  - redundant_nil_coalescing
+  - sorted_imports
+  - strict_fileprivate
+  - switch_case_alignment
+  - trailing_closure
+  - unowned_variable_capture
+  # Added from Option 2:
+  - vertical_parameter_alignment_on_call
+  - implicitly_unwrapped_optional
+
+# SourceKit analyzer rules (heavier but valuable in CI)
+analyzer_rules:
+  - unused_declaration
+  - unused_import
+
+line_length:
+  warning: 140
+  error: 180
+  ignores_comments: true
+  ignores_urls: true
+
+file_length:
+  warning: 500
+  error: 1200
+  ignore_comment_only_lines: true
+
+type_name:
+  min_length: 3
+  max_length: 50
+  allowed_symbols: ["_"]
+  excluded:
+    - RMS
+    - DEM
+    - OSM
+    - HUD
+    - ETA
+    - MK
+    - CL
+    - id
+    - x
+    - y
+    - z
+    - dx
+    - dy
+
+function_body_length:
+  warning: 80
+  error: 150
+  ignores_comments: true
+  ignores_empty_lines: true
+
+type_body_length:
+  warning: 300
+  error: 600
+  ignores_comments: true
+  ignores_empty_lines: true
+
+function_parameter_count:
+  warning: 7
+  error: 10
+
+cyclomatic_complexity:
+  warning: 12
+  error: 20
+
+nesting:
+  type_level: 2
+  function_level: 2
+
+force_cast: warning
+force_try:  warning
+
+unused_import:
+  severity: warning
+
+unused_declaration:
+  severity: warning
+
+sorted_imports:
+  severity: warning
+  configuration: strict
+
+# Custom rules tailored for a production navigation app
+custom_rules:
+  no_print_debug:
+    included: "SKATEROUTE"
+    name: "Avoid print()/debugPrint()/NSLog in production"
+    regex: "\\b(print|debugPrint|NSLog)\\s*\\("
+    message: "Use os.Logger or SessionLogger instead of print/debugPrint/NSLog."
+    severity: warning
+
+  no_todos_left:
+    included: "SKATEROUTE"
+    name: "Leftover TODO/FIXME"
+    regex: "\\b(TODO|FIXME)\\b"
+    message: "Resolve TODO/FIXME or create a tracked ticket before merging."
+    severity: warning
+
+  no_secret_keys:
+    included: "SKATEROUTE"
+    name: "Potential secret/API key"
+    regex: "(?i)(sk_live_|sk_test_|AIza[0-9A-Za-z\\-_]{35}|ghp_[0-9A-Za-z]{36,}|xox[baprs]-[0-9A-Za-z-]{10,})"
+    message: "Potential credential committed. Move secrets to App Store Connect API keys or CI env vars."
+    severity: error
+
+  ui_on_main:
+    name: "UI must be on main actor"
+    regex: "@MainActor|DispatchQueue\\.main\\.async"
+    message: "Annotate UI types with @MainActor or hop to main queue explicitly for UI work."
+    severity: warning

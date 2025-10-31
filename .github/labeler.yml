@@ -1,0 +1,114 @@
+# SKATEROUTE — PR auto-labeling rules
+# Compatible with actions/labeler v5 (recommended). Place this as .github/labeler.yml in the repo.
+# Docs: https://github.com/actions/labeler
+#
+# These labels help triage changes across navigation, routing, telemetry, and UX layers.
+# Patterns are glob-based and evaluated against changed files in a PR.
+
+labels:
+  # ---- Type / intent ------------------------------------------------------
+  - label: "type: feature"
+    files:
+      - "SKATEROUTE/Features/**"
+
+  - label: "type: bug"
+    any-glob-to-any-file:
+      - "**/*Fix*"
+      - "SKATEROUTE/**/Fix*"
+
+  - label: "type: refactor"
+    files:
+      - "SKATEROUTE/**/Refactor/**"
+      - "SKATEROUTE/**/*Refactor*.swift"
+
+  - label: "type: chore"
+    files:
+      - ".github/**"
+      - "fastlane/**"
+      - "scripts/**"
+      - "**/*.xcconfig"
+      - "PrivacyInfo.xcprivacy"
+
+  - label: "type: docs"
+    files:
+      - "README.md"
+      - "WHITEPAPER.md"
+      - "docs/**"
+
+  # ---- Areas / subsystems -------------------------------------------------
+  - label: "area: map"
+    files:
+      - "SKATEROUTE/Features/Map/**"
+      - "SKATEROUTE/Features/UX/*HUD*"
+
+  - label: "area: routing"
+    files:
+      - "SKATEROUTE/Services/Route*.swift"
+      - "SKATEROUTE/Services/Matcher.swift"
+      - "SKATEROUTE/Services/SkateRouteScorer.swift"
+      - "SKATEROUTE/Services/SmoothnessEngine.swift"
+      - "SKATEROUTE/Services/SegmentStore.swift"
+      - "SKATEROUTE/Services/ElevationService.swift"
+      - "SKATEROUTE/Services/RouteContextBuilder.swift"
+
+  - label: "area: telemetry"
+    files:
+      - "SKATEROUTE/Services/RideRecorder.swift"
+      - "SKATEROUTE/Services/MotionRoughnessService.swift"
+      - "SKATEROUTE/Services/SessionLogger.swift"
+
+  - label: "area: search"
+    files:
+      - "SKATEROUTE/Features/Search/**"
+      - "SKATEROUTE/Services/GeocoderService.swift"
+
+  - label: "area: community"
+    files:
+      - "SKATEROUTE/Features/Community/**"
+
+  - label: "area: ux"
+    files:
+      - "SKATEROUTE/Features/UX/**"
+      - "SKATEROUTE/Features/Home/**"
+
+  - label: "area: core"
+    files:
+      - "SKATEROUTE/Core/**"
+      - "SKATEROUTE/Support/**"
+
+  # ---- Config / CI / Assets / Tests --------------------------------------
+  - label: "config: plist"
+    files:
+      - "**/Info.plist"
+      - "**/*.xcconfig"
+      - "PrivacyInfo.xcprivacy"
+
+  - label: "ci"
+    files:
+      - ".github/workflows/**"
+      - "fastlane/**"
+
+  - label: "tests"
+    files:
+      - "SKATEROUTETests/**"
+      - "SKATEROUTEUITests/**"
+      - "SKATEROUTE/**/Tests/**"
+
+  - label: "assets"
+    files:
+      - "SKATEROUTE/Assets.xcassets/**"
+      - "SKATEROUTE/**/Assets/**"
+
+  - label: "dependencies"
+    files:
+      - "Package.swift"
+      - "Package.resolved"
+      - "Cartfile*"
+      - "Podfile*"
+      - "SKATEROUTE.xcodeproj/project.pbxproj"
+
+# Notes:
+# - actions/labeler v5 expects this file at `.github/labeler.yml` (not nested under `github/` and not `.txt`).
+# - `files` labels apply if ANY of the listed globs match.
+# - `any-glob-to-any-file` is used above for flexible bugfix matching.
+# - Pair this with CODEOWNERS or an auto-assign action if you want automatic reviewers per label.

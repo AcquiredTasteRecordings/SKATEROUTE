@@ -1,0 +1,59 @@
+
+
+# SKATEROUTE — Auto-assign reviewers & assignees
+# Uses: kentaro-m/auto-assign-action
+# Place the action in .github/workflows/pr-meta.yml to read this config at .github/auto_assign.yml (repo root).
+# This file defines default reviewers, grouped pools, and skip rules for draft/WIP PRs.
+
+# ---- Reviewers -----------------------------------------------------------
+addReviewers: true
+
+# If you also want a flat default list (used when groups aren't specified by the workflow)
+reviewers:
+  - map-reviewer
+  - services-reviewer
+  - ux-reviewer
+  - docs-reviewer
+
+# Randomly pick reviewers from groups (nice for rotation). The workflow can target a specific group
+# by passing `with: reviewee: "<group-name>"` or you can just let it choose from all.
+useReviewGroups: true
+reviewGroups:
+  map:
+    - map-reviewer
+  services:
+    - services-reviewer
+  routing:
+    - services-reviewer
+  telemetry:
+    - services-reviewer
+  ux:
+    - ux-reviewer
+  docs:
+    - docs-reviewer
+
+# Total reviewers to request
+numberOfReviewers: 2
+
+# ---- Assignees -----------------------------------------------------------
+# Assign the PR author to keep ownership obvious
+addAssignees: author
+# Fallback assignee(s) if author assignment is disabled in a fork PR, etc.
+assignees:
+  - AcquiredTasteRecordings
+numberOfAssignees: 1
+
+# ---- Skip conditions ------------------------------------------------------
+# Skip auto-assign for drafts or WIP PRs
+skipDraft: true
+skipKeywords:
+  - WIP
+  - DRAFT
+  - DO NOT MERGE
+  - HOLD
+  - BLOCKED
+
+# Notes:
+# - Pair this with `.github/labeler.yml` to auto-label PRs by area (map/routing/telemetry/etc).
+# - In `.github/workflows/pr-meta.yml`, run `kentaro-m/auto-assign-action@v2` and point `configuration-path`
+#   to `.github/auto_assign.yml`.
