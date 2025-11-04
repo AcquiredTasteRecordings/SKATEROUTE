@@ -144,11 +144,24 @@ public final class ElevationService {
     }
 }
 
-public struct GradeSummary {
+public struct GradeSummary: Codable {
     public let maxGrade: Double   // absolute max uphill or downhill in %
     public let meanGrade: Double  // average signed grade in %
     public let brakingMask: [Bool] // per-step flags
     public let slopePenalty: Double // 0..1 normalized penalty for scoring
+    public let stepGrades: [Double] // signed grade per step (%), aligned to route.steps
+
+        public init(maxGrade: Double,
+                    meanGrade: Double,
+                    brakingMask: [Bool],
+                    slopePenalty: Double,
+                    stepGrades: [Double]) {
+            self.maxGrade = maxGrade
+            self.meanGrade = meanGrade
+            self.brakingMask = brakingMask
+            self.slopePenalty = slopePenalty
+            self.stepGrades = stepGrades
+        }
 }
 
 public extension ElevationService {
@@ -161,6 +174,7 @@ public extension ElevationService {
         let steps = route.steps
         var grades: [Double] = []
         var brakingMask = [Bool](repeating: false, count: steps.count)
+        var perStepGrades = [Double](repeating: 0, count: steps.count)
 
         for (i, step) in steps.enumerated() where step.distance > 0 {
             let coords = step.polyline.coordinates()
@@ -170,12 +184,18 @@ public extension ElevationService {
             let g = (try? await grade(from: a, to: b)) ?? 0
             grades.append(g)
             if g < -6 { brakingMask[i] = true }
+            perStepGrades[i] = g
+
         }
 
         let mean = grades.isEmpty ? 0 : grades.reduce(0,+) / Double(grades.count)
         let maxAbs = grades.map { abs($0) }.max() ?? 0
         // Normalize slope penalty: no penalty <= 3%, full penalty >= 12%
         let slopePenalty = max(0, min(1, (maxAbs - 3) / (12 - 3)))
-        return GradeSummary(maxGrade: maxAbs, meanGrade: mean, brakingMask: brakingMask, slopePenalty: slopePenalty)
+        return GradeSummary(maxGrade: maxAbs,
+                                    meanGrade: mean,
+                                    brakingMask: brakingMask,
+                                    slopePenalty: slopePenalty,
+                                    stepGrades: perStepGrades)
     }
 }
