@@ -1,6 +1,7 @@
 // Services/LocationManagerService.swift
 import Foundation
 import CoreLocation
+import MapKit
 import os
 import UIKit
 import CoreMotion
@@ -41,6 +42,13 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
     private let manager = CLLocationManager()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "SKATEROUTE", category: "LocationManagerService")
 
+    public enum GeofenceEvent {
+           case entered(CLRegion)
+           case exited(CLRegion)
+       }
+
+       public var geofenceEventHandler: ((GeofenceEvent) -> Void)?
+    
     /// Supported accuracy profiles for location tracking.
     public enum AccuracyProfile {
         /// Eco mode: lower accuracy, larger distance filter, optimized for battery saving.
@@ -108,6 +116,10 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
     }
 
     private var motionManager: CMMotionActivityManager?
+    private let defaults = UserDefaults.standard
+        private let lastLocationKey = "LocationManagerService.lastLocation"
+        private let lastLocationTimestampKey = "LocationManagerService.lastLocation.timestamp"
+        private var monitoredRegions: [CLCircularRegion] = []
 
     public override init() {
         super.init()
@@ -125,8 +137,10 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
         UIDevice.current.isBatteryMonitoringEnabled = true
 
         startMotionUpdates()
+        restoreLastKnownLocation()
     }
 
+    @MainActor
     deinit {
         NotificationCenter.default.removeObserver(self, name: UIDevice.batteryStateDidChangeNotification, object: nil)
         stopMotionUpdates()
@@ -210,6 +224,61 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
             }
         }
     }
+   
+    /// Applies a low-power sampling budget suitable for passive reroute monitoring (<8%/hr drain).
+        public func applyPowerBudgetForMonitoring() {
+            applyAccuracy(.eco)
+            manager.distanceFilter = max(manager.distanceFilter, 25)
+        }
+
+        /// Applies a high-accuracy budget for active navigation and reroute recovery.
+        public func applyPowerBudgetForActiveNavigation() {
+            applyAccuracy(.precision)
+        }
+
+        /// Installs circular geofences along a route to detect off-route drift when in the background.
+        public func installGeofences(along route: MKRoute,
+                                     radius: CLLocationDistance = 35,
+                                     spacing: CLLocationDistance = 120) {
+            guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else {
+                logger.log("Geofencing unavailable on this device")
+                return
+            }
+            clearGeofences()
+            let coords = route.polyline.coordinates()
+            guard !coords.isEmpty else { return }
+
+            var lastSample = coords.first!
+            var accumulated: CLLocationDistance = 0
+            var index = 0
+            for coord in coords {
+                let distance = CLLocation(latitude: lastSample.latitude, longitude: lastSample.longitude)
+                    .distance(from: CLLocation(latitude: coord.latitude, longitude: coord.longitude))
+                accumulated += distance
+                if index == 0 || accumulated >= spacing {
+                    accumulated = 0
+                    lastSample = coord
+                    let identifier = "route-geofence-\(route.expectedTravelTime)-\(index)"
+                    let region = CLCircularRegion(center: coord,
+                                                  radius: max(25, radius),
+                                                  identifier: identifier)
+                    region.notifyOnExit = true
+                    region.notifyOnEntry = false
+                    manager.startMonitoring(for: region)
+                    monitoredRegions.append(region)
+                    logger.log("Installed geofence \(identifier) at lat \(coord.latitude), lon \(coord.longitude)")
+                    index += 1
+                }
+            }
+        }
+
+        /// Clears all monitored geofences.
+        public func clearGeofences() {
+            for region in monitoredRegions {
+                manager.stopMonitoring(for: region)
+            }
+            monitoredRegions.removeAll()
+        }
 
     // MARK: - CLLocationManagerDelegate
 
@@ -230,11 +299,22 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
         guard let location = locations.last else { return }
         currentLocation = location
         logger.log("Updated location: lat \(location.coordinate.latitude), lon \(location.coordinate.longitude), accuracy \(location.horizontalAccuracy)m")
+        persistLastLocation(location)
     }
 
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         logger.error("Location manager failed with error: \(error.localizedDescription)")
     }
+
+    public func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+           logger.log("Entered geofence: \(region.identifier)")
+           geofenceEventHandler?(.entered(region))
+       }
+
+       public func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+           logger.log("Exited geofence: \(region.identifier)")
+           geofenceEventHandler?(.exited(region))
+       }
 
     // MARK: - Adaptive Background Location Updates
 
@@ -284,5 +364,20 @@ public final class LocationManagerService: NSObject, ObservableObject, @MainActo
     private func stopMotionUpdates() {
         motionManager?.stopActivityUpdates()
         motionManager = nil
+        }
+    
+    private func restoreLastKnownLocation() {
+        guard let stored = defaults.dictionary(forKey: lastLocationKey) as? [String: Double],
+              let lat = stored["lat"],
+              let lon = stored["lon"] else { return }
+        let location = CLLocation(latitude: lat, longitude: lon)
+        currentLocation = location
+        logger.log("Restored cached location: lat \(lat), lon \(lon)")
+    }
+
+    private func persistLastLocation(_ location: CLLocation) {
+        let payload = ["lat": location.coordinate.latitude, "lon": location.coordinate.longitude]
+        defaults.set(payload, forKey: lastLocationKey)
+        defaults.set(location.timestamp.timeIntervalSince1970, forKey: lastLocationTimestampKey)
     }
 }
