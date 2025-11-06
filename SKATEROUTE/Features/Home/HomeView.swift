@@ -1,72 +1,38 @@
-// Features/Map/HomeView.swift
-import SwiftUI
+// Features/Home/HomeView.swift
+import AVFoundation
 import CoreLocation
 import MapKit
 import AVFoundation
-
-// MARK: - Compile-time shims (only used if core types aren't compiled into this target)
-// If AppCoordinator/AppRouter/RouteMode/PlaceSearchView exist elsewhere, remove this block.
-@MainActor
-final class AppCoordinator: ObservableObject {
-    @Published var router: AppRouter = .home
-}
-
-enum AppRouter {
-    case home
-    case map(source: CLLocationCoordinate2D, destination: CLLocationCoordinate2D, mode: RouteMode)
-}
-
-enum RouteMode {
-    case smoothest
-}
-
-// Minimal placeholder for PlaceSearchView so HomeView builds even if the Search feature
-// isn't included in this target yet. Replace with the real implementation when available.
-struct PlaceSearchView: View {
-    let title: String
-    let region: MKCoordinateRegion?
-    let currentLocationProvider: () -> CLLocationCoordinate2D?
-    let onPick: (MKMapItem) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationView {
-            VStack(spacing: 16) {
-                Text("Search feature not linked in this build.")
-                    .foregroundColor(.secondary)
-                Button("Use Current Location") {
-                    let coord = currentLocationProvider() ?? CLLocationCoordinate2D(latitude: 0, longitude: 0)
-                    let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
-                    onPick(item)
-                    dismiss()
-                }
-            }
-            .padding()
-            .navigationTitle(title)
-        }
-    }
-}
+import SwiftUI
 
 /// The main view for the home screen of the SkateRoute app.
 /// Displays the logo, tagline, primary actions, and footer stats with custom styling and animations.
 struct HomeView: View {
+    private let dependencies: any AppDependencyContainer
+
     @State private var isSearching = false
     @State private var showStats = false
     @State private var asphaltOffset: CGFloat = 0
+
     @EnvironmentObject private var coordinator: AppCoordinator
-    
+
     // Timer for parallax asphalt animation
     private let timer = Timer.publish(every: 0.02, on: .main, in: .common).autoconnect()
     
+
     // System sound ID for soft whoosh
     private let whooshSoundID: SystemSoundID = 1104
     
+
+    init(dependencies: any AppDependencyContainer) {
+        self.dependencies = dependencies
+    }
+
     var body: some View {
         ZStack {
             // Matte grip-tape black background
             Color.black.ignoresSafeArea()
-            
+
             // Asphalt / grunge overlay with subtle parallax effect for depth
             Image("AsphaltTexture")
                 .resizable()
@@ -82,7 +48,7 @@ struct HomeView: View {
                         asphaltOffset = (asphaltOffset > 10) ? -10 : asphaltOffset + 0.2
                     }
                 }
-            
+
             VStack(spacing: 28) {
                 // Logo + animated skateboard-inspired gradient glow + shimmering tagline
                 VStack(spacing: 14) {
@@ -94,7 +60,7 @@ struct HomeView: View {
                             .blur(radius: 30)
                             .opacity(0.7)
                             .accessibilityHidden(true)
-                        
+
                         LogoLockup()
                             .padding(.top, 54)
                     }
@@ -178,20 +144,24 @@ struct HomeView: View {
         .sheet(isPresented: $isSearching) {
             PlaceSearchView(
                 title: "Find a Spot",
-                region: (nil as MKCoordinateRegion?),
+                region: nil,
+                showUseCurrentLocation: true,
                 currentLocationProvider: {
-                    AppDI.shared.locationManager.currentLocation?.coordinate
+                    dependencies.locationManager.currentLocation?.coordinate
                 },
                 onPick: { place in
-                    let dst = place.placemark.coordinate
-                    let src = AppDI.shared.locationManager.currentLocation?.coordinate ?? dst
-                    coordinator.router = AppRouter.map(source: src, destination: dst, mode: RouteMode.smoothest)
+                    RouteMode.smoothest)
+                    let destination = place.placemark.coordinate
+                    let source = dependencies.locationManager.currentLocation?.coordinate ?? destination
+                    coordinator.presentMap(from: source, to: destination, mode: .smoothest)
                     isSearching = false
                 }
             )
         }
     }
 }
+
+// MARK: - Supporting Views
 
 /// A view modifier that applies a shimmering animation effect to text.
 private struct ShimmeringText: View {
@@ -246,17 +216,6 @@ private struct AnimatedGradientGlow: View {
     }
 }
 
-// MARK: - Motion: subtle gravity drift for the tagline (no longer used but kept for reference)
-private struct DownhillDrift: ViewModifier {
-    @State private var y: CGFloat = -6
-    func body(content: Content) -> some View {
-        content
-            .offset(y: y)
-            .animation(.easeOut(duration: 1.2).repeatForever(autoreverses: true), value: y)
-            .onAppear { y = 0 }
-    }
-}
-
 // MARK: - Components
 
 /// Displays the SkateRoute logo with shadow and accessibility label.
@@ -268,28 +227,6 @@ private struct LogoLockup: View {
             .frame(maxWidth: 240)
             .shadow(color: .black.opacity(0.6), radius: 8, y: 4)
             .accessibilityLabel("SkateRoute — All Downhill From Here")
-    }
-}
-
-/// A pill-shaped button used in the home view for quick actions.
-private struct HomePill: View {
-    let icon: String
-    let text: String
-    var body: some View {
-        Button {
-            Haptic.light()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                Text(text).fontWeight(.semibold)
-            }
-            .font(.footnote)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.white.opacity(0.14), in: Capsule())
-            .overlay(Capsule().stroke(.white.opacity(0.12), lineWidth: 1))
-        }
     }
 }
 
@@ -337,5 +274,7 @@ enum Haptic {
 }
 
 #Preview {
-    HomeView()
+    let container = LiveAppDI()
+    HomeView(dependencies: container)
+        .environmentObject(AppCoordinator(dependencies: container))
 }
