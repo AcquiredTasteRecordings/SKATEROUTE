@@ -12,9 +12,9 @@ public final class RouteOptionsReducer {
         public let roughnessEstimate: Double
     }
 
-    private let scorer: SkateRouteScorer
+    private let scorer: SkateRouteScoring
 
-    public init(scorer: SkateRouteScorer = AppDI.shared.routeScorer) {
+    public init(scorer: SkateRouteScoring) {
         self.scorer = scorer
     }
 
