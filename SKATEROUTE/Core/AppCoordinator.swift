@@ -6,23 +6,35 @@ import CoreLocation
 public final class AppCoordinator: ObservableObject {
     @Published public var router: AppRouter = .home
 
-    public init() {}
+    private let dependencies: any AppDependencyContainer
 
-    @ViewBuilder
-    public func makeRootView() -> some View {
+    public init(dependencies: any AppDependencyContainer) {
+        self.dependencies = dependencies
+    }
+
+    public func makeRootView() -> AnyView {
         switch router {
         case .home:
-            // Home needs to be able to push to .map
-            HomeView()
-                .environmentObject(self)
-
-        case .map(let src, let dst, let mode):
-            // MapScreen gets a "done" closure to pop back
-            MapScreen(source: src,
-                      destination: dst,
-                      mode: mode) { [weak self] in
-                self?.router = .home
-            }
+            return AnyView(HomeView(dependencies: dependencies))
+        case let .map(src, dst, mode):
+            return AnyView(
+                MapScreen(source: src,
+                          destination: dst,
+                          mode: mode,
+                          dependencies: dependencies) { [weak self] in
+                    self?.dismissToHome()
+                }
+            )
         }
+    }
+
+    public func presentMap(from source: CLLocationCoordinate2D,
+                           to destination: CLLocationCoordinate2D,
+                           mode: RideMode) {
+        router = .map(source: source, destination: destination, mode: mode)
+    }
+
+    public func dismissToHome() {
+        router = .home
     }
 }
