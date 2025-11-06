@@ -7,7 +7,7 @@ import Combine
 /// Observes location drift relative to the active navigation route and triggers reroute requests.
 @MainActor
 public final class RerouteController: ObservableObject {
-    private let locationService: LocationManagerService
+    private let locationService: LocationManaging
     private var cancellables: Set<AnyCancellable> = []
     private var currentRoute: MKRoute?
     private var offRouteHandler: ((CLLocationCoordinate2D) -> Void)?
@@ -15,7 +15,7 @@ public final class RerouteController: ObservableObject {
     private let offRouteThreshold: CLLocationDistance = 40
     private let rerouteCooldown: TimeInterval = 30
 
-    public init(locationService: LocationManagerService = AppDI.shared.locationManager) {
+    public init(locationService: LocationManaging) {
         self.locationService = locationService
     }
 
@@ -42,7 +42,7 @@ public final class RerouteController: ObservableObject {
             }
         }
 
-        locationService.$currentLocation
+        locationService.currentLocationPublisher
             .compactMap { $0 }
             .receive(on: RunLoop.main)
             .sink { [weak self] location in
