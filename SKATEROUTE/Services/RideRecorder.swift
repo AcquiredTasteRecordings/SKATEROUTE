@@ -48,11 +48,11 @@ public final class RideRecorder: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
-    private let location: LocationManagerService
-    private let matcher: Matcher
-    private let segments: SegmentStore
-    private let motion: MotionRoughnessService
-    private let logger: SessionLogger
+    private let location: LocationManaging
+    private let matcher: RouteMatching
+    private let segments: SegmentStoring
+    private let motion: MotionRoughnessMonitoring
+    private let logger: SessionLogging
 
     private var activeRoute: MKRoute?
     private var lastLocation: CLLocation?
@@ -82,7 +82,7 @@ public final class RideRecorder: ObservableObject {
         triggerStartStopHaptic()
 
         // ---- LOCATION STREAM ----
-        location.$currentLocation
+        location.currentLocationPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] maybeLoc in
                 guard let self = self else { return }
@@ -94,10 +94,10 @@ public final class RideRecorder: ObservableObject {
                 self.speedKPH = speed
 
                 // adaptive motion accuracy
-                if speed > 20 {
-                    if self.location.responds(to: Selector(("setHighAccuracyMode"))) {
-                        self.location.perform(Selector(("setHighAccuracyMode")))
-                    }
+                if speed > 20,
+                   let objcLocation = self.location as? NSObject,
+                   objcLocation.responds(to: Selector(("setHighAccuracyMode"))) {
+                    objcLocation.perform(Selector(("setHighAccuracyMode")))
                 }
 
                 // accumulate distance
@@ -129,7 +129,7 @@ public final class RideRecorder: ObservableObject {
             .store(in: &cancellables)
 
         // ---- MOTION STREAM ----
-        motion.rmsSubject
+        motion.roughnessPublisher
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] rms in
@@ -155,5 +155,3 @@ public final class RideRecorder: ObservableObject {
 
         // Haptic feedback on stop
         triggerStartStopHaptic()
-    }
-}
