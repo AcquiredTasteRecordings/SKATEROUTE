@@ -1,106 +1,114 @@
- // Features/Map/MapScreen.swift
- import SwiftUI
- import MapKit
- import CoreLocation
- import Combine
- 
- public struct MapScreen: View {
-     // Inputs
-     public let source: CLLocationCoordinate2D
-     public let destination: CLLocationCoordinate2D
-     public let mode: RideMode
-     public let onClose: () -> Void
- 
-     // Services
-     private let locationService = AppDI.shared.locationManager
-     private let matcher = AppDI.shared.matcher
-     private let smoothness = AppDI.shared.motionService
-     private let turnCues = TurnCueEngine()
-     private let rerouteController: RerouteController
- 
-     // State
-     @StateObject private var plannerViewModel: RoutePlannerViewMode
-     @StateObject private var recorder = AppDI.shared.rideRecorder
-     @State private var isRiding = false
-     @State private var speedKmh: Double = 0
- 
-     public init(source: CLLocationCoordinate2D,
-                 destination: CLLocationCoordinate2D,
-                 mode: RideMode,
-                 onClose: @escaping () -> Void) {
-         self.source = source
-         self.destination = destination
-         self.mode = mode
-         self.onClose = onClose
-         self._plannerViewModel = StateObject(wrappedValue: RoutePlannerViewModel(routeService: AppDI.shared.routeService,
-                                                                                  reducer: AppDI.shared.routeOptionsReducer,
-                                                                                  offlineTiles: AppDI.shared.offlineTileManager,
-                                                                                  offlineStore: AppDI.shared.offlineRouteStore))
-         self.rerouteController = RerouteController(locationService: AppDI.shared.locationManager)
-     }
- 
-     public var body: some View {
-         ZStack(alignment: .top) {
-             RideTelemetryHUD(recorder: recorder)
-                 .padding(.top, 16)
-                 .padding(.leading, 16)
-                 .frame(maxWidth: .infinity, alignment: .topLeading)
- 
-             MapViewContainer(route: plannerViewModel.selectedRoute,
-                              routeScore: plannerViewModel.selectedOption?.score ?? 0,
-                              overlays: plannerViewModel.overlays)
- 
-             header
- 
-             VStack {
-                 Spacer()
-                 RoutePlannerView(viewModel: plannerViewModel,
-                                  isRiding: $isRiding,
-                                  onRideAction: toggleRide)
-                 .padding(.horizontal, 12)
-                 .padding(.bottom, 24)
-             }
-         }
-         .ignoresSafeArea()
-         .task {
-             plannerViewModel.planRoutes(source: source, destination: destination, mode: mode)
-         }
-         .onAppear {
-             if let cached = plannerViewModel.selectedRoute {
-                 prepareTurnCues(route: cached)
-                 startMonitoring(route: cached)
-             }
-         }
-         .onDisappear {
-             rerouteController.stopMonitoring()
-         }
-         .onReceive(locationService.$currentLocation.compactMap { $0 }) { loc in
-             speedKmh = max(0, loc.speed) * 3.6
-             if let route = plannerViewModel.selectedRoute {
-                 attributeLiveSample(location: loc, route: route)
-                 turnCues.tick(current: loc)
-             }
-         }
-         .onChange(of: plannerViewModel.selectedOptionID) { _ in
-             if let route = plannerViewModel.selectedRoute {
-                 prepareTurnCues(route: route)
-                 startMonitoring(route: route)
-                 if isRiding {
-                     recorder.start(route: route)
-                 }
-             }
-         }
-     }
- }
- 
-    var header: some View {
+// Features/Map/MapScreen.swift
+import Combine
+import CoreLocation
+import MapKit
+import SwiftUI
+
+public struct MapScreen: View {
+    // Inputs
+    public let source: CLLocationCoordinate2D
+    public let destination: CLLocationCoordinate2D
+    public let mode: RideMode
+
+    private let onClose: () -> Void
+    private let dependencies: any AppDependencyContainer
+    private let locationService: LocationManaging
+    private let matcher: RouteMatching
+    private let motionService: MotionRoughnessMonitoring
+    private let rerouteController: RerouteControlling
+    private let turnCueEngine = TurnCueEngine()
+
+    // State
+    @StateObject private var plannerViewModel: RoutePlannerViewModel
+    @ObservedObject private var recorder: RideRecorder
+    @State private var isRiding = false
+    @State private var speedKmh: Double = 0
+
+    public init(source: CLLocationCoordinate2D,
+                destination: CLLocationCoordinate2D,
+                mode: RideMode,
+                dependencies: any AppDependencyContainer,
+                onClose: @escaping () -> Void) {
+        self.source = source
+        self.destination = destination
+        self.mode = mode
+        self.dependencies = dependencies
+        self.onClose = onClose
+
+        self.locationService = dependencies.locationManager
+        self.matcher = dependencies.matcher
+        self.motionService = dependencies.motionService
+        self.rerouteController = dependencies.makeRerouteController()
+
+        _plannerViewModel = StateObject(wrappedValue: dependencies.makeRoutePlannerViewModel())
+        _recorder = ObservedObject(wrappedValue: dependencies.rideRecorder)
+    }
+
+    public var body: some View {
+        ZStack(alignment: .top) {
+            RideTelemetryHUD(recorder: recorder)
+                .padding(.top, 16)
+                .padding(.leading, 16)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
+
+            MapViewContainer(route: plannerViewModel.selectedRoute,
+                             routeScore: plannerViewModel.selectedOption?.score ?? 0,
+                             overlays: plannerViewModel.overlays,
+                             scorer: dependencies.routeScorer)
+
+            header
+
+            VStack {
+                Spacer()
+                RoutePlannerView(viewModel: plannerViewModel,
+                                 isRiding: $isRiding,
+                                 onRideAction: toggleRide)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 24)
+            }
+        }
+        .ignoresSafeArea()
+        .task {
+            plannerViewModel.planRoutes(source: source, destination: destination, mode: mode)
+        }
+        .onAppear {
+            if let cached = plannerViewModel.selectedRoute {
+                prepareTurnCues(route: cached)
+                startMonitoring(route: cached)
+            }
+        }
+        .onDisappear {
+            rerouteController.stopMonitoring()
+        }
+        .onReceive(locationService.currentLocationPublisher.compactMap { $0 }) { location in
+            speedKmh = max(0, location.speed) * 3.6
+            if let route = plannerViewModel.selectedRoute {
+                attributeLiveSample(location: location, route: route)
+                turnCueEngine.tick(current: location)
+            }
+        }
+        .onChange(of: plannerViewModel.selectedOptionID) { _ in
+            if let route = plannerViewModel.selectedRoute {
+                prepareTurnCues(route: route)
+                startMonitoring(route: route)
+                if isRiding {
+                    recorder.start(route: route)
+                }
+            }
+        }
+    }
+
+    private var header: some View {
         HStack {
-            Button(action: onClose) {
+            Button {
+                if isRiding { stopRide() }
+                onClose()
+            } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundColor(.primary)
                     .shadow(radius: 2)
-             }
+            }
 
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
@@ -113,57 +121,58 @@
                     Text(label)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                 }
-             }
-         }
+                }
+            }
+        }
         .padding(.horizontal, 16)
         .padding(.top, 12)
-     }
- 
-    func toggleRide() {
+    }
+
+    private func toggleRide() {
         if isRiding {
             stopRide()
         } else {
             startRide()
         }
-     }
- 
-     func startRide() {
-         locationService.requestTemporaryFullAccuracyIfNeeded(purposeKey: "NavigationPrecision")
-         locationService.startUpdating()
-         locationService.applyPowerBudgetForActiveNavigation()
-         smoothness.start()
-         recorder.start(route: plannerViewModel.selectedRoute)
-         if let route = plannerViewModel.selectedRoute {
-             prepareTurnCues(route: route)
-         }
-         isRiding = true
-     }
- 
-     func stopRide() {
-         locationService.stopUpdating()
-         locationService.applyPowerBudgetForMonitoring()
-         smoothness.stop()
-         recorder.stop()
-         isRiding = false
-     }
- 
-    func prepareTurnCues(route: MKRoute) {
-        turnCues.prepare(route: route)
     }
- 
-    func startMonitoring(route: MKRoute) {
+
+    private func startRide() {
+        locationService.requestTemporaryFullAccuracyIfNeeded(purposeKey: "NavigationPrecision")
+        locationService.startUpdating()
+        locationService.applyPowerBudgetForActiveNavigation()
+        motionService.start()
+        recorder.start(route: plannerViewModel.selectedRoute)
+        if let route = plannerViewModel.selectedRoute {
+            prepareTurnCues(route: route)
+        }
+        isRiding = true
+    }
+
+    private func stopRide() {
+        locationService.stopUpdating()
+        locationService.applyPowerBudgetForMonitoring()
+        motionService.stop()
+        recorder.stop()
+        isRiding = false
+    }
+
+    private func prepareTurnCues(route: MKRoute) {
+        turnCueEngine.prepare(route: route)
+    }
+
+    private func startMonitoring(route: MKRoute) {
         rerouteController.startMonitoring(route: route) { coordinate in
             plannerViewModel.reroute(from: coordinate)
             rerouteController.markRouteStabilized()
-         }
-     }
- 
-    func attributeLiveSample(location: CLLocation, route: MKRoute) {
-        let sample = MatchSample(location: location, roughnessRMS: smoothness.currentRMS ?? 0.0)
-        if let index = matcher.nearestStepIndex(on: route, to: sample) {
-            let stepId = SegmentStore.shared.makeStepId(route: route, stepIndex: index)
-            SegmentStore.shared.update(stepId: stepId, with: sample.roughnessRMS)
         }
-     }
- }
+    }
+
+    private func attributeLiveSample(location: CLLocation, route: MKRoute) {
+        let sample = MatchSample(location: location, roughnessRMS: motionService.currentRMS ?? 0.0)
+        if let index = matcher.nearestStepIndex(on: route, to: sample) {
+            let store = dependencies.segmentStore
+            let stepId = store.makeStepId(route: route, stepIndex: index)
+            store.update(stepId: String(stepId), with: sample.roughnessRMS)
+        }
+    }
+}
