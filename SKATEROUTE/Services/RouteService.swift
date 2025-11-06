@@ -53,14 +53,14 @@ public final class RouteService {
        // MARK: - Properties
 
     private let routeCache = NSCache<NSString, MKRoute>()
-    private let elevation: ElevationService
-        private let contextBuilder: RouteContextBuilder
+    private let elevation: ElevationServing
+       private let contextBuilder: RouteContextBuilding
 
-        public init(elevation: ElevationService = AppDI.shared.elevationService,
-                    contextBuilder: RouteContextBuilder = AppDI.shared.routeContextBuilder) {
-            self.elevation = elevation
-            self.contextBuilder = contextBuilder
-        }
+       public init(elevation: ElevationServing,
+                   contextBuilder: RouteContextBuilding) {
+           self.elevation = elevation
+           self.contextBuilder = contextBuilder
+       }
     
     // MARK: - Public API
 
