@@ -4,10 +4,13 @@ import os
 
 @main
 struct DownhillNavigatorApp: App {
-    @StateObject private var di = AppDI.shared
-    private let coordinator = AppCoordinator()
+    @StateObject private var dependencies: LiveAppDI
+    @StateObject private var coordinator: AppCoordinator
 
     init() {
+        let container = LiveAppDI()
+        _dependencies = StateObject(wrappedValue: container)
+        _coordinator = StateObject(wrappedValue: AppCoordinator(dependencies: container))
         let logger = Logger(subsystem: "com.skateroute.app", category: "analytics")
         logger.info("App launched at \(Date().formatted(.iso8601))")
     }
@@ -17,7 +20,8 @@ struct DownhillNavigatorApp: App {
             NavigationStack {
                 coordinator.makeRootView()
             }
-            .environmentObject(di)
+            .environmentObject(coordinator)
+            .environmentObject(dependencies)
             .onOpenURL { url in
                 coordinator.handleDeepLink(url)
             }
