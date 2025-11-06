@@ -6,15 +6,20 @@ public struct MapViewContainer: UIViewRepresentable {
     public let route: MKRoute?
     public let routeScore: Double
     public let overlays: [MKPolyline]
+    private let scorer: SkateRouteScoring
 
-    public init(route: MKRoute?, routeScore: Double, overlays: [MKPolyline] = []) {
+    public init(route: MKRoute?,
+                routeScore: Double,
+                overlays: [MKPolyline] = [],
+                scorer: SkateRouteScoring) {
         self.route = route
         self.routeScore = routeScore
         self.overlays = overlays
+        self.scorer = scorer
     }
 
     public func makeCoordinator() -> MapPatternsCoordinator {
-        MapPatternsCoordinator()
+        MapPatternsCoordinator(scorer: scorer)
     }
 
     public func makeUIView(context: Context) -> MKMapView {
@@ -59,12 +64,17 @@ public struct MapViewContainer: UIViewRepresentable {
 @MainActor
 public final class MapPatternsCoordinator: NSObject, MKMapViewDelegate {
     public var currentRouteScore: Double = 0
-
+    private let scorer: SkateRouteScoring
+    
+    public init(scorer: SkateRouteScoring) {
+        self.scorer = scorer
+    }
+    
     public func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         if let polyline = overlay as? MKPolyline {
             let r = MKPolylineRenderer(polyline: polyline)
             // Default color from route score if no metadata present
-            var stroke = AppDI.shared.routeScorer.color(forScore: currentRouteScore)
+            var stroke = scorer.color(for: currentRouteScore)
             var dash: [NSNumber]? = nil
             if let title = polyline.title, !title.isEmpty {
                 // Expect format: "#RRGGBB" or "#RRGGBB|dash"
@@ -83,27 +93,12 @@ public final class MapPatternsCoordinator: NSObject, MKMapViewDelegate {
         }
         return MKOverlayRenderer(overlay: overlay)
     }
-
+    
     public func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         guard !(annotation is MKUserLocation) else { return nil }
         let id = "poi-marker"
         let view = mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView
-            ?? MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: id)
+        ?? MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: id)
         view.clusteringIdentifier = "poi-cluster"
-        view.canShowCallout = true
-        view.animatesWhenAdded = true
-        return view
-    }
-}
-
-extension UIColor {
-    /// Parses a 6-digit hex string like "#FF00CC" or "FF00CC" into a UIColor.
-    convenience init?(hex6: String, alpha: CGFloat = 1.0) {
-        let s = hex6.hasPrefix("#") ? String(hex6.dropFirst()) : hex6
-        guard s.count == 6, let v = Int(s, radix: 16) else { return nil }
-        let r = CGFloat((v >> 16) & 0xFF) / 255.0
-        let g = CGFloat((v >> 8) & 0xFF) / 255.0
-        let b = CGFloat(v & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b, alpha: alpha)
     }
 }
