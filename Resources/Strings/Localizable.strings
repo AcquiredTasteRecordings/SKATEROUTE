@@ -1,0 +1,107 @@
+// Resources/Strings/Localizable.strings
+// Base (en)
+
+////////////////////////
+// Home / Entry Points
+////////////////////////
+"home.cta.plan" = "Plan a route";
+"home.search.hint" = "Search a place or spot";
+"home.permission.location_title" = "Location access";
+"home.permission.location_body" = "We use your location for guidance and hazard alerts. You’re in control.";
+
+////////////////////////
+// Map / Overlays
+////////////////////////
+"map.overlay.legend.smooth" = "Smooth surface";
+"map.overlay.legend.rough"  = "Rough surface";
+
+////////////////////////
+// Navigation Cues
+////////////////////////
+"nav.cue.turn_left"      = "Turn left";
+"nav.cue.turn_right"     = "Turn right";
+"nav.cue.keep_straight"  = "Keep straight";
+
+////////////////////////
+// Hazards
+////////////////////////
+"hazard.add.title"   = "Report a hazard";
+"hazard.add.success" = "Thanks—your report is live.";
+"hazard.pin.severity_low"    = "Low";
+"hazard.pin.severity_medium" = "Medium";
+"hazard.pin.severity_high"   = "High";
+
+////////////////////////
+// Paywall
+////////////////////////
+"paywall.title"               = "SkateRoute Plus";
+"paywall.offlinepacks.body"   = "Download offline packs, advanced editor exports, and premium badges. Safety features remain free.";
+"paywall.button.buy"          = "Upgrade";
+"paywall.button.restore"      = "Restore purchases";
+
+////////////////////////
+// Referrals
+////////////////////////
+"referral.invite.title"          = "Invite friends";
+"referral.invite.body_template"  = "Ride with me on SkateRoute. Use my link: %@";
+
+////////////////////////
+// Profile Stats
+////////////////////////
+"profile.stats.distance" = "Distance";
+"profile.stats.hazards"  = "Hazards resolved";
+
+////////////////////////
+// Accessibility / VoiceOver
+////////////////////////
+"a11y.button.close" = "Close";
+"a11y.button.back"  = "Back";
+"a11y.map.voice_toggle_on"  = "Voice guidance on";
+"a11y.map.voice_toggle_off" = "Voice guidance off";
+"a11y.hazard.pin.description" = "Hazard: %@, severity %@, reported %@ ago";
+
+////////////////////////
+// Errors (mirrors AppError)
+////////////////////////
+// Network / Offline
+"errors.network.title"       = "Network issue";
+"errors.network.message"     = "We couldn’t reach the server.";
+"errors.offline.title"       = "You’re offline";
+"errors.offline.message"     = "Some features are unavailable without internet.";
+
+// Timeouts
+"errors.timeout.title"       = "Timed out";
+"errors.timeout.message"     = "This took too long. Please try again.";
+
+// Location
+"errors.location.denied.title"       = "Location denied";
+"errors.location.denied.message"     = "Turn on location to navigate and receive hazard alerts.";
+"errors.location.denied.suggestion"  = "Open Settings to allow location.";
+"errors.location.precision_low.message" = "GPS accuracy is low. Results may vary.";
+
+// Routing
+"errors.route.not_found.title"      = "No route found";
+"errors.route.not_found.message"    = "Try another destination or relax filters.";
+"errors.route.reroute_failed.title" = "Reroute failed";
+"errors.route.reroute_failed.message" = "We’ll keep trying.";
+
+// Purchases
+"errors.purchase.failed.title"       = "Purchase failed";
+"errors.purchase.failed.message"     = "Your payment didn’t complete.";
+"errors.purchase.failed.suggestion"  = "Try again or check your App Store settings.";
+"errors.purchase.canceled.message"   = "Purchase canceled.";
+"errors.store.product_unavailable"   = "Product unavailable right now.";
+"errors.store.restore_failed"        = "Couldn’t restore purchases.";
+
+// Uploads / Media
+"errors.upload.failed.title"     = "Upload failed";
+"errors.upload.failed.message"   = "We’ll retry when the network improves.";
+"errors.media.permission_denied" = "Media permission denied.";
+"errors.media.disk_full"         = "Storage is full. Free up space and try again.";
+
+// Hazards / Spots
+"errors.hazard.merge_failed"           = "Couldn’t merge similar hazards.";
+"errors.spot.moderation_required"      = "Pending review before it goes live.";
+
+// Config
+"errors.rc.refresh_failed"             = "Couldn’t refresh remote settings.";

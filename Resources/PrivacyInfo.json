@@ -1,0 +1,100 @@
+// PrivacyInfo.json
+{
+  "NSPrivacyTracking": false,
+  "NSPrivacyTrackingDomains": [],
+  "NSPrivacyCollectedDataTypes": [
+    {
+      "NSPrivacyCollectedDataType": "Location",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "App Functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Coarse Location",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "App Functionality"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Product Interaction",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "App Functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Crash Data",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "Analytics"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Performance Data",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "Analytics"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Purchase History",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "App Functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "NSPrivacyCollectedDataType": "Device ID",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "App Functionality",
+        "Fraud Prevention, Security, and Compliance"
+      ]
+    }
+  ],
+      "NSPrivacyAccessedAPITypes": []
+  {
+      "NSPrivacyTracking": false,
+      "NSPrivacyCollectedDataTypes": [
+  {
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeLocation",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+  },
+  {
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeMotionFitness",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+  },
+  {
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeUserContent",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"]
+  },
+  {
+      "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDiagnostics",
+      "NSPrivacyCollectedDataTypeLinked": false,
+      "NSPrivacyCollectedDataTypeTracking": false,
+      "NSPrivacyCollectedDataTypePurposes": [
+        "NSPrivacyCollectedDataTypePurposeAnalytics",
+        "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+    ]
+  }
+]
+}
+}

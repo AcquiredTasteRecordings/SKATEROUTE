@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "city": "Victoria, BC",
+  "lastUpdated": "2025-10-30",
+  "dataSource": "Community & OpenStreetMap",
+  "points": [
+    {
+      "lat": 48.428493,
+      "lon": -123.36557,
+      "hasProtectedLane": true,
+      "hasPaintedLane": false,
+      "surface": "asphalt",
+      "surfaceRough": false,
+      "hazardCount": 0,
+      "lightingLevel": "good",
+      "freshnessDays": 0
+    },
+    {
+      "lat": 48.43054,
+      "lon": -123.36594,
+      "hasProtectedLane": false,
+      "hasPaintedLane": true,
+      "surface": "asphalt",
+      "surfaceRough": false,
+      "hazardCount": 1,
+      "lightingLevel": "good",
+      "freshnessDays": 2
+    },
+    {
+      "lat": 48.43225,
+      "lon": -123.3691,
+      "hasProtectedLane": false,
+      "hasPaintedLane": false,
+      "surface": "pavers",
+      "surfaceRough": true,
+      "hazardCount": 2,
+      "lightingLevel": "moderate",
+      "freshnessDays": 5
+    },
+    {
+      "lat": 48.4353,
+      "lon": -123.3699,
+      "hasProtectedLane": true,
+      "hasPaintedLane": false,
+      "surface": "asphalt",
+      "surfaceRough": false,
+      "hazardCount": 0,
+      "lightingLevel": "poor",
+      "freshnessDays": 7
+    },
+    {
+      "lat": 48.42741,
+      "lon": -123.36892,
+      "hasProtectedLane": false,
+      "hasPaintedLane": true,
+      "surface": "concrete",
+      "surfaceRough": true,
+      "hazardCount": 3,
+      "lightingLevel": "moderate",
+      "freshnessDays": 3"
+    },
+    {
+      "lat": 48.43712,
+      "lon": -123.36251,
+      "hasProtectedLane": true,
+      "hasPaintedLane": false,
+      "surface": "asphalt",
+      "surfaceRough": false,
+      "hazardCount": 0,
+      "lightingLevel": "good",
+      "freshnessDays": 1
+    }
+  ]
+}

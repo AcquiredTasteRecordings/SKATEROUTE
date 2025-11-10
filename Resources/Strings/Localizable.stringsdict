@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>distance.km</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@UNIT_FORMAT@</string>
+		<key>UNIT_FORMAT</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>zero</key>
+			<string>%d kilometers</string>
+			<key>one</key>
+			<string>%d kilometer</string>
+			<key>other</key>
+			<string>%d kilometers</string>
+		</dict>
+	</dict>
+	<key>distance.miles</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@UNIT_FORMAT@</string>
+		<key>UNIT_FORMAT</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>zero</key>
+			<string>%d miles</string>
+			<key>one</key>
+			<string>%d mile</string>
+			<key>other</key>
+			<string>%d miles</string>
+		</dict>
+	</dict>
+	<key>hazard.count_nearby</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@COUNT@</string>
+		<key>COUNT</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>zero</key>
+			<string>No hazards nearby</string>
+			<key>one</key>
+			<string>%d hazard nearby</string>
+			<key>other</key>
+			<string>%d hazards nearby</string>
+		</dict>
+	</dict>
+	<key>eta.minutes</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@MINS@</string>
+		<key>MINS</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d minute</string>
+			<key>other</key>
+			<string>%d minutes</string>
+		</dict>
+	</dict>
+	<key>eta.seconds</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@SECS@</string>
+		<key>SECS</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>one</key>
+			<string>%d second</string>
+			<key>other</key>
+			<string>%d seconds</string>
+		</dict>
+	</dict>
+	<key>leaderboard.rank</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>Rank #%d</string>
+		<key>NSStringFormatValueTypeKey</key>
+		<string>d</string>
+	</dict>
+</dict>
+</plist>
