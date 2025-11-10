@@ -1,0 +1,119 @@
+// App-Shared.xcconfig
+// Global build settings shared by all configurations.
+
+// ───────────── App & Signing (override per-target as needed)
+PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.skateroute
+DEVELOPMENT_TEAM = YOURTEAMID
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_LANGUAGE = en
+INFOPLIST_FILE = Info/Info.plist
+GENERATE_INFOPLIST_FILE = NO
+
+// ───────────── Platforms & Deployment
+SDKROOT = iphoneos
+IPHONEOS_DEPLOYMENT_TARGET = 16.0
+TARGETED_DEVICE_FAMILY = 1,2    // iPhone, iPad (keeps options open)
+SUPPORTED_PLATFORMS = iphonesimulator iphoneos
+
+// ───────────── Swift / Concurrency
+SWIFT_VERSION = 5.10
+SWIFT_STRICT_CONCURRENCY = complete            // compile-time strictness
+SWIFT_ENFORCE_EXCLUSIVE_ACCESS = full
+ENABLE_BITCODE = NO                            // removed from modern toolchains
+OTHER_SWIFT_FLAGS = \
+  -Xfrontend -warn-concurrency \
+  -Xfrontend -enable-actor-data-race-checks
+
+// Debug-only heavy diagnostics (override off in Release.xcconfig)
+OTHER_SWIFT_FLAGS[config=Debug] = $(OTHER_SWIFT_FLAGS) \
+  -Xfrontend -warn-long-function-bodies=200 \
+  -Xfrontend -warn-long-expression-type-checking=150
+
+// ───────────── Optimization & Symbols
+// Size- and battery-leaning defaults. Tweak per-config in your config-specific files.
+SWIFT_OPTIMIZATION_LEVEL = -Osize
+DEAD_CODE_STRIPPING = YES
+STRIP_INSTALLED_PRODUCT = YES
+ONLY_ACTIVE_ARCH = YES
+
+// Symbols: full in Debug, dSYM in Release (override per-config if needed)
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+
+// ───────────── Warnings (high-signal, low-noise)
+CLANG_WARN_DOCUMENTATION_COMMENTS = YES
+CLANG_ANALYZER_NONNULL = YES
+CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES
+CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES
+CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE
+CLANG_WARN_SUSPICIOUS_MOVES = YES
+CLANG_WARN_RANGE_LOOP_ANALYSIS = YES
+CLANG_WARN_COMMA = YES
+CLANG_WARN_STRICT_PROTOTYPES = YES
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
+GCC_WARN_UNUSED_VARIABLE = YES
+GCC_WARN_UNUSED_FUNCTION = YES
+GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE
+CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES
+
+// ───────────── Linking
+DEAD_CODE_STRIPPING = YES
+OTHER_LDFLAGS =
+LD_VERIFY_BITCODE = NO
+
+// Avoid accidental ObjC category loading hacks; SPM Firebase doesn’t need -ObjC.
+OTHER_LDFLAGS[sdk=iphoneos*] = $(OTHER_LDFLAGS)
+OTHER_LDFLAGS[sdk=iphonesimulator*] = $(OTHER_LDFLAGS)
+
+// ───────────── Assets & Resources
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES
+
+// ───────────── Localization / Strings
+USE_HEADERMAP = YES
+CLANG_ANALYZER_LOCALIZABILITY_EMPTY_CONTEXT = YES
+
+// ───────────── Testing / Previews
+ENABLE_TESTABILITY = YES
+ENABLE_PREVIEWS = YES
+SWIFT_EMIT_LOC_STRINGS = YES      // collect NSLocalizedString keys
+
+// ───────────── Sanitizers (opt-in per-config; left off here for runtime perf)
+// ADDRESS_SANITIZER = YES
+// THREAD_SANITIZER = YES
+
+// ───────────── App Store / CI hygiene
+VALIDATE_WORKSPACE = YES
+COPY_PHASE_STRIP = YES
+
+// ───────────── Architectures
+ARCHS_STANDARD = $(ARCHS_STANDARD)    // Xcode default
+EXCLUDED_ARCHS = i386
+
+// ───────────── Feature Flags (used by code to gate features at compile time)
+// Toggle in per-config xcconfigs as needed, e.g. add -D flags to Debug only.
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = \
+  $(inherited) \
+  MAPKIT_FIRST \
+  PRIVACY_NO_TRACKING \
+  ENABLE_OFFLINE_TILES \
+  ENABLE_HAZARD_LOCAL_CACHE
+
+// Example per-config adds (place in Debug.xcconfig / Release.xcconfig):
+//   SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) DEBUG LOGGING
+//   // or in Release: SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) PRODUCTION
+
+// ───────────── Build Performance
+COMPILER_INDEX_STORE_ENABLE = NO              // speed up clean CI builds
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+
+// ───────────── App Thinning / Slices
+ENABLE_NS_ASSERTIONS = NO
+ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES
+
+// ───────────── Privacy Manifest (kept in Resources/PrivacyInfo.xcprivacy)
+// Nothing to wire here; ensure the file is in the target’s Resources phase.
+
+// ───────────── Map / Metal debug (debug-only overrides recommended)
+// MTL_ENABLE_DEBUG_INFO = include-source
+// MTL_SHADER_VALIDATION = YES
