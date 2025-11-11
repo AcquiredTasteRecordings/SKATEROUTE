@@ -1,4 +1,3 @@
-cat > Resources/Legal/TermsOfUse.md <<'MD'
 # SkateRoute Terms of Use
 
 _Last updated: 2025-11-10_
@@ -37,4 +36,3 @@ We may update these Terms. Continued use means acceptance of the updated Terms.
 
 ## 11. Contact
 support@skateroute.app
-MD

@@ -4,62 +4,64 @@
 
 ---
 
-## 0) What “good” looks like
+## 0) What “good” looks like (1.0 Final)
 
-**User outcome (Beta):** From a start & destination, the app returns a route that:
+**User outcome:** From a start & destination, the app returns a route that:
 - Minimizes roughness and uphill while respecting legality/safety.
 - Shows per-step coloring (butter → meh → crusty), downhill braking dashes, ETA/distance, and a grade summary.
-- Runs a **Start / Stop** ride recorder: logs roughness + speed + location on-device, colors the live route, and provides subtle haptic cues.
-- Works offline for the active route (cached tiles + per-step attributes).
-- Asks for only the minimal permissions with clear, honest copy.
+- Runs a **Start / Stop** ride recorder: logs roughness + speed + location on-device, colors the live route, and provides subtle haptic/voice cues.
+- **Reroutes** when off-route (>25 m) with low-distraction guidance.
+- Works **offline** for active routes (cached tiles + per-step attributes + elevation summary via city packs).
+- Prompts only for **minimal permissions** with clear, honest copy.
+
+**Community & growth outcome:**
+- **Gamified check-ins**, **weekly challenges**, **leaderboards**, and **badges** (e.g., *“100 km with SkateRoute”*).
+- **Referral links** (universal links + `skateroute://`) deep-link into community/challenge flows with safe onboarding.
+- Lightweight **capture/edit/share** of ride clips; background-safe uploads; feed with moderation.
 
 **Engineering outcomes:**
 - Deterministic, testable **scoring** with explicit weights and feature toggles.
-- Clear **service boundaries** and protocols; no UIKit or SwiftUI in Services.
-- CI green; zero avoidable crashes; no main-actor violations in Services.
+- Clear **service boundaries** and protocols; no UIKit/SwiftUI in Services.
+- CI green; zero avoidable crashes; no main-actor violations in Services; performance budgets met.
 
 ---
 
 ## 1) Platforms, SDK, and constraints
-
-- **iOS**: 17+ (target), 18.x (tested), iPhone-only for now.
-- **Maps**: MapKit routes (on-device + Apple services). No third‑party maps required.
-- **No background network uploads**; all telemetry/logging remains on-device.
-- **Privacy**: Location + Motion are used strictly for navigation/safety (no tracking, no 3P ads).
+- **iOS**: 17+ (target), 18.x (tested), iPhone-only.
+- **Maps**: MapKit routes (on-device + Apple services). Third‑party maps optional behind feature flags.
+- **System frameworks**: StoreKit 2, BackgroundTasks, AVFoundation, CoreMotion, CoreLocation, UserNotifications, SafariServices (for terms/privacy), PassKit (Apple Pay, when enabled).
+- **Privacy**: No third‑party tracking SDKs. Location + Motion strictly for navigation/safety; analytics beyond essentials are **opt‑in**.
 - **Performance guardrails**:
-  - CPU budget during ride: \< 12% on A16 equivalent
-  - Memory headroom: \> 150 MB free at runtime
+  - CPU during ride: **< 12%** on A16-equivalent
+  - Memory headroom: **> 150 MB** free
   - Motion sampling: 50–100 Hz internal, 10 Hz processed
-  - Location: desiredAccuracy `bestForNavigation`, distanceFilter adaptively 5–15 m
+  - Location: `bestForNavigation`, adaptive distanceFilter 5–15 m
+  - Cold start: **≤ 1.2 s**
 
 ---
 
 ## 2) High-level architecture (folders map)
 
 - **Core/**
-  - `AppCoordinator`: navigation flow (Home → Map → Ride).
-  - `AppDI`: dependency graph (singletons/factories), testable injection points.
-  - `AppRouter`: enum-based screen routing.
+  - `AppCoordinator` — navigation flow (Home → Map → Ride).
+  - `AppDI` — dependency graph (singletons/factories), testable injection.
+  - `AppRouter` — enum-based screen routing.
 - **Features/**
-  - **Home/**: onboarding hero, origin/destination fields, presets (RideMode), quick access to recent routes.
-  - **Map/**: `MapScreen` (route preview + Start/Stop), `MapViewContainer` (MKMapView host), `SmoothOverlayRenderer` (per-step coloring & braking dashes).
-  - **Search/**: `PlaceSearchView`, `PlaceSearchViewModel` (MKLocalSearch wrapper with debounced updates).
-  - **UX/**: `RideMode`, `TurnCueEngine`, `HapticCue`, `SpeedHUDView`, `RideTelemetryHUD`.
-  - **Community/**: `QuickReportView`, `SurfaceRating` (2-tap “butter/okay/crusty”).
+  - **Home/** — onboarding hero, origin/destination fields, **RideMode** presets, **Challenges widget**, **Referral card**, recents.
+  - **Map/** — `MapScreen` (route preview + Start/Stop), `MapViewContainer` (MKMapView host), `SmoothOverlayRenderer` (per-step coloring & braking dashes).
+  - **Navigate/** — Ride HUD, cues, reroute, geofenced hazard alerts.
+  - **Search/** — `PlaceSearchView`, `PlaceSearchViewModel` (MKLocalSearch wrapper with debounced updates).
+  - **Spots/** — discovery list/map, spot detail, add-a-spot (private option).
+  - **Social/** — capture, edit, upload queue, feed, profile.
+  - **Commerce/** — paywall, IAP, Apple Pay/Stripe flows.
+  - **Settings/** — permissions, privacy, data export/delete, units, voice/haptics.
+  - **OfflinePacks/** — city pack manager (download/update/delete).
 - **Services/**
-  - `RouteService`: wraps MapKit Directions; canonical entry for route building.
-  - `RouteContextBuilder`: derives `StepContext` array (per-step feature vector).
-  - `ElevationService`: DEM sampling, grade summaries, braking zone detection.
-  - `Matcher`: maps telemetry samples → nearest route step index.
-  - `MotionRoughnessService`: accelerometer/gyro → RMS roughness (battery‑light).
-  - `SmoothnessEngine`: smoothing & stability metric for UI.
-  - `SegmentStore`: on-device store for per-step features & decay-by-age updates.
-  - `SkateRouteScorer`: combiner of features into a scalar route score (mode-aware).
-  - `RideRecorder`: orchestrates motion+location capture, step-attribution, logging.
-  - `SessionLogger`: newline-delimited JSON (NDJSON) ride logs to app sandbox.
+  - `RouteService`, `RouteContextBuilder`, `ElevationService`, `Matcher`, `MotionRoughnessService`, `SmoothnessEngine`, `SegmentStore`, `SkateRouteScorer`, `RideRecorder`, `SessionLogger`.
   - `GeocoderService`, `AttributionService`, `CacheManager`, `LocationManagerService`.
+  - **New (growth/commerce):** `ChallengeService`, `LeaderboardService`, `CheckInService`, `BadgeService`, `ReferralService` (deep links), `IAPService` (StoreKit 2), `PaymentsService` (Apple Pay/Stripe for physical goods), `BackgroundUploadService`, `HazardAlertService` (geofence + notification).
 - **Support/Utilities/**
-  - `AccuracyProfile`, `Geometry`, etc.
+  - `AccuracyProfile`, `Geometry`, `DeepLinkParser`, `UnitFormatters`, test fixtures, GPX.
 
 All UI talks to **Services** via protocols injected by **AppDI**. Services are pure (UIKit/SwiftUI-free) and unit-testable.
 
@@ -67,68 +69,82 @@ All UI talks to **Services** via protocols injected by **AppDI**. Services are p
 
 ## 3) Core domain models (canonical types)
 
-> These types are reference shapes used across Services and Features. Keep them small, copyable, and value-semantics friendly.
-
 ```swift
 public struct StepContext: Sendable, Hashable {
     public let stepIndex: Int
     public let distance: CLLocationDistance
     public let expectedGradePct: Double        // [-30, +30]
-    public let brakingZone: Bool               // grade < -6% over ≥30 m
+    public let brakingZone: Bool               // downhill caution zone
     public let crossingsPerKm: Double          // proxy via step density or OSM later
-    public let hasBikeLane: Bool               // from OSM/municipal overlays when present
+    public let hasBikeLane: Bool               // overlays when present
     public let surfaceRoughnessRMS: Double?    // rolling median from SegmentStore
-    public let hazardScore: Double?            // potholes/gravel/etc., 0..1 if known
-    public let legalityScore: Double?          // 0..1 (1 = fully legal/allowed)
+    public let hazardScore: Double?            // 0..1 if known
+    public let legalityScore: Double?          // 0..1 (1 = fully legal)
     public let freshnessDays: Double?          // how recent the data is
 }
-```
 
-```swift
 public struct GradeSummary: Sendable, Hashable {
     public let maxGradePct: Double
     public let meanGradePct: Double
     public let totalClimbMeters: Double
     public let totalDescentMeters: Double
-    public let brakingMask: IndexSet          // step indices that require caution
+    public let brakingMask: IndexSet          // step indices requiring caution
 }
-```
 
-```swift
 public enum RideMode: String, CaseIterable, Sendable {
     case smoothest, chillFewCrossings, fastMildRoughness, nightSafe, trickSpotCrawl
+}
+
+public struct CheckIn: Sendable, Hashable {
+    public let id: UUID
+    public let spotID: String
+    public let timestamp: Date
+    public let location: CLLocationCoordinate2D
+}
+
+public struct Challenge: Sendable, Hashable {
+    public let id: String
+    public let title: String
+    public let type: String   // distance, elevation, spots
+    public let period: DateInterval // weekly
+    public let goal: Double
+}
+
+public struct LeaderboardEntry: Sendable, Hashable {
+    public let userID: String
+    public let displayName: String
+    public let metric: Double // distance/elevation/etc.
+}
+
+public struct Badge: Sendable, Hashable {
+    public let id: String
+    public let name: String
+    public let unlockedAt: Date?
+}
+
+public struct ReferralPayload: Sendable, Hashable {
+    public let code: String
+    public let deepLink: URL // skateroute://challenge/<id> etc.
 }
 ```
 
 ---
 
 ## 4) Services — behavior contracts
-
-> Services expose protocols. Concrete impls live beside the protocols; tests can inject stubs.
+> Services expose protocols. Concrete impls live beside the protocols; tests may inject stubs.
 
 ### 4.1 `RouteService`
-**Purpose**: Single source of truth for route calculation and caching.
-
-**API (suggested):**
 ```swift
 protocol RouteService {
     func fetchRoute(from: MKMapItem, to: MKMapItem, mode: RideMode) async throws -> MKRoute
 }
 ```
-**Notes**:
-- Prefer shortest or recommended MapKit profile but post-score via `SkateRouteScorer`.
-- Cache by `(start,dest,mode)` key; invalidate when overlays change materially.
+- MapKit for baseline; post-score via `SkateRouteScorer`. Cache by `(start,dest,mode)`.
 
 ### 4.2 `RouteContextBuilder`
-**Purpose**: Convert `MKRoute` → `[StepContext]`.
-
-**Inputs**: MKRoute.steps, ElevationService, overlays (bike lanes, hazards), historical SegmentStore stats.  
-**Outputs**: Dense per-step features with conservative defaults if data is missing.
+- MKRoute → `[StepContext]` using ElevationService, overlays (bike lanes, hazards), and SegmentStore.
 
 ### 4.3 `ElevationService`
-**Purpose**: Grade/summary; braking zone detection.
-
-**API**:
 ```swift
 protocol ElevationService {
     func elevation(_ coord: CLLocationCoordinate2D) async -> Double?
@@ -136,236 +152,209 @@ protocol ElevationService {
     func summarizeGrades(on route: MKRoute) async -> GradeSummary
 }
 ```
-**Notes**:
-- DEM source (pluggable): SRTM/Terrain-RGB/City DEM when available.
-- Sample every 50–100 m; infer step grade from polyline sampling.
-- `brakingZone`: grade \< −6% for ≥ 30 m.
+- Sample 50–100 m; braking zones for downhill (e.g., ≤ −8% for ≥ 50 m).
 
 ### 4.4 `Matcher`
-**Purpose**: Snap a telemetry sample → nearest step index.
-
 ```swift
 struct MatchSample { let location: CLLocation; let roughnessRMS: Double }
 protocol Matcher {
     func nearestStepIndex(on route: MKRoute, to sample: MatchSample, tolerance: CLLocationDistance) -> Int?
 }
 ```
-**Defaults**: tolerance 40 m; reject if beyond tolerance to avoid noise.
+- Default tolerance ~40 m; reject if > tolerance.
 
-### 4.5 `MotionRoughnessService` & `SmoothnessEngine`
-- **MotionRoughnessService**: band-pass filter + RMS on a rolling window; publish 10 Hz value.
-- **SmoothnessEngine**: low-pass smoothed RMS (UI stability metric).
+### 4.5 Motion & smoothing
+- **MotionRoughnessService**: band‑pass + RMS, publish 10 Hz.
+- **SmoothnessEngine**: low‑pass smoothing for stable HUD.
 
 ### 4.6 `SegmentStore`
-**Purpose**: Per-step feature storage, decays with age.
-
-**API shape**:
 ```swift
 enum SegmentFeature: String { case roughnessRMS, hazardScore, bikeLane, legalityScore, crossingsPerKm }
-
 protocol SegmentStore {
     func value(stepIndex: Int, feature: SegmentFeature) -> Double?
     func update(stepIndex: Int, feature: SegmentFeature, value: Double, freshness: Date)
     func decayAll(now: Date)
 }
 ```
-**File layout**: `/tiles/segments-{z}-{x}-{y}.json` (pluggable). Keep files \< 200 KB.
 
 ### 4.7 `SkateRouteScorer`
-**Purpose**: Combine StepContext into a scalar.
+- Weighted composite; RideMode adjusts weights; unit-tested monotonicity: rougher never scores higher.
 
-**Scoring (illustrative):**
+### 4.8 Growth & referrals
+```swift
+protocol ChallengeService { func activeWeeklyChallenges() async throws -> [Challenge] }
+protocol LeaderboardService { func topEntries(for challengeID: String) async throws -> [LeaderboardEntry] }
+protocol CheckInService { func checkIn(at spotID: String, location: CLLocationCoordinate2D) async throws -> CheckIn }
+protocol BadgeService { func badges() async throws -> [Badge] }
+protocol ReferralService { func resolve(url: URL) -> ReferralPayload? }
 ```
-score = w_dist*norm(distance) +
-        w_uphill*pos(gradePct) +
-        w_downhill*neg(gradePct)*downhillBias +
-        w_rough*norm(roughnessRMS) +
-        w_cross*norm(crossingsPerKm) +
-        w_hazard*norm(hazardScore) +
-        w_legal*(1 - legalityScore)
+
+### 4.9 Commerce & payments
+```swift
+protocol IAPService {
+    func products() async throws -> [Product]
+    func purchase(_ id: String) async throws -> Transaction
+    func restore() async throws
+}
+protocol PaymentsService { func startApplePay(items: [PKPaymentSummaryItem]) async throws }
 ```
-- `RideMode` tweaks weights:
-  - `.smoothest`: increase `w_rough`, cap `w_dist`.
-  - `.chillFewCrossings`: increase `w_cross`.
-  - `.nightSafe`: increase `w_hazard` (proxy for lighting/arterial).
-  - `.fastMildRoughness`: reduce `w_rough` to ~60%.
-- **Normalization**: MinMax or sigmoid by feature-specific ranges.
+- IAP for digital (Pro, event passes). Apple Pay/Stripe for **physical goods/services** only.
+
+### 4.10 Media & background
+- **BackgroundUploadService**: resumable queue using BackgroundTasks.
+- **HazardAlertService**: region monitoring + in-app toasts/haptics/optional voice.
 
 ---
 
 ## 5) UI/UX contracts (what Features expect)
-
-### 5.1 `MapScreen`
-- Needs: `MKRoute`, `[StepContext]`, `GradeSummary`, `routeScore: Double`.
-- Renders:
-  - **Per-step coloring**: gradient from butter (#F2F2F2-ish) to crusty (dark).
-  - **Braking dashes** on steps in `GradeSummary.brakingMask`.
-  - **HUD**: speed, next maneuver distance, surface icon, stability meter.
-- Start/Stop toggles `RideRecorder` with the active route & step contexts.
-
-### 5.2 `TurnCueEngine`
-- Triggers at ~40 m / 15 m before turns; plays `AudioServicesPlaySystemSound(1104)` + light haptic.
-- Should avoid cue spam on stair-step polylines; coalesce short steps.
-
-### 5.3 `QuickReportView` & `SurfaceRating`
-- 2-tap reports update `SegmentStore` and visually decay over time (e.g., half-life ~ 14 days).
-- Respect geofenced “no spot” zones (schools/hospitals) in UI.
+- **Home**: search, recents, **Challenges**, **Referral** CTA.
+- **Map**: route preview, color bands, braking mask, Start/Stop.
+- **Ride HUD**: next-turn, distance, ETA, speed, braking indicator; voice + haptics.
+- **Spots**: map/list, filters, detail with media; add-a-spot with privacy.
+- **Capture/Edit**: presets (Normal, VHS, Speed Overlay), trim; queue shows background state.
+- **Feed**: clips + route cards; moderation actions.
+- **Profile**: stats, badges, routes, videos; privacy controls.
+- **Commerce**: paywall, manage subscriptions, Apple Pay/Stripe checkout.
+- **Offline Packs**: city selector, size, update cadence, delete.
+- **Settings**: permissions, units, voice/haptics, analytics opt‑in, legal.
 
 ---
 
 ## 6) Permissions, privacy, background
+**Info.plist** (typical):
+- `NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription`
+- `NSLocationTemporaryUsageDescriptionDictionary` → `NavigationPrecision`
+- `NSMotionUsageDescription`
+- `NSCameraUsageDescription`, `NSPhotoLibraryAddUsageDescription`
+- `BGTaskSchedulerPermittedIdentifiers` (uploads/refresh)
+- `UIBackgroundModes` → `location`
+- Associated Domains for universal links (referrals)
 
-- **Info.plist**:
-  - `NSLocationWhenInUseUsageDescription`: “SkateRoute uses your location to navigate smooth, safe skate routes while you’re using the app.”
-  - `NSMotionUsageDescription`: “Motion data helps estimate pavement smoothness during rides.”
-  - Optional: `NSLocationTemporaryUsageDescriptionDictionary` → `NavigationPrecision`.
-- **Background Modes**: Location updates (when RideRecorder active).
-- **Privacy Manifest**: `PrivacyInfo.xcprivacy` declares Location/Motion for functionality only.
+**Privacy Manifest**: declares Location/Motion for functionality only. On‑device by default; no third‑party tracking.
 
 ---
 
 ## 7) Concurrency & threading
-
-- Services default to non-main actor. UI integration hops to main as late as possible.
-- Avoid retaining `CLLocationManager` delegates on background queues.
-- `RideRecorder` uses Combine/AsyncSequence with back-pressure; discard-oldest policy at 20 events.
+- Services are non‑main by default; hop to main late. Avoid blocking I/O on main.
+- `RideRecorder` uses AsyncSequence with back-pressure; discard‑oldest at 20 events.
+- StoreKit UI must be invoked from main; background uploads via BackgroundTasks.
 
 ---
 
 ## 8) Error handling
-
 - Fail **soft** with conservative defaults:
   - Missing DEM → grade 0.
-  - No SegmentStore value → treat as neutral but lower confidence.
-  - Matcher miss → don’t update step; keep last known color.
-- Central `RouteError` enum with user-safe messages (no stack dumping in UI).
+  - Missing SegmentStore values → neutral with lower confidence.
+  - Matcher miss → keep last known color; don’t thrash.
+- Commerce errors → user‑friendly messages + retry/backoff.
+- Upload errors → resumable queue; exponential backoff.
+- Referral failures → fallback to Home without data leak.
 
 ---
 
 ## 9) Performance & battery
-
-- Motion pipeline: compute RMS over 250–500 ms windows; publish at 10 Hz.
-- Location updates: adaptive distanceFilter (5–15 m based on speed).
-- Overlay rendering:
-  - Batch polyline segments per color band to minimize draw calls.
-  - Only redraw visible range after updates.
+- Overlay redraws: batch by color band; update only visible range.
+- Motion RMS window: 250–500 ms; publish 10 Hz.
+- Location: adaptive distanceFilter (5–15 m) based on speed.
+- Budgets: cold start ≤ 1.2 s; active nav energy ≤ 8%/hr; GPS drift median ≤ 8 m; UI‑thread nav ops < 150 ms.
 
 ---
 
 ## 10) Testing strategy
-
-- **Unit**:
-  - `SkateRouteScorerTests`: weight sanity; monotonicity (smoother → better).
-  - `ElevationServiceTests`: grade sampling math and braking zones.
-  - `MatcherTests`: tolerance gates and nearest-step correctness.
-- **Snapshot**:
-  - `SmoothOverlayRenderer`: fixed route JSON → consistent coloring images.
-- **UI**:
-  - GPX-based simulated rides (flat, uphill, downhill, mixed).
-- **Property tests** (optional):
-  - Randomized step arrays to check scorer stability.
+- **Unit**: scorer monotonicity; elevation sampling & braking mask; matcher tolerance; reducers; referral parser; IAP receipts (mocked).
+- **Snapshot**: `SmoothOverlayRenderer` fixed route JSON → pixel-stable images.
+- **UI/XCUITest**: routing flow, Start/Stop, hazard toast, check‑in, challenge join, leaderboard view, referral deep‑link, purchase/restore.
+- **Performance**: route compute < 250 ms typical urban; capture pipelines sustain target FPS.
+- **Offline/Low‑bandwidth**: airplane mode + throttled networks before each release.
+- **Device matrix**: last three iOS versions; SE and Pro Max.
 
 ---
 
 ## 11) Observability
+- `os.Logger` categories: `routing`, `elevation`, `matcher`, `recorder`, `overlay`, `privacy`, `commerce`, `growth`, `deeplink`, `moderation`.
+- `SessionLogger`: NDJSON lines; print export path on ride stop.
 
-- `OSLog` categories:
-  - `routing`, `elevation`, `matcher`, `recorder`, `overlay`, `privacy`.
-- Example:
+Example:
 ```swift
-let log = Logger(subsystem: "com.yourorg.skateroute", category: "matcher")
-log.debug("matched step \(step, privacy: .public) at dist \(dist, privacy: .private(mask: .hash))")
+let log = Logger(subsystem: "com.skateroute.app", category: "deeplink")
+log.info("resolved referral code=\(code, privacy: .private(mask: .hash)) → challenge=\(id, privacy: .public)")
 ```
-- `SessionLogger`: NDJSON lines; print file path on stop:
-  ```
-  {"t": 1730359200.12,"lat":48.428,"lon":-123.365,"speed":5.2,"rms":0.08,"step":12}
-  ```
 
 ---
 
 ## 12) CI/CD & code quality
-
-- GitHub Actions: build/test on PR, archive on main (see `ios-ci.yml`).
-- Fastlane: `beta` lane to TestFlight.
-- SwiftLint: keep warnings low; treat new warnings as failures on PR.
-- Branch policy: PR required; checks must pass.
+- GitHub Actions: build/test on PR; archive on `main`; TestFlight via Fastlane.
+- Lint/format: `swiftlint` + `swift-format` clean; warnings as errors.
+- **Doc sync** gate: changes to `AGENTS`, `README`, or `WHITEPAPER.md` must be coordinated.
 
 ---
 
 ## 13) Configuration & feature flags
-
-- `App-Shared.xcconfig` holds Info.plist values (usage strings) and lightweight flags.
-- Example compile flags (per config): `SMOOTH_OVERLAY_DEBUG`, `USE_TERRAIN_RGB_DEM`.
-- Keep flags additive (do not change behavior silently across configs).
+- `App-Shared.xcconfig` holds Info.plist copy and light flags.
+- Flags: `FEATURE_CHALLENGES`, `FEATURE_REFERRALS`, `FEATURE_OFFLINE_PACKS`, `FEATURE_VIDEO_FILTERS` (default ON for 1.0).
 
 ---
 
 ## 14) Security & privacy
-
-- No third-party tracking SDKs.
-- All ride logs remain **on-device** by default; any export must be user-initiated with a clear preview.
-- Never write raw PII to logs; location/time is sensitive—consider downsampling when exporting.
+- No secrets in code; CI-managed keys. All logs local by default; user‑initiated export only.
+- No raw lat/lon in analytics; bucketize/hash if analytics opt‑in is enabled.
+- LICENSE: **All Rights Reserved** (SkateRoute).
 
 ---
 
 ## 15) Contribution guide for AI agents (Do/Don’t)
-
 **Do**
-- Write/modify tests with code.
-- Keep services UI-agnostic.
-- Add small, isolated dependencies only with strong justification.
-- Document new weights or thresholds inside the scoring file.
+- Write/modify tests with code; keep Services UI-agnostic; document new weights/thresholds.
+- Register new Services in `AppDI`; keep ViewModels thin.
 
 **Don’t**
-- Mix SwiftUI with Services.
-- Introduce blocking network calls on the main thread.
-- Add global state outside `AppDI`.
+- Mix SwiftUI with Services; block the main thread; add heavy deps casually; alter Info.plist keys silently.
 
-**Good PR checklist**
-- [ ] Tests added/updated and passing.
-- [ ] SwiftLint clean.
-- [ ] Public APIs documented.
-- [ ] No Info.plist/Privacy changes unless explicitly stated.
+**PR checklist**
+- [ ] Tests added/updated ✓  
+- [ ] SwiftLint/format clean ✓  
+- [ ] Public APIs documented ✓  
+- [ ] Doc sync considered (AGENTS/README/WHITEPAPER) ✓
 
 ---
 
-## 16) Next high-impact tasks (backlog)
-
-1. **Roughness→overlay live updates**: apply MotionRoughnessService output to visible steps only.
-2. **Bike-lane overlays**: integrate municipal/OSM tiles; add `hasBikeLane` to StepContext reliably.
-3. **Sharp-turn penalty**: geometry-based; penalize > 60° downhill turns.
-4. **Offline pack**: route + [StepContext] + grade summary cached with TTL.
-5. **Mode calibration UI**: slider to bias roughness vs distance, persisted per-user.
+## 16) Next high‑impact tasks (post‑1.0)
+1. Server‑assisted hazard reconciliation & richer trust graphs.
+2. Sharp‑turn penalty for steep downhill (>60°) in scorer.
+3. Partner events (quests, branded rewards) via feature flags.
 
 ---
 
 ## 17) Quick start for a new engineer
-
-1. Open `SKATEROUTE.xcodeproj` → Scheme **SKATEROUTE**.
-2. Run **Home** → set origin/dest → **Map** shows per-step colors & grade summary.
-3. Tap **Start** → ride recorder begins; view HUD + haptics; tap **Stop** → log path prints in console (NDJSON in app Documents).
-4. Tests: `⌘U` (sim). Location simulation GPX in `Support/TestData`.
+1. Open `SKATEROUTE.xcodeproj` → Scheme **SkateRoute**.
+2. Home → set origin/destination → Map shows per‑step colors & grade summary.
+3. **Start** ride → HUD + cues; **Stop** → NDJSON path printed; file saved to Documents.
+4. Run tests `⌘U`. Simulate GPX from `Support/TestData`.
 
 ---
 
-## 18) Sample acceptance tests (for AI tasks)
-
-- **Scorer monotonicity**: When `surfaceRoughnessRMS` increases with all else equal, route score must not improve.
-- **Braking mask**: For a synthetic -8% grade over 50 m, step must be flagged braking.
-- **Matcher tolerance**: Samples 60 m away from all steps return `nil`.
+## 18) Sample acceptance tests
+- **Downhill caution**: −8% grade over ≥50 m → braking dashes + pre‑turn haptic.
+- **Reroute**: deviation >25 m → new route in <2 s; cues reset.
+- **Monotonicity**: rougher steps never outscore smoother ones.
+- **Check‑in**: entering spot geofence + action → check‑in persists and increments challenge.
+- **Referral**: universal link to `skateroute://challenge/<id>` opens to challenge detail; consent respected.
+- **Commerce**: purchase/restore toggles Pro entitlements; Apple Pay path only for physical goods.
 
 ---
 
 ## 19) Design north star
-
-Brand tone: **“It’s all downhill from here.”** Visual language: bold, high-contrast skate heritage; minimal distractions in ride mode. Accessibility: large tap targets, voice/haptic support, night-safe palettes.
+Brand tone: **“It’s all downhill from here.”** Bold, high‑contrast skate heritage; minimal distractions in ride mode. Accessibility: Dynamic Type, VoiceOver, large hit targets, night‑safe palettes.
 
 ---
 
 *Appendix: Reference color map for smoothness (suggested)*
-
 - 0.00–0.05 RMS → `butter` (very light)
 - 0.05–0.12 → `okay`
 - 0.12–0.20 → `meh`
 - 0.20+ → `crusty`
 (Exact palette lives in `SmoothOverlayRenderer`.)
+
+---
+
+**See also:** [`AGENTS.md`](./AGENTS.md) · [`README.md`](./README.md) · [`WHITEPAPER.md`](./WHITEPAPER.md)

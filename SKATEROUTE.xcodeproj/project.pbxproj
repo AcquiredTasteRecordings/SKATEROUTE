@@ -35,28 +35,36 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1C42DC2F2EC30EED0082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
+		1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				UITests/SkateRouteUITests.swift,
+				Features/Rewards/RewardsWalletView.swift,
+				Resources/LaunchScreen.storyboard,
+				Resources/Legal/TermsOfUse.md,
+				Resources/PrivacyInfo.json,
 			);
 			target = 1C2D2A5A2EB20E7C00BCB90A /* SKATEROUTE */;
 		};
-		1C42DC312EC30EF20082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTEUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				UITests/SkateRouteUITests.swift,
-			);
-			target = 1C2D2A752EB20E7E00BCB90A /* SKATEROUTEUITests */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 1C2D2A572EB20E7C00BCB90A /* Sources */;
+			membershipExceptions = (
+				Resources/LaunchScreen.storyboard,
+				Resources/Legal/TermsOfUse.md,
+				Resources/PrivacyInfo.json,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1C42DC2F2EC30EED0082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
-				1C42DC312EC30EF20082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTEUITests" target */,
+				1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */,
 			);
 			path = SKATEROUTE;
 			sourceTree = "<group>";
