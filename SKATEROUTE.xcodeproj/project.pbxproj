@@ -35,12 +35,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
+		1C42DC2F2EC30EED0082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				UITests/SkateRouteUITests.swift,
 			);
 			target = 1C2D2A5A2EB20E7C00BCB90A /* SKATEROUTE */;
+		};
+		1C42DC312EC30EF20082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTEUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				UITests/SkateRouteUITests.swift,
+			);
+			target = 1C2D2A752EB20E7E00BCB90A /* SKATEROUTEUITests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -48,7 +55,8 @@
 		1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1C42DC2F2EC30EED0082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1C42DC312EC30EF20082516B /* Exceptions for "SKATEROUTE" folder in "SKATEROUTEUITests" target */,
 			);
 			path = SKATEROUTE;
 			sourceTree = "<group>";
@@ -84,8 +92,8 @@
 			isa = PBXGroup;
 			children = (
 				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
 				1C2D2A5C2EB20E7C00BCB90A /* Products */,
+				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
 			);
 			sourceTree = "<group>";
 		};
@@ -197,6 +205,10 @@
 			);
 			mainGroup = 1C2D2A522EB20E7C00BCB90A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1CAB1E572EBC7DCA002944A8 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
+				1CAB1FBF2EBF8017002944A8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1C2D2A5C2EB20E7C00BCB90A /* Products */;
 			projectDirPath = "";
@@ -590,6 +602,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1CAB1E572EBC7DCA002944A8 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-async-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
+		1CAB1FBF2EBF8017002944A8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 1C2D2A532EB20E7C00BCB90A /* Project object */;
 }
