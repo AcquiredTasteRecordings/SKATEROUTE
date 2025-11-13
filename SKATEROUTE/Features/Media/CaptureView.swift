@@ -392,7 +392,7 @@ fileprivate func formatTime(_ t: TimeInterval) -> String {
 fileprivate func autoDismiss(_ body: @escaping () -> Void) {
     Task {
         try? await Task.sleep(nanoseconds: 1_800_000_000)
-        await MainActor.run(resultType: body, body: <#@MainActor @Sendable () throws -> _#>)
+        await MainActor.run { body() }
     }
 }
 

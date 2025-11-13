@@ -1,5 +1,5 @@
 // Features/Home/HomeViewModel.swift
-// MVVM for the Home screen: source/destination selection, recents, and navigation intent.
+// MVVM for the Home screen: source/destination selection, recents, and RideMode-aware navigation intent.
 
 import Foundation
 import Combine
@@ -14,14 +14,9 @@ public enum HomeLocationError: Error { case denied, unavailable }
 public typealias HomeCurrentLocationProvider = () async throws -> CLLocationCoordinate2D
 
 /// Minimal coordinator abstraction to keep ViewModel decoupled from SwiftUI routing.
+/// Allows the Home screen to request navigation with source/destination and the active ride mode.
 public protocol HomeCoordinating: AnyObject {
-    func presentMap(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: RoutingMode)
-}
-
-public enum RoutingMode {
-    case smoothest
-    case fastest
-    case flattest
+    func presentMap(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: RideMode)
 }
 
 // MARK: - Localization
@@ -59,7 +54,7 @@ public final class HomeViewModel: ObservableObject {
     @Published public private(set) var recentsList: [RecentPlace] = []
 
     /// Emits a navigation intent when inputs are valid and `go()` is called.
-    @Published public private(set) var navIntent: (from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: RoutingMode)?
+    @Published public private(set) var navIntent: (from: CLLocationCoordinate2D, to: CLLocationCoordinate2D, mode: RideMode)?
 
     /// Derived state: primary CTA should be enabled when we have both endpoints.
     @Published public private(set) var isCTAEnabled: Bool = false
@@ -174,15 +169,18 @@ public final class HomeViewModel: ObservableObject {
     }
 
     /// Validate and emit navigation intent, or forward directly to coordinator if injected.
-    public func go(mode: RoutingMode = .smoothest) {
+    /// - Parameter mode: Ride mode to use for routing; defaults to the persisted rider preference.
+    public func go(mode: RideMode? = nil) {
         errorMessage = validate()
         guard errorMessage == nil else { return }
         guard let src = fromCoord, let dst = toCoord else { return }
 
+        let rideMode = mode ?? RideModeStore.load()
+
         if let coordinator {
-            coordinator.presentMap(from: src, to: dst, mode: mode)
+            coordinator.presentMap(from: src, to: dst, mode: rideMode)
         } else {
-            navIntent = (src, dst, mode)
+            navIntent = (src, dst, rideMode)
         }
     }
 
