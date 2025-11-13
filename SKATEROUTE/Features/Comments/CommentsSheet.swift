@@ -369,7 +369,10 @@ public struct CommentsSheet: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { try? await Task.sleep(nanoseconds: 2_000_000_000); await MainActor.run(resultType: body, body: <#@MainActor @Sendable () throws -> _#>) }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            await MainActor.run { body() }
+        }
     }
 }
 
