@@ -3,6 +3,7 @@
 // Multi-select, haptic-confirmed, VoiceOver-friendly, and motion-aware.
 
 import SwiftUI
+import UIKit
 
 public struct LayerToggleBar: View {
     public let layers: [RoutePlannerViewModel.PlannerLayer]
@@ -152,3 +153,5 @@ private struct _LayerToggleBar_Previews: PreviewProvider {
     static var previews: some View { Host() }
 }
 #endif
+
+

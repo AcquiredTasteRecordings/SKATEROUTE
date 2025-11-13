@@ -10,6 +10,7 @@ import Combine
 import AVKit
 import PhotosUI
 import MediaPlayer   // Used only for on-device music picker (optional, guarded by availability/entitlement)
+import UIKit
 
 // MARK: - DI seams (must match your EditorPipeline)
 
@@ -710,3 +711,5 @@ struct EditorView_Previews: PreviewProvider {
 // • AX sizes render without clipping; buttons ≥44pt. RangeSlider handles are draggable.
 // • Captions toggle changes preview rendering when legible tracks present.
 // • Soundtrack picker denies protected tracks (assetURL nil) gracefully; name label updates or clears.
+
+

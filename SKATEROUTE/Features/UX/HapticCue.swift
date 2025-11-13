@@ -299,3 +299,5 @@ public extension HapticCue {
     static func warning() { play(.warning) }
     static func error() { play(.error) }
 }
+
+

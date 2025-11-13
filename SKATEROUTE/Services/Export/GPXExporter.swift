@@ -21,6 +21,7 @@ import Foundation
 import CoreLocation
 import CryptoKit
 import os.log
+import UIKit
 
 // MARK: - Redaction Policy
 
@@ -459,3 +460,5 @@ public final class GPXExporter: GPXExporting {
 //   - SettingsView → “Export Ride (GPX/GeoJSON)” buttons call `exportSession(_:format:policy:)` and feed resulting Data/URL into UIActivityViewController.
 //   - ReportIssueView attaches redacted GeoJSON by calling `exportSessions(_, mergedAs: "issue-attachment", format: .geojson, policy: strongPolicy)`.
 //   - Keep policy defaults privacy-forward: trim 20s head/tail + 50 m proximity; timestamps included by default for fitness platforms.
+
+

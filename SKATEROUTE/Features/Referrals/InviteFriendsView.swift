@@ -531,3 +531,5 @@ struct InviteFriendsView_Previews: PreviewProvider {
 // • QR toggles on; QR renders at large size and is readable with real devices.
 // • Dynamic Type at AX3XL keeps buttons ≥44pt, no clipping.
 // • VoiceOver reads: “Invite Friends, Share, Copy, Show QR, Referral status: Sent 12, Clicks 34, Sign-ups 7, Rewards 7”.
+
+

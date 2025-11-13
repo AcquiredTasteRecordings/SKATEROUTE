@@ -569,3 +569,5 @@ struct LeaderboardView_Previews: PreviewProvider {
 // • Friends/City/Global menu switches titles/icons; City code chip shows only for .city.
 // • “verify_me_button” appears only for your own flagged entry.
 // • Snapshot: rank badges colored for top-3; distances rendered as m/km with monospaced digits.
+
+

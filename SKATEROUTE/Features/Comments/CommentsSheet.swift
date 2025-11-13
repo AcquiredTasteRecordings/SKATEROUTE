@@ -562,3 +562,5 @@ struct CommentsSheet_Previews: PreviewProvider {
 // UI:
 // • Snapshot at AX sizes; input field grows up to 4 lines; buttons ≥44pt.
 // • VoiceOver reads each row: “Name. 2h ago. Text…”. Context menu offers Delete for own, Report for others.
+
+

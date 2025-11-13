@@ -4,6 +4,7 @@ import MapKit
 import CoreLocation
 import AVFoundation
 import Combine
+import UIKit
 
 struct HomeView: View {
     private let dependencies: any AppDependencyContainer
@@ -404,3 +405,5 @@ private final class OneShotLocationProvider: NSObject, CLLocationManagerDelegate
     HomeView(dependencies: container)
         .environmentObject(AppCoordinator(dependencies: container))
 }
+
+

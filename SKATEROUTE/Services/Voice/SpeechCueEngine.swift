@@ -7,6 +7,7 @@ import AVFoundation
 import Combine
 import CoreHaptics
 import os.log
+import UIKit
 
 // MARK: - Cue contracts (keep in sync with Route/Turn cue models)
 
@@ -403,3 +404,5 @@ public final class SpeechCueEngineFake: SpeechCueProducing {
 // • On “off-route” detection: call `setOffRoute(true)` and enqueue your reroute cue; when back on-route, set `false`.
 // • In UI: subscribe to `isSpeakingPublisher` and `lastSpokenCuePublisher` for HUD affordances (e.g., a speaking indicator).
 // • Respect user mute: gate `enqueue` behind a user preference toggle; do not mutate system volume.
+
+

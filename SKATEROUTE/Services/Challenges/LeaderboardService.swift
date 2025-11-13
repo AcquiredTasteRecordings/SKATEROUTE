@@ -2,7 +2,6 @@
 // City/global leaderboards with deterministic pagination and anti-cheat validation.
 // Read-only client that fetches boards, validates, sorts (score desc; tie-break = earliest timestamp),
 // and exposes stable page cursors. Coarse reverse-geocode derives the city key (privacy-first).
-//
 // No tracking, no ATT. DI-friendly; includes DEBUG fakes for tests.
 
 import Foundation
@@ -351,3 +350,5 @@ public final class PolylineDecoderFake: PolylineDecoding {
 //   - Features/Challenges/LeaderboardView subscribes to `pagePublisher`, calls `load(scope:)` at appear, and `loadNext()` on scroll.
 //   - Keep payloads tiny: server should include low-res polylines only for suspicious entries; otherwise omit `polylineSummary` to save bytes.
 //   - Respect accessibility: ensure row VO labels read rank, name, distance, and timestamp of achievement.
+
+

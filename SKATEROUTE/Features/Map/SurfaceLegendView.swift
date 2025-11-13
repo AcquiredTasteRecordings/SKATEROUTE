@@ -6,6 +6,7 @@
 // - No tracking, no location reads. Pure UI; inputs via DI.
 
 import SwiftUI
+import UIKit
 
 // MARK: - Legend domain
 
@@ -313,3 +314,5 @@ struct SurfaceLegendView_Previews: PreviewProvider {
 // • Dynamic Type XXL: layout remains readable; chips wrap horizontally; button hit targets stay ≥44pt.
 // • State: toggling kind refreshes items deterministically; collapsed state persists while navigating.
 // • Dark/Light: swatches maintain contrast; “No data” pattern visible on both themes.
+
+

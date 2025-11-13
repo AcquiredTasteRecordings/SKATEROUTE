@@ -156,6 +156,7 @@ public struct QuickReportView: View {
 
 #if DEBUG
 import MapKit
+import UIKit
 struct QuickReportView_Previews: PreviewProvider {
     static var previews: some View {
         let coord = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
@@ -166,3 +167,5 @@ struct QuickReportView_Previews: PreviewProvider {
     }
 }
 #endif
+
+

@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import UIKit
 
 // MARK: - DI seams (match your CapturePipeline)
 
@@ -491,3 +492,5 @@ struct CaptureView_Previews: PreviewProvider {
 // • Accessibility: REC button is a full circle target ≥96pt; controls ≥44pt; timer uses monospaced digits.
 // • Performance: tear down AVPlayer/recording in pipeline when backgrounded; preview stays muted.
 // • Safety: if free minutes < 1, pipeline should surface a user-visible warning; this view will display minutes regardless.
+
+

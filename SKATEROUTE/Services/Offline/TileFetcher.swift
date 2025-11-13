@@ -478,3 +478,5 @@ public final class CacheManagerFake: CacheManaging {
 //    - Create URLSessionConfiguration with allowsExpensiveNetworkAccess=false when wifiOnly=true (inspect via reflection in a unit test or inject config).
 // 7) Elevation tiles:
 //    - Use provider.kind=.elevationPNG and ensure file extension + avgBytes heuristic apply; pipeline identical.
+
+

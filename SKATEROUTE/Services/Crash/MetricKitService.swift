@@ -373,3 +373,5 @@ public final class AnalyticsLoggerNoop: AnalyticsLogging {
 //    - On iOS < 14, service enters .error("MetricKit unavailable") and does not crash.
 // 6) Budget changes:
 //    - Construct service with PerfBudgets(navBatteryPctPerHour: 1.0), feed in battery 5%/hr → breach emitted.
+
+

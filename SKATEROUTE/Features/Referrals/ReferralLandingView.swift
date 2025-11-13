@@ -474,3 +474,5 @@ struct ReferralLandingView_Previews: PreviewProvider {
 // • Snapshot with AX sizes; no clipping; CTAs accessible.
 // • VO order: title → subtitle → info card rows → primary CTA → skip.
 // • Deep link E2E: open universal link → landing view resolves → primary CTA → wallet/challenges updated.
+
+

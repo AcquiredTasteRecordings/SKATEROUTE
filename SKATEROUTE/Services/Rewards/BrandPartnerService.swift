@@ -342,3 +342,5 @@ public final class RewardsWalletShim: RewardsWalletReadableWritable {
 //    - After `.valid`, call commitRedemption -> wallet.redeemCoupon called (returns true) and PartnerAPIFake.confirmations appended.
 // 7) Unsigned payload path (server not provided & signer.privateKey == nil):
 //    - issueCoupon produces "unsigned" token; validate -> .invalidSignature (by design), forcing online path in PROD.
+
+

@@ -589,3 +589,5 @@ struct SpotCreateView_Previews: PreviewProvider {
 // 2) Location hint visible until coordinate picked; after pick, snapshot shows pin.
 // 3) Dynamic Type XXL → grid wraps; buttons remain ≥44pt; VO labels read category/title.
 // 4) UITest IDs: spot_name, spot_pick_location, spot_pick_photo, spot_notes, spot_submit.
+
+

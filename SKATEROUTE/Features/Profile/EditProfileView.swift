@@ -536,3 +536,5 @@ struct EditProfileView_Previews: PreviewProvider {
 // UI:
 // • Snapshot with AX3XL: labels wrap cleanly; CTAs ≥44pt; toasts readable.
 // • VO flow: Avatar → Name (with helper) → Privacy toggles → Save → Close.
+
+

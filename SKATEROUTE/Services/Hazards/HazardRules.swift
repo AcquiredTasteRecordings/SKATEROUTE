@@ -257,3 +257,5 @@ public extension HazardRules {
         return UpsertDecision(confirmations: merged.c, severity: merged.s, bucket: b, alertPriority: p, coordinate: merged.coord, expiresAt: exp)
     }
 }
+
+

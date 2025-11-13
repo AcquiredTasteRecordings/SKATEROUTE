@@ -12,7 +12,6 @@
 import SwiftUI
 import Combine
 import CoreLocation
-import SKATEROUTE // To bring in RideMode
 
 // Minimal router enum to resolve missing type and case references.
 public enum AppRouter: Hashable {
@@ -75,7 +74,7 @@ public final class AppCoordinator: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private let hooks: Hooks
-    private let dependencies: AppDependencyContainer
+    let dependencies: AppDependencyContainer
 
     // MARK: - Init
     public init(dependencies: AppDependencyContainer, hooks: Hooks = .init()) {
@@ -203,6 +202,41 @@ public struct CoordinatorView: View {
     }
 }
 
+// MARK: - View Factory
+public extension AppCoordinator {
+    func makeRootView() -> some View {
+        CoordinatorView(coordinator: self)
+    }
+}
+
+// MARK: - Push routing
+extension AppCoordinator: AppRouting {
+    public func handleNotification(userInfo: [AnyHashable: Any]) {
+        // Minimal mapping for hazard/spot notifications. Extend as payloads evolve.
+        if let lat = userInfo["lat"] as? Double,
+           let lon = userInfo["lon"] as? Double {
+            let destination = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let source = dependencies.locationManager.currentLocation?.coordinate
+            let mode = RideModeStore.load()
+            presentMap(from: source, to: destination, mode: mode)
+            return
+        }
+
+        if let payload = userInfo["route"] as? [String: Double],
+           let lat = payload["lat"],
+           let lon = payload["lon"] {
+            let destination = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let source = dependencies.locationManager.currentLocation?.coordinate
+            let mode = RideModeStore.load()
+            presentMap(from: source, to: destination, mode: mode)
+            return
+        }
+
+        // Default: surface the home screen.
+        goHome()
+    }
+}
+
 // MARK: - Helpers
 private extension AppCoordinator {
     static func parseLatLon(_ raw: String) -> CLLocationCoordinate2D? {
@@ -216,3 +250,5 @@ private extension AppCoordinator {
         return CLLocationCoordinate2D(latitude: lat, longitude: lon)
     }
 }
+
+

@@ -9,6 +9,7 @@
 import SwiftUI
 import MapKit
 import Combine
+import UIKit
 
 // MARK: - Category model (align with your canonical SpotCategories.json)
 
@@ -364,3 +365,5 @@ public struct SpotMapContainer<Overlay: View>: View {
 // • Selection: tapping marker → onSelect fires with correct id; callout accessory routes to detail.
 // • Movement: updating a pin’s coordinate updates the MKAnnotation (no flicker).
 // • Accessibility: VO on a cluster reads “N spots”; on a marker reads “Name. Category.” Buttons have ≥44pt targets.
+
+

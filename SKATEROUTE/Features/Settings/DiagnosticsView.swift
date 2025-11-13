@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Combine
+import UIKit
 
 // MARK: - Domain adapters
 
@@ -477,3 +478,5 @@ struct DiagnosticsView_Previews: PreviewProvider {
 // • Analytics: purpose-labeled ‘diagnostics’ category; absolutely no PII.
 // • UITests: assert identifiers “diagnostics_root”, “cache_actions”, “clear_caches”; trigger health check → green banner.
 // • Budgets: explicitly show budget badges (≤8 m drift; ≤8%/h nav; <100 ms reroute P95) aligned with product goals.
+
+

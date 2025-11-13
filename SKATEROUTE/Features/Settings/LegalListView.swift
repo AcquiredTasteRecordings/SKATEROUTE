@@ -1,5 +1,6 @@
 // Features/Settings/LegalListView.swift
 import SwiftUI
+import UIKit
 
 public struct LegalListView: View {
     public init() {}
@@ -47,3 +48,5 @@ public struct MarkdownDocView: View {
         }
     }
 }
+
+

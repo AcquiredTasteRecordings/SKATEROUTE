@@ -39,7 +39,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Features/Rewards/RewardsWalletView.swift,
-				Resources/LaunchScreen.storyboard,
 				Resources/Legal/TermsOfUse.md,
 				Resources/PrivacyInfo.json,
 			);
@@ -52,7 +51,6 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 1C2D2A572EB20E7C00BCB90A /* Sources */;
 			membershipExceptions = (
-				Resources/LaunchScreen.storyboard,
 				Resources/Legal/TermsOfUse.md,
 				Resources/PrivacyInfo.json,
 			);
@@ -336,6 +334,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				NEW_SETTING = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "$(inherited) -Xfrontend -continue-building-after-errors";
 				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

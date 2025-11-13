@@ -5,9 +5,6 @@ import Foundation
 import MapKit
 import UIKit
 
-public typealias MatchSample = SKATEROUTE.MatchSample
-public typealias MatchResult = SKATEROUTE.MatchResult
-
 // MARK: - Service Protocols
 
 public typealias LocationGeofenceEvent = LocationManagerService.GeofenceEvent
@@ -177,27 +174,25 @@ public final class LiveAppDI: ObservableObject, AppDependencyContainer {
         let locationManager = LocationManagerService()
         let matcher = Matcher()
 
-        let segmentsActorInstance = SKATEROUTE.SegmentStore() // new actor-based store (no .shared)
-        // Bootstrap persisted segments off the main path to avoid startup jank.
-        Task.detached { try? await segmentsActorInstance.bootstrap() }
+        let segmentsStore = SegmentStore.shared
 
-        self.clearSegments = { try? await segmentsActorInstance.clear() }
+        self.clearSegments = { segmentsStore.clear() }
 
         let elevationService = ElevationService()
         let routeContextBuilder = RouteContextBuilder(attributes: LocalAttributionProvider(),
-                                                      segments: segmentsActorInstance)
+                                                      segments: segmentsStore)
         let routeScorer = SkateRouteScorer()
         let motionService = MotionRoughnessService.shared
         let sessionLogger = SessionLogger.shared
 
         let routeService = RouteService(elevation: elevationService,
                                         contextBuilder: routeContextBuilder)
-        let routeOptionsReducer = RouteOptionsReducer(scorer: routeScorer as! SkateRouteScoring)
+        let routeOptionsReducer = RouteOptionsReducer(scorer: routeScorer)
         let offlineTileManager = OfflineTileManager()
         let offlineRouteStore = OfflineRouteStore()
         let rideRecorder = RideRecorder(location: locationManager,
                                         matcher: matcher,
-                                        segments: segmentsActorInstance,
+                                        segments: segmentsStore,
                                         motion: motionService,
                                         logger: sessionLogger)
 
@@ -206,7 +201,7 @@ public final class LiveAppDI: ObservableObject, AppDependencyContainer {
         self.matcher = matcher
         self.elevationService = elevationService
         self.routeContextBuilder = routeContextBuilder
-        self.routeScorer = routeScorer as! any SkateRouteScoring
+        self.routeScorer = routeScorer
         self.routeService = routeService
         self.routeOptionsReducer = routeOptionsReducer
         self.offlineTileManager = offlineTileManager
@@ -216,7 +211,7 @@ public final class LiveAppDI: ObservableObject, AppDependencyContainer {
         self.sessionLogger = sessionLogger
 
         // Legacy step-level roughness store (adapter over the actor for UI/HUD calls).
-        self.segmentStore = StepRoughnessStore()
+        self.segmentStore = segmentsStore
     }
 
     public func makeRoutePlannerViewModel() -> RoutePlannerViewModel {
@@ -349,3 +344,5 @@ public final class StepRoughnessStore: SegmentStoring {
         return (rec.quality, rec.roughness, rec.updatedAt, freshness)
     }
 }
+
+

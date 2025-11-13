@@ -20,7 +20,7 @@ public final class RoutePlannerViewModel: ObservableObject {
     // MARK: - Planning Parameters
     @Published public var source: CLLocationCoordinate2D?
     @Published public var destination: CLLocationCoordinate2D?
-    @Published public var mode: RideMode = .init() // keep generic; your RideMode can be a struct/enum
+    @Published public var mode: RideMode = .smoothest
     @Published public var preferSkateLegal: Bool = true
 
     // MARK: - Output (UI State)
@@ -226,3 +226,5 @@ public final class RoutePlannerViewModel: ObservableObject {
         return generic
     }
 }
+
+

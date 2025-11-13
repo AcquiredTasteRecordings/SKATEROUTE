@@ -10,6 +10,7 @@
 import SwiftUI
 import Combine
 import MapKit
+import UIKit
 
 // MARK: - Route summary model (align with RouteFavoritesStore)
 
@@ -457,3 +458,5 @@ struct SaveRouteButton_Previews: PreviewProvider {
 // • Accessibility reads “Save route, Saved/Not saved. Offline ready/preparing.”
 // • Context menu exposes Save/Remove + Enable/Disable offline; Toggle exists disabled when not saved.
 // • UITest identifiers: “save_route_button”, “offline_toggle”, “offline_pill”.
+
+

@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import UIKit
 
 // MARK: - DI seam
 
@@ -169,3 +170,5 @@ struct VoiceToggle_Previews: PreviewProvider {
 // • Place this control on Map HUD (top-right) and in Settings → Navigation to reflect the same state.
 // • UITests: tap toggles icon and accessibility value; ensure no presentation during active navigation if PaywallRules blocks nothing here.
 // • Safety: keep button larger than 44×44 and ensure high contrast; do not present modals while riding.
+
+

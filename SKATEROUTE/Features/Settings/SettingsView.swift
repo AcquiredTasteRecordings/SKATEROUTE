@@ -11,6 +11,7 @@
 import SwiftUI
 import Combine
 import UniformTypeIdentifiers
+import UIKit
 
 // MARK: - Domain adapters
 
@@ -485,3 +486,5 @@ struct SettingsView_Previews: PreviewProvider {
 //   - Export GPX/GeoJSON shows progress → ShareSheet; failing exporter surfaces red toast.
 //   - Privacy toggles flip labels and call ProfilePrivacyEditing setters; verify by spy.
 // • Accessibility: identifiers “settings_root”, “units_picker”, “export_gpx”, “export_geojson”, “open_settings”.
+
+

@@ -1,5 +1,6 @@
 // Features/Map/Views/RoutePlannerView.swift
 import SwiftUI
+import UIKit
 
 public struct RoutePlannerView: View {
     @ObservedObject private var viewModel: RoutePlannerViewModel
@@ -159,3 +160,5 @@ public struct RoutePlannerView: View {
         }
     }
 }
+
+

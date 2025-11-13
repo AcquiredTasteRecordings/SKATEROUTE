@@ -296,3 +296,5 @@ private extension AnyPublisher where Output == [HazardReport], Failure == Never 
         return latest
     }
 }
+
+

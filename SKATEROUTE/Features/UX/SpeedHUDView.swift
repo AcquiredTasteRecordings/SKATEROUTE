@@ -3,6 +3,7 @@
 // Consistent with RideTelemetryHUD + HapticCue, Dynamic Type–safe, and battery-light.
 
 import SwiftUI
+import UIKit
 
 public struct SpeedHUDView: View {
     // MARK: - Inputs
@@ -184,3 +185,5 @@ struct SpeedHUDView_Previews: PreviewProvider {
     static var previews: some View { Host() }
 }
 #endif
+
+

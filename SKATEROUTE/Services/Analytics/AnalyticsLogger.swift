@@ -350,3 +350,5 @@ public final class AnalyticsLoggerSpy: AnalyticsLogging {
 //   Store, PaywallRules, SpeechCueEngine, Hazard services, Capture/Upload pipelines, and RemoteConfigService.
 // • CI guardrail: add a unit test ensuring `denyKeys` includes "user_id","email","lat","lon"; fail PR if altered.
 // • Build settings: do not include FirebaseAnalytics in release if not used; if included, keep façade off by default via RemoteConfig/Info.plist flag.
+
+

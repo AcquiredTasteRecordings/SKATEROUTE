@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import StoreKit
+import UIKit
 
 // MARK: - DI seams (keep narrow and testable)
 
@@ -501,3 +502,5 @@ struct PaywallView_Previews: PreviewProvider {
 //   - Offer code invokes native sheet (assert via spy method invoked).
 //   - Ensure price VO label reads: “Price: $X / month” for subscriptions when Product has sub period.
 //   - Ensure CTAs disabled while `isPurchasing == true`.
+
+

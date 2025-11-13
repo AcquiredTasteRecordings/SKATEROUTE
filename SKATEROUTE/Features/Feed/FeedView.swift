@@ -493,3 +493,5 @@ struct FeedView_Previews: PreviewProvider {
 // • Infinite scroll: ensure `loadMoreIfNeeded` triggers once as last rows appear; de-dupe verified.
 // • Pull-to-refresh: first page present → refresh prepends; empty state falls back to initial load.
 // • Video behavior: becomes ≥60% visible → player.play(); scrolled off → pause. Always muted; captions visible when available.
+
+

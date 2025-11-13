@@ -330,3 +330,5 @@ public final class AppRouterFake: AppRouting {
 //   - Call userNotificationCenter(_:didReceive:...) with a response carrying userInfo; assert AppRouterFake.lastUserInfo matches.
 // • Categories registration:
 //   - Provide a minimal NotificationCategories.plist in test bundle; init service and inspect UNUserNotificationCenter.current().notificationCategories (can’t assert directly in unit tests; validate via spy if needed).
+
+

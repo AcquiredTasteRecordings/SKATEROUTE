@@ -21,6 +21,7 @@ import Combine
 import CoreLocation
 import CoreMotion
 import UserNotifications
+import UIKit
 
 // MARK: - DI seams
 
@@ -533,3 +534,5 @@ struct OnboardingFlowView_Previews: PreviewProvider {
 // • `NotificationPermissioning` wraps UNUserNotificationCenter.current().requestAuthorization(...) and publishes status changes.
 // • On finish, AppCoordinator flips a persisted flag (e.g., UserDefaults/SwiftData) and routes to HomeView.
 // • Respect PaywallRules: onboarding never shows paywall, and hazard/reroute features remain available regardless of purchase state.
+
+

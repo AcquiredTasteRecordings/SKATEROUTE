@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import CoreImage.CIFilterBuiltins
+import UIKit
 
 // MARK: - Domain adapters (aligns with Services/Rewards)
 
@@ -627,3 +628,5 @@ struct RewardsWalletView_Previews: PreviewProvider {
 // • Dynamic Type XXL keeps ≥44pt buttons; VoiceOver reads “Offer, Free Espresso, Reserved”.
 // • “rewards_wallet” identifier present; rows stable under updates; badge icons fallback when missing.
 // • QR sheet displays code and TTL; assistive text warns against screenshots.
+
+

@@ -191,3 +191,5 @@ extension SurfaceRating: Codable {
         try c.encode(updatedAt, forKey: .updatedAt)
     }
 }
+
+

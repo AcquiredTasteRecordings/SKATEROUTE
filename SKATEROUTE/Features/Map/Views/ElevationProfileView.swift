@@ -4,6 +4,7 @@
 // Battery-light (pure SwiftUI Path), Dynamic Type–safe, and VoiceOver-friendly.
 
 import SwiftUI
+import UIKit
 
 public struct ElevationProfileView: View {
     // MARK: Inputs
@@ -307,3 +308,5 @@ public struct ElevationProfileView: View {
         max(lo, min(hi, v))
     }
 }
+
+

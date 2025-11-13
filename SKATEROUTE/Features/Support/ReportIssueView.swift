@@ -16,6 +16,7 @@
 import SwiftUI
 import Combine
 import UniformTypeIdentifiers
+import UIKit
 
 // MARK: - Domain adapters
 
@@ -533,3 +534,5 @@ public struct ReportIssueView_Previews: PreviewProvider {
 // • ShareSheet path is the default to keep user in control. Subject+body come first in activityItems so Mail picks them up.
 // • UITests: fill description, toggle logs/diags, tap “Preview share” → sheet; tap “Send” with SubmitterFake(nil) → sheet opens.
 // • Accessibility: identifiers “report_issue_root”, “issue_kind_picker”, “issue_text”, “include_logs_toggle”, “include_diag_toggle”, “send_button”.
+
+

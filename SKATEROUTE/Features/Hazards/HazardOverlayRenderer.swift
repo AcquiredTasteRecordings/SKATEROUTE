@@ -10,6 +10,7 @@
 import SwiftUI
 import MapKit
 import Combine
+import UIKit
 
 // MARK: - Hazard domain adapters (mirror Services/Hazards models)
 
@@ -425,3 +426,5 @@ public struct MapContainer<Overlay: View>: View {
 // • VO reads single marker: “Pothole. High. 2 hours ago.”
 // • Tapping a marker triggers onSelect with exact HazardPin payload.
 // • Dark/Light modes maintain contrast (white symbol on colored disc).
+
+

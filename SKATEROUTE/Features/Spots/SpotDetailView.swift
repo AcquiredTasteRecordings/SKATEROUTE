@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import MapKit
+import UIKit
 
 // MARK: - Models (adapter from Services/Spots layer)
 
@@ -635,3 +636,5 @@ struct SpotDetailView_Previews: PreviewProvider {
 // • AX sizes: content reflows; action buttons ≥54pt; tab pager accessible; meter reads “Skateability 82 out of 100”.
 // • Photos: multiple URLs show pager + grid; single URL shows header only; none shows placeholder.
 // • State: while `loading == true`, skeletons can be added (optional) — current version shows spinners in images.
+
+

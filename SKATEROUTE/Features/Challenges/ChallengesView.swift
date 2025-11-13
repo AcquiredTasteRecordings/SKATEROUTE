@@ -9,6 +9,7 @@
 
 import SwiftUI
 import Combine
+import UIKit
 
 // MARK: - Domain adapters (mirror Services/Challenges)
 
@@ -528,3 +529,5 @@ struct ChallengesView_Previews: PreviewProvider {
 // • Dynamic Type XXL keeps controls ≥44pt; VO reads “Weekly Distance, 62 percent complete.”
 // • Accessibility identifiers: “challenges_list”, “streak_card”.
 // • Snapshot: progress bars clamp 0…1; premium badge visible on gated items.
+
+

@@ -401,3 +401,5 @@ public struct FixedCalendar: CalendarProviding { public var calendar: Calendar; 
 // • Badge idempotency:
 //   - With RewardsWalletFake, ensure re-running publishAndBadge() does not create duplicate entries for the same id.
 //   - Assert milestone streak badges (3, 5, 10, 20) only appear at exact thresholds.
+
+

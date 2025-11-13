@@ -492,3 +492,5 @@ public final class SpotRemoteAPIFake: SpotRemoteAPI {
     }
 }
 #endif
+
+

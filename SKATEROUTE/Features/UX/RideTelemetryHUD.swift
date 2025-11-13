@@ -6,6 +6,7 @@ import SwiftUI
 import MapKit
 import CoreLocation
 import Combine
+import UIKit
 
 public struct RideTelemetryHUD: View {
     // MARK: - Dependencies
@@ -367,3 +368,5 @@ struct RideTelemetryHUD_Previews: PreviewProvider {
     }
 }
 #endif
+
+

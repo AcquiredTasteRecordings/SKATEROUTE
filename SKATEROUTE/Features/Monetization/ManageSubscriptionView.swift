@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import StoreKit
+import UIKit
 
 // MARK: - DI seams (narrow & testable)
 
@@ -381,3 +382,5 @@ struct ManageSubscriptionView_Previews: PreviewProvider {
 // • VoiceOver reads: “Manage Subscription, Pro is active, Restore, Purchase History, Product: pro.monthly, Active, Open App Store”.
 // • Tap “Restore” → shows progress, then “Restore complete.” toast.
 // • Tap primary CTA → system manage sheet or deep link opens (assert via spy).
+
+

@@ -379,6 +379,7 @@ public extension HazardListView {
 
 #if DEBUG
 import MapKit
+import UIKit
 private final class LocatorFake: LocationProviding {
     let subj = CurrentValueSubject<CLLocation, Never>(CLLocation(latitude: 49.2827, longitude: -123.1207))
     var locationPublisher: AnyPublisher<CLLocation, Never> { subj.eraseToAnyPublisher() }
@@ -443,3 +444,5 @@ struct HazardListView_Previews: PreviewProvider {
 // • Empty state renders when publisher emits [].
 // • Large text sizes keep row ≥56pt; buttons ≥44pt.
 // • UITest IDs: “hazard_list”, “hazard_empty”.
+
+

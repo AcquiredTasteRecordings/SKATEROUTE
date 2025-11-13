@@ -749,3 +749,5 @@ struct HazardModerationQueueView_Previews: PreviewProvider {
 // • AX sizes preserve ≥44pt hit targets; VO reads “High Gravel, 2 h ago, 3 reports, Trust 78%.”
 // • Evidence image renders with placeholder; MapChip shows centered pin without requiring location permission.
 // • Role = viewer shows banner error on load and disables controls.
+
+

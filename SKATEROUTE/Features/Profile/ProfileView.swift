@@ -527,3 +527,5 @@ struct ProfileView_Previews: PreviewProvider {
 // • Snapshot at multiple Dynamic Type sizes; grid/list do not clip; buttons ≥44pt.
 // • VO traversal order: Header → Stats → Badges → Videos → Routes (if any).
 // • Light/Dark contrast check: placeholders maintain sufficient contrast.
+
+

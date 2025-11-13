@@ -9,6 +9,7 @@
 import SwiftUI
 import MapKit
 import Combine
+import UIKit
 
 // MARK: - Domain adapters (aligns with Services/Rewards/BrandPartnerService + Spots)
 
@@ -453,3 +454,5 @@ struct PartnerSpotlightView_Previews: PreviewProvider {
 // UI:
 // • Dynamic Type XXL keeps controls ≥44pt; map chip 160pt tall; icon falls back when missing.
 // • AX: “Partner Spotlight” identifiers present; VO labels on actions; validity bar shows “Ends in …”.
+
+

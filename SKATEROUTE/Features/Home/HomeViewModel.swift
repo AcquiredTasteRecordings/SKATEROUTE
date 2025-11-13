@@ -241,3 +241,5 @@ public final class HomeRecentsStore {
         init(_ m: RecentPlace) { self.title = m.title; self.lat = m.coordinate.latitude; self.lon = m.coordinate.longitude }
     }
 }
+
+

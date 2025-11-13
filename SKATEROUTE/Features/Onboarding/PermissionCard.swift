@@ -6,6 +6,7 @@
 // - Styling: material background + subtle border; consistent with other onboarding components.
 
 import SwiftUI
+import UIKit
 
 // MARK: - Public surface
 
@@ -246,3 +247,5 @@ struct PermissionCard_Previews: PreviewProvider {
 // • Wire buttons to your permission request functions; after the system sheet resolves, update status to re-render the badge.
 // • If you use custom coordinators for Settings navigation, inject `onOpenSettings` to route through your AppCoordinator.
 // • UI tests: assert presence by `permission_card_<kind>`, tap “Try again” when denied → request called, Settings button present when denied.
+
+
