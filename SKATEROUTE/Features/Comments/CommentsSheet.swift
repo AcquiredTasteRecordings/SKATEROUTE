@@ -285,7 +285,7 @@ public struct CommentsSheet: View {
                     CommentRow(comment: c,
                                onAppear: { Task { await vm.loadMoreIfNeeded(current: c) } },
                                onDelete: { vm.delete(c.id) },
-                               onReport: { reason, msg in $vm.report(c.id, reason: reason, message: msg) })
+                               onReport: { reason, msg in vm.report(c.id, reason: reason, message: msg) })
                     .padding(.horizontal, 16)
                 }
             }.padding(.vertical, 10)
