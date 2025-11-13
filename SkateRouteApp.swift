@@ -44,8 +44,6 @@ struct SkateRouteApp: App {
             .task(priority: .utility) {
                 // Housekeeping on cold start
                 await dependencies.locationManager.applyPowerBudgetForMonitoring()
-                await dependencies.routeService.warmUpIfNeeded()
-                await dependencies.elevationService.warmUpIfNeeded()
             }
             .onChange(of: scenePhase) { _, phase in
                 // Power budgets aligned with lifecycle
