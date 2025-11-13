@@ -61,7 +61,7 @@ public protocol CityProviding {
     var currentCityCode: String? { get }
 }
 
-public protocol sAnalyticsLogging {
+public protocol AnalyticsLogging {
     func log(_ event: AnalyticsEvent)
 }
 public struct AnalyticsEvent: Sendable, Hashable {
@@ -104,6 +104,10 @@ public final class LeaderboardViewModel: ObservableObject {
         self.city = city
         self.analytics = analytics
         self.scope = initialScope
+    }
+
+    public var currentCityCode: String? {
+        city.currentCityCode
     }
 
     public func onAppear() {
@@ -159,7 +163,7 @@ public final class LeaderboardViewModel: ObservableObject {
     // MARK: - Internals
 
     private var cityParam: String? {
-        scope == .city ? city.currentCityCode : nil
+        scope == .city ? currentCityCode : nil
     }
 
     private func load(reset: Bool, useRefresh: Bool = false) async {
@@ -233,18 +237,18 @@ public struct LeaderboardView: View {
             Menu {
                 ForEach(BoardScope.allCases, id: \.self) { s in
                     Button {
-                        $vm.setScope(s)
+                        vm.setScope(s)
                     } label: {
                         Label(title(for: s), systemImage: icon(for: s))
                     }
                 }
             } label: {
-                Label(title(for: $vm.scope), systemImage: icon(for: $vm.scope))
+                Label(title(for: vm.scope), systemImage: icon(for: vm.scope))
                     .font(.subheadline.weight(.semibold))
             }
             .buttonStyle(.bordered)
 
-            if vm.scope == .city, let code = vm.cityParam {
+            if vm.scope == .city, let code = vm.currentCityCode {
                 Text(code)
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8).padding(.vertical, 4)
