@@ -35,20 +35,34 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
+		1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Features/Rewards/RewardsWalletView.swift,
+				Resources/Legal/TermsOfUse.md,
+				Resources/PrivacyInfo.json,
 			);
 			target = 1C2D2A5A2EB20E7C00BCB90A /* SKATEROUTE */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 1C2D2A572EB20E7C00BCB90A /* Sources */;
+			membershipExceptions = (
+				Resources/Legal/TermsOfUse.md,
+				Resources/PrivacyInfo.json,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				1C2D2AC12EB210D000BCB90A /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+				1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */,
 			);
 			path = SKATEROUTE;
 			sourceTree = "<group>";
@@ -84,8 +98,8 @@
 			isa = PBXGroup;
 			children = (
 				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
 				1C2D2A5C2EB20E7C00BCB90A /* Products */,
+				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
 			);
 			sourceTree = "<group>";
 		};
@@ -197,6 +211,10 @@
 			);
 			mainGroup = 1C2D2A522EB20E7C00BCB90A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1CAB1E572EBC7DCA002944A8 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
+				1CAB1FBF2EBF8017002944A8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1C2D2A5C2EB20E7C00BCB90A /* Products */;
 			projectDirPath = "";
@@ -316,6 +334,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				NEW_SETTING = "";
+				"OTHER_SWIFT_FLAGS[arch=*]" = "$(inherited) -Xfrontend -continue-building-after-errors";
 				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -590,6 +609,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1CAB1E572EBC7DCA002944A8 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-async-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.4;
+			};
+		};
+		1CAB1FBF2EBF8017002944A8 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 1C2D2A532EB20E7C00BCB90A /* Project object */;
 }

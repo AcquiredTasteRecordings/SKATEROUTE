@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skateroute.app/schemas/attrs-victoria.schema.json",
+  "title": "SkateRoute Local Attribution Tiles",
+  "description": "Schema for attrs-<region>.json files consumed by AttributionService & RouteContextBuilder.",
+  "type": "object",
+  "required": ["schemaVersion", "meta", "features"],
+  "additionalProperties": false,
+
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Format version for the attrs-* document."
+    },
+
+    "meta": {
+      "type": "object",
+      "required": ["version", "schemaVersion"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Human-readable dataset version, e.g. '2025.01.0'."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 timestamp when this dataset was generated."
+        },
+        "region": {
+          "type": "string",
+          "description": "Region identifier this dataset covers, e.g. 'victoria-bc'."
+        },
+        "source": {
+          "type": "string",
+          "description": "Free-form attribution for data sources."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about processing steps, filters, etc."
+        },
+        "schemaVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Schema version this dataset conforms to. Should match root schemaVersion."
+        }
+      }
+    },
+
+    "features": {
+      "type": "array",
+      "description": "Attribution tiles used to enrich MKRoute steps.",
+      "items": { "$ref": "#/$defs/feature" }
+    }
+  },
+
+  "$defs": {
+    "feature": {
+      "type": "object",
+      "required": ["id", "kind", "shape"],
+      "additionalProperties": false,
+
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier for this attribution feature."
+        },
+
+        "kind": {
+          "type": "string",
+          "enum": ["bikeLane", "hazard", "legality", "crossingsPerKm"],
+          "description": "What this feature encodes."
+        },
+
+        "shape": {
+          "type": "string",
+          "enum": ["point", "box"],
+          "description": "Geometric footprint of this feature."
+        },
+
+        "value": {
+          "type": "number",
+          "description": "Numeric value for this feature. For hazard/legality expected in [0,1]."
+        },
+
+        "boolValue": {
+          "type": "boolean",
+          "description": "Boolean value for this feature. Used for bikeLane presence."
+        },
+
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Latitude for point features."
+        },
+
+        "lon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Longitude for point features."
+        },
+
+        "radiusMeters": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Radius (in meters) for point features."
+        },
+
+        "minLat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Minimum latitude for box features."
+        },
+
+        "minLon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Minimum longitude for box features."
+        },
+
+        "maxLat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Maximum latitude for box features."
+        },
+
+        "maxLon": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Maximum longitude for box features."
+        }
+      },
+
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "bikeLane" } } },
+          "then": {
+            "description": "Bike lane features should provide either a boolean or numeric strength.",
+            "anyOf": [
+              { "required": ["boolValue"] },
+              { "required": ["value"] }
+            ]
+          }
+        },
+
+        {
+          "if": { "properties": { "kind": { "const": "hazard" } } },
+          "then": {
+            "description": "Hazard scores must be normalized to [0,1].",
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "required": ["value"]
+          }
+        },
+
+        {
+          "if": { "properties": { "kind": { "const": "legality" } } },
+          "then": {
+            "description": "Legality scores must be normalized to [0,1].",
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "required": ["value"]
+          }
+        },
+
+        {
+          "if": { "properties": { "kind": { "const": "crossingsPerKm" } } },
+          "then": {
+            "description": "Crossings density must be non-negative.",
+            "properties": {
+              "value": {
+                "type": "number",
+                "minimum": 0.0
+              }
+            },
+            "required": ["value"]
+          }
+        },
+
+        {
+          "if": { "properties": { "shape": { "const": "point" } } },
+          "then": {
+            "description": "Point features require a center and radius.",
+            "required": ["lat", "lon", "radiusMeters"],
+            "properties": {
+              "radiusMeters": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 2000,
+                "description": "Suggested max radius to keep tiles compact."
+              }
+            }
+          }
+        },
+
+        {
+          "if": { "properties": { "shape": { "const": "box" } } },
+          "then": {
+            "description": "Box features require a bounding rectangle.",
+            "required": ["minLat", "minLon", "maxLat", "maxLon"]
+          }
+        }
+      ]
+    }
+  }
+}

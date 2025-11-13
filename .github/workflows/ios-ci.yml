@@ -91,6 +91,11 @@ jobs:
       - name: SwiftFormat (lint only)
         continue-on-error: true
         run: swiftformat --lint .
+        
+      - name: Verify legal docs
+        run: |
+        test -s Resources/Legal/PrivacyPolicy.md
+        test -s Resources/Legal/TermsOfUse.md
 
   test:
     name: Build & Test (iOS Simulator Matrix)
