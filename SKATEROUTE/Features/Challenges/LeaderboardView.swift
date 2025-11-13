@@ -1,7 +1,7 @@
 // Features/Challenges/LeaderboardView.swift
 // City / Top Friends leaderboards with pagination and “Verify me” flow for flagged entries.
 // - Integrates with Services/Challenges/LeaderboardService (read API) and (optional) identity/receipt checks.
-// - Tabs: City, Global, Friends. Time range: This Week (can extend later).
+// - Tabs: City, Global, Friends. Time range: This Week (can extend later).                                 
 // - Infinite scroll pagination via `nextToken`; duplicate suppression; pull-to-refresh.
 // - “Flagged / needs verification” rows show a compact CTA -> Verify sheet (anti-cheat UX).
 // - A11y: VO-friendly labels (“#3, 12.4 km, Alex, verified”); Dynamic Type; ≥44pt.
