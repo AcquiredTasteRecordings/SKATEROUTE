@@ -17,7 +17,7 @@ public protocol LocationManaging: ObservableObject {
     var currentLocationPublisher: AnyPublisher<CLLocation?, Never> { get }
     var geofenceEventHandler: ((LocationGeofenceEvent) -> Void)? { get set }
 
-    func applyAccuracy(_ profile: LocationManagerService.AccuracyProfile)
+    func applyAccuracy(_ profile: AccuracyProfile)
     func applyPowerBudgetForMonitoring()
     func applyPowerBudgetForActiveNavigation()
     func installGeofences(along route: MKRoute,

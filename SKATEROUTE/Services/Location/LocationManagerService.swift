@@ -22,10 +22,11 @@ import CoreMotion
  - Associates location updates with specific ride sessions via `beginContinuousTracking(for:)`.
 
  ### Accuracy Profiles
- The service supports three configurable accuracy tiers:
- - `eco`: Optimized for battery savings with reduced accuracy and larger distance filters.
- - `balanced`: Default profile balancing accuracy and battery usage.
- - `precision`: High accuracy suitable for detailed navigation and route recording.
+ The service follows the shared `AccuracyProfile` cases used across the app:
+ - `navigation`: Tight lock for active ride guidance and reroute recovery.
+ - `balanced`: Everyday foreground usage when exploring or planning routes.
+ - `monitoring`: Passive monitoring with coarse updates between rides.
+ - `background`: Deep-idle budget that leans on geofences and significant-change updates.
 
  These profiles adjust the CLLocationManager's desiredAccuracy, distanceFilter, and activityType accordingly.
 
@@ -50,37 +51,6 @@ public final class LocationManagerService: NSObject, ObservableObject, CLLocatio
         case exited(CLRegion)
     }
     public var geofenceEventHandler: ((GeofenceEvent) -> Void)?
-
-    /// Supported accuracy profiles for location tracking.
-    public enum AccuracyProfile {
-        case eco
-        case balanced
-        case precision
-
-        var desiredAccuracy: CLLocationAccuracy {
-            switch self {
-            case .eco: return kCLLocationAccuracyHundredMeters
-            case .balanced: return kCLLocationAccuracyNearestTenMeters
-            case .precision: return kCLLocationAccuracyBestForNavigation
-            }
-        }
-
-        var distanceFilter: CLLocationDistance {
-            switch self {
-            case .eco: return 50.0
-            case .balanced: return 10.0
-            case .precision: return kCLDistanceFilterNone
-            }
-        }
-
-        var activityType: CLActivityType {
-            switch self {
-            case .eco: return .otherNavigation
-            case .balanced: return .fitness
-            case .precision: return .fitness
-            }
-        }
-    }
 
     private var currentProfile: AccuracyProfile = .balanced
 
@@ -133,33 +103,95 @@ public final class LocationManagerService: NSObject, ObservableObject, CLLocatio
     // MARK: - Profiles & Budgets
 
     public func applyAccuracy(_ profile: AccuracyProfile) {
+        updateMode(for: profile)
         currentProfile = profile
-        manager.desiredAccuracy = profile.desiredAccuracy
-        manager.distanceFilter = profile.distanceFilter
+
+        let parameters = tunedParameters(for: profile)
+        manager.desiredAccuracy = parameters.accuracy
+        manager.distanceFilter = parameters.distance
         manager.activityType = profile.activityType
-        logger.log("Applied accuracy profile: \(String(describing: profile))")
+        manager.pausesLocationUpdatesAutomatically = profile.pausesAutomatically
+
+        let allowBackground = profile.allowsBackgroundUpdates && allowsBackground
+        if manager.allowsBackgroundLocationUpdates != allowBackground {
+            manager.allowsBackgroundLocationUpdates = allowBackground
+        }
+
+        if #available(iOS 11.0, *) {
+            let showIndicator = profile.showsBackgroundIndicator && allowBackground && mode == .activeNavigation
+            manager.showsBackgroundLocationIndicator = showIndicator
+        }
+
+        configureDeferredUpdates(for: profile)
+        adaptBackgroundLocationUpdates()
+
+        logger.log("Applied accuracy profile: \(profile.rawValue)")
+    }
+
+    private func updateMode(for profile: AccuracyProfile) {
+        switch profile {
+        case .navigation:
+            mode = .activeNavigation
+        case .balanced, .monitoring, .background:
+            mode = .monitoring
+        }
+    }
+
+    private func tunedParameters(for profile: AccuracyProfile) -> (accuracy: CLLocationAccuracy, distance: CLLocationDistance) {
+        var accuracy = profile.desiredAccuracy
+        var distance = profile.distanceFilter
+
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            switch profile {
+            case .navigation:
+                accuracy = max(accuracy, kCLLocationAccuracyNearestTenMeters)
+                distance *= 1.3
+            case .balanced:
+                accuracy = kCLLocationAccuracyHundredMeters
+                distance *= 1.5
+            case .monitoring, .background:
+                accuracy = kCLLocationAccuracyHundredMeters
+                distance *= 1.7
+            }
+        }
+
+        return (accuracy, distance)
+    }
+
+    private func configureDeferredUpdates(for profile: AccuracyProfile) {
+        let cancelSelector = #selector(CLLocationManager.disallowDeferredLocationUpdates)
+        if manager.responds(to: cancelSelector) {
+            _ = manager.perform(cancelSelector)
+        }
+
+        guard CLLocationManager.deferredLocationUpdatesAvailable(),
+              allowsBackground,
+              profile.allowsBackgroundUpdates,
+              let policy = profile.deferredPolicy else { return }
+
+        manager.allowDeferredLocationUpdates(untilTraveled: policy.distance, timeout: policy.timeout)
     }
 
     /// Low-power budget for passive monitoring (<8%/hr target).
     public func applyPowerBudgetForMonitoring() {
         // Low-power: prefer significant-change updates when app is idle / passive monitoring.
-        applyAccuracy(.eco)
+        applyAccuracy(.monitoring)
         manager.pausesLocationUpdatesAutomatically = true
         manager.distanceFilter = max(25, currentProfile.distanceFilter)
         mode = .monitoring
         switchToSignificantChangeIfPossible()
-        logger.log("Applied monitoring power budget (eco + significant changes)")
+        logger.log("Applied monitoring power budget (monitoring profile + significant changes)")
     }
 
     /// High-accuracy budget for active navigation and reroute recovery.
     public func applyPowerBudgetForActiveNavigation() {
         // High accuracy for on-route guidance and reroute detection.
-        applyAccuracy(.precision)
+        applyAccuracy(.navigation)
         manager.pausesLocationUpdatesAutomatically = true
         manager.distanceFilter = kCLDistanceFilterNone
         mode = .activeNavigation
         switchToStandardLocationUpdates()
-        logger.log("Applied active-navigation power budget (precision updates)")
+        logger.log("Applied active-navigation power budget (navigation profile)")
     }
 
     // MARK: - Start/Stop
