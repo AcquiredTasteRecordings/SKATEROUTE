@@ -100,6 +100,10 @@ public final class ElevationService: ElevationServing {
         self.elevationSource = source
     }
 
+    public func warmUpIfNeeded() async {
+        // No preparatory work is necessary yet; placeholder for future DEM priming.
+    }
+
     /// Summarize grades along a route. If elevation cannot be fetched, returns a neutral summary.
     public func summarizeGrades(on route: MKRoute, sampleMeters: Double) async -> GradeSummary {
         // Build a resampled polyline at ~sampleMeters spacing
