@@ -41,7 +41,7 @@ public struct StepContext: Sendable {
         self.distanceMeters = distanceMeters
         self.expectedTravelTime = expectedTravelTime
         self.avgGradePercent = avgGradePercent
-        self.maxUphillPercent = maxDownhillPercent
+        self.maxUphillPercent = maxUphillPercent
         self.maxDownhillPercent = maxDownhillPercent
         self.isPredominantlyDownhill = isPredominantlyDownhill
         self.bearingDegrees = bearingDegrees
@@ -56,9 +56,9 @@ public struct StepContext: Sendable {
 @MainActor
 public final class RouteContextBuilder: RouteContextBuilding {
     private let attributes: any StepAttributesProvider
-    private let segments: SegmentStore
+    private let segments: SegmentStoring
 
-    public init(attributes: any StepAttributesProvider, segments: SegmentStore) {
+    public init(attributes: any StepAttributesProvider, segments: SegmentStoring) {
         self.attributes = attributes
         self.segments = segments
     }
