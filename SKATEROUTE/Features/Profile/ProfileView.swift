@@ -11,6 +11,7 @@
 
 import SwiftUI
 import Combine
+import AVKit
 
 // MARK: - DI seams (narrow & testable)
 
@@ -60,21 +61,6 @@ public protocol FeedReading: AnyObject {
     // Public-safe feed. Caller passes userId and which kinds to include.
     func fetchUserFeed(userId: String, kinds: [FeedKind], limit: Int) async -> [FeedCard]
 }
-
-// Optional analytics façade (redacted)
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case profile }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool) }
 
 // MARK: - ViewModel
 

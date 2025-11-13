@@ -47,6 +47,17 @@ public struct ModHazardItem: Identifiable, Equatable, Sendable {
         self.note = note
         self.evidencePhotoURL = evidencePhotoURL
     }
+    public static func == (lhs: ModHazardItem, rhs: ModHazardItem) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.type == rhs.type &&
+               lhs.severity == rhs.severity &&
+               lhs.updatedAt == rhs.updatedAt &&
+               lhs.reports == rhs.reports &&
+               lhs.cityCode == rhs.cityCode &&
+               lhs.reporterTrustScore == rhs.reporterTrustScore &&
+               lhs.note == rhs.note &&
+               lhs.evidencePhotoURL == rhs.evidencePhotoURL
+    }
 }
 
 public struct ModPage: Sendable, Equatable {
@@ -83,20 +94,6 @@ public protocol HazardModerationActing: AnyObject {
 public protocol RoleProviding {
     var currentRole: ModRole { get }
 }
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case moderation }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
 
 // MARK: - ViewModel
 
@@ -152,7 +149,7 @@ public final class HazardModerationQueueViewModel: ObservableObject {
             items = page.items
             nextToken = page.nextToken
             selected.removeAll()
-            analytics?.log(.init(name: "mod_queue_load", category: .moderation, params: ["count": .int(items.count)]))
+            analytics?.log(.init(name: "mod_queue_load", category: .hazards, params: ["count": .int(items.count)]))
         } catch {
             errorMessage = NSLocalizedString("Couldn’t load moderation queue.", comment: "load fail")
         }
@@ -212,7 +209,7 @@ public final class HazardModerationQueueViewModel: ObservableObject {
                     }
                 }
                 infoMessage = NSLocalizedString("Action applied.", comment: "ok")
-                analytics?.log(.init(name: "mod_action", category: .moderation, params: ["kind": .string(String(describing: action))]))
+                analytics?.log(.init(name: "mod_action", category: .hazards, params: ["kind": .string(String(describing: action))]))
             } catch {
                 // Rollback optimistic removal
                 if let rollback = removedSnapshot {
@@ -408,7 +405,13 @@ public struct HazardModerationQueueView: View {
                 Section(header: Text(NSLocalizedString("Severity", comment: "severity"))) {
                     ForEach(HazardSeverity.allCases, id: \.self) { sev in
                         Toggle(isOn: Binding(get: { vm.filterSeverities.contains(sev) },
-                                             set: { on in on ? vm.filterSeverities.insert(sev) : vm.filterSeverities.remove(sev) })) {
+                                             set: { on in
+                                                 if on {
+                                                     vm.filterSeverities.insert(sev)
+                                                 } else {
+                                                     vm.filterSeverities.remove(sev)
+                                                 }
+                                             })) {
                             Text(sev.title)
                         }
                     }
@@ -416,7 +419,13 @@ public struct HazardModerationQueueView: View {
                 Section(header: Text(NSLocalizedString("Types", comment: "types"))) {
                     ForEach(HazardType.allCases, id: \.self) { t in
                         Toggle(isOn: Binding(get: { vm.filterTypes.contains(t) },
-                                             set: { on in on ? vm.filterTypes.insert(t) : vm.filterTypes.remove(t) })) {
+                                             set: { on in
+                                                 if on {
+                                                     vm.filterTypes.insert(t)
+                                                 } else {
+                                                     vm.filterTypes.remove(t)
+                                                 }
+                                             })) {
                             Text(t.title)
                         }
                     }
@@ -487,7 +496,10 @@ public struct HazardModerationQueueView: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { try? await Task.sleep(nanoseconds: 1_800_000_000); await MainActor.run(body) }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            body()
+        }
     }
 }
 
@@ -557,8 +569,10 @@ fileprivate struct ModRow: View {
 
             // Action row
             HStack(spacing: 8) {
-                Button(confirm) { Label(NSLocalizedString("Confirm", comment: "confirm"), systemImage: "checkmark.seal") }
-                    .buttonStyle(.bordered)
+                Button(action: confirm) {
+                    Label(NSLocalizedString("Confirm", comment: "confirm"), systemImage: "checkmark.seal")
+                }
+                .buttonStyle(.bordered)
                 Menu {
                     ForEach(HazardSeverity.allCases, id: \.self) { sev in
                         Button { downgrade(sev) } label: {
@@ -570,14 +584,18 @@ fileprivate struct ModRow: View {
                 }
                 .buttonStyle(.bordered)
 
-                Button(resolve) { Label(NSLocalizedString("Resolve", comment: "resolve"), systemImage: "wand.and.stars") }
-                    .buttonStyle(.borderedProminent)
+                Button(action: resolve) {
+                    Label(NSLocalizedString("Resolve", comment: "resolve"), systemImage: "wand.and.stars")
+                }
+                .buttonStyle(.borderedProminent)
 
                 Button(role: .destructive, action: reject) { Label(NSLocalizedString("Reject", comment: "reject"), systemImage: "xmark.octagon") }
                     .buttonStyle(.bordered)
 
-                Button(startMerge) { Label(NSLocalizedString("Merge", comment: "merge"), systemImage: "square.stack.3d.down.right") }
-                    .buttonStyle(.bordered)
+                Button(action: startMerge) {
+                    Label(NSLocalizedString("Merge", comment: "merge"), systemImage: "square.stack.3d.down.right")
+                }
+                .buttonStyle(.bordered)
             }
             .frame(minHeight: 44)
         }
@@ -675,8 +693,8 @@ public extension HazardModerationQueueView {
 
 // MARK: - DEBUG fakes
 
-#if DEBUG
-private final class ReaderFake: HazardModerationReading {
+//#if DEBUG
+private final class HazardModerationReaderFake: HazardModerationReading {
     func fetchQueue(severity: Set<HazardSeverity>, types: Set<HazardType>, city: String?, pageSize: Int, nextToken: String?) async throws -> ModPage {
         let base = CLLocationCoordinate2D(latitude: 49.2827, longitude: -123.1207)
         let start = (Int(nextToken ?? "0") ?? 0)
@@ -701,7 +719,7 @@ private final class ReaderFake: HazardModerationReading {
         return ModPage(items: arr, nextToken: next)
     }
 }
-private final class ActorFake: HazardModerationActing {
+private final class HazardModerationActorFake: HazardModerationActing {
     func perform(_ action: ModAction) async throws -> ModHazardItem? { nil }
     func performBulk(_ actions: [ModAction]) async throws -> [String : ModHazardItem?] {
         var m: [String: ModHazardItem?] = [:]
@@ -721,7 +739,7 @@ private final class RolesFake: RoleProviding { var currentRole: ModRole = .partn
 struct HazardModerationQueueView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            HazardModerationQueueView.make(reader: ReaderFake(), actor: ActorFake(), roles: RolesFake(), analytics: nil)
+            HazardModerationQueueView.make(reader: HazardModerationReaderFake(), actor: HazardModerationActorFake(), roles: RolesFake(), analytics: nil)
         }
         .preferredColorScheme(.dark)
         .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)

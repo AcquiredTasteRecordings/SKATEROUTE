@@ -43,6 +43,15 @@ public struct NearbyHazard: Identifiable, Equatable, Sendable {
         self.count = count
         self.isAcknowledged = isAcknowledged
     }
+    public static func == (lhs: NearbyHazard, rhs: NearbyHazard) -> Bool {
+        return lhs.id == rhs.id &&
+               lhs.type == rhs.type &&
+               lhs.severity == rhs.severity &&
+               lhs.updatedAt == rhs.updatedAt &&
+               lhs.distanceMeters == rhs.distanceMeters &&
+               lhs.count == rhs.count &&
+               lhs.isAcknowledged == rhs.isAcknowledged
+    }
 }
 
 // MARK: - DI seams
@@ -61,23 +70,6 @@ public protocol HazardActing: AnyObject {
     func requestResolve(hazardId: String) async throws
 }
 
-public protocol LocationProviding {
-    var locationPublisher: AnyPublisher<CLLocation, Never> { get }
-}
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case hazards }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool) }
 
 // MARK: - ViewModel
 
@@ -122,11 +114,12 @@ public final class HazardListViewModel: ObservableObject {
             .removeDuplicates()
             .receive(on: RunLoop.main)
 
-        stream.sink { [weak self] list in
-            self?.items = list
-            self?.isLoading = false
-        }
-        .store(in: &cancellables)
+        stream
+            .sink { [weak self] (list: [NearbyHazard]) in
+                self?.items = list
+                self?.isLoading = false
+            }
+            .store(in: &cancellables)
     }
 
     public func acknowledge(_ hazard: NearbyHazard, muteHours: Int = 6) {
@@ -272,7 +265,10 @@ public struct HazardListView: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { try? await Task.sleep(nanoseconds: 1_800_000_000); await MainActor.run(body) }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            body()
+        }
     }
 }
 
@@ -315,7 +311,9 @@ fileprivate struct HazardRow: View {
         .contentShape(Rectangle())
         .contextMenu {
             if !h.isAcknowledged {
-                Button(acknowledge) { Label(NSLocalizedString("Acknowledge (6h)", comment: "ack"), systemImage: "bell.slash") }
+                Button(action: acknowledge) {
+                    Label(NSLocalizedString("Acknowledge (6h)", comment: "ack"), systemImage: "bell.slash")
+                }
             }
             Button(role: .destructive, action: resolve) {
                 Label(NSLocalizedString("Request resolve", comment: "resolve"), systemImage: "checkmark.seal")
@@ -324,8 +322,10 @@ fileprivate struct HazardRow: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive, action: resolve) { Label(NSLocalizedString("Resolve", comment: "resolve"), systemImage: "checkmark.seal") }
             if !h.isAcknowledged {
-                Button(action: acknowledge) { Label(NSLocalizedString("Acknowledge", comment: "ack"), systemImage: "bell.slash") }
-                    .tint(.orange)
+                Button(action: acknowledge) {
+                    Label(NSLocalizedString("Acknowledge", comment: "ack"), systemImage: "bell.slash")
+                }
+                .tint(.orange)
             }
         }
         .accessibilityElement(children: .combine)
@@ -384,7 +384,7 @@ private final class LocatorFake: LocationProviding {
     let subj = CurrentValueSubject<CLLocation, Never>(CLLocation(latitude: 49.2827, longitude: -123.1207))
     var locationPublisher: AnyPublisher<CLLocation, Never> { subj.eraseToAnyPublisher() }
 }
-private final class ReaderFake: HazardReading {
+private final class HazardReaderFake: HazardReading {
     func nearbyHazardsPublisher(userLocation: AnyPublisher<CLLocation, Never>, radiusMeters: Double) -> AnyPublisher<[NearbyHazard], Never> {
         userLocation
             .map { loc in
@@ -407,7 +407,7 @@ private final class ReaderFake: HazardReading {
             .eraseToAnyPublisher()
     }
 }
-private final class ActorFake: HazardActing {
+private final class HazardActorFake: HazardActing {
     func acknowledge(hazardId: String, muteForHours: Int) async throws { }
     func requestResolve(hazardId: String) async throws { }
 }
@@ -415,7 +415,7 @@ private final class ActorFake: HazardActing {
 struct HazardListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            HazardListView.make(reader: ReaderFake(), actor: ActorFake(), locator: LocatorFake())
+            HazardListView.make(reader: HazardReaderFake(), actor: HazardActorFake(), locator: LocatorFake())
         }
         .preferredColorScheme(.dark)
         .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)

@@ -42,29 +42,6 @@ public protocol ProfilePrivacyEditing: AnyObject {
     func setHideRoutes(_ on: Bool) async
 }
 
-public protocol GPXExporting: AnyObject {
-    /// Exports the user’s rides to a temporary container.
-    /// - Parameters:
-    ///   - format: "gpx" or "geojson"
-    ///   - redactionRadiusMeters: home fuzz radius (privacy)
-    /// - Returns: URL of exported file (temporary); caller is responsible for sharing/removal.
-    func exportAll(format: String, redactionRadiusMeters: Double) async throws -> URL
-}
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case settings }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
-
 // MARK: - ViewModel
 
 @MainActor

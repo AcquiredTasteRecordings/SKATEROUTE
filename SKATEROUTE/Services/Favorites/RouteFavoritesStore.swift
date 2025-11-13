@@ -70,15 +70,6 @@ public struct BBox: Codable, Hashable {
 
 // MARK: - DI seams
 
-public protocol SharePayloadBuilding {
-    struct SharePayload {
-        public let url: URL
-        public let imageData: Data?
-        public let text: String
-        public init(url: URL, imageData: Data?, text: String) {
-            self.url = url; self.imageData = imageData; self.text = text
-        }
-    }
     /// Build a social-ready payload for a route (map snapshot + deep link text).
     func buildRouteSharePayload(routeName: String,
                                 polyline: MKPolyline,

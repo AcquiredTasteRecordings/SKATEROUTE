@@ -40,27 +40,17 @@ public protocol CaptureControlling: AnyObject {
 public struct StorageEstimate: Sendable, Equatable {
     public let freeBytes: Int64          // device free
     public let estMinutesRemaining: Double
+
+    public init(freeBytes: Int64, estMinutesRemaining: Double) {
+        self.freeBytes = freeBytes
+        self.estMinutesRemaining = estMinutesRemaining
+    }
 }
 
 public enum CaptureQuality: String, CaseIterable, Sendable, Equatable {
     case p1080 = "1080p"
     case p720  = "720p"
 }
-
-// Optional analytics façade
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case capture }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), bool(Bool), double(Double) }
 
 // MARK: - ViewModel
 
@@ -126,13 +116,26 @@ public final class CaptureViewModel: ObservableObject {
         }
     }
 
+    /// Bridge for the view to start preview without exposing `controller`.
+    public func startPreview(on layer: AVCaptureVideoPreviewLayer) {
+        do {
+            try controller.startPreview(on: layer)
+        } catch {
+            errorMessage = NSLocalizedString("Couldn’t start camera preview.", comment: "preview fail")
+        }
+    }
+
     public func startStopTapped() {
         switch state {
         case .recording:
             Task { await controller.stopRecording() }
-            analytics?.log(.init(name: "capture_stop", category: .capture, params: ["dur": .double(duration)]))
+            analytics?.log(.init(name: "capture_stop",
+                                 category: .capture,
+                                 params: ["dur": .double(duration)]))
         case .ready, .idle:
-            analytics?.log(.init(name: "capture_start", category: .capture, params: ["q": .string(quality.rawValue)]))
+            analytics?.log(.init(name: "capture_start",
+                                 category: .capture,
+                                 params: ["q": .string(quality.rawValue)]))
             Task {
                 do { try await controller.startRecording() }
                 catch { errorMessage = NSLocalizedString("Couldn’t start recording.", comment: "start fail") }
@@ -143,12 +146,18 @@ public final class CaptureViewModel: ObservableObject {
     }
 
     public func toggleTorch() {
-        do { try controller.toggleTorch(!isTorchOn); isTorchOn.toggle() }
-        catch { errorMessage = NSLocalizedString("Torch not available.", comment: "torch fail") }
+        do {
+            try controller.toggleTorch(!isTorchOn)
+            isTorchOn.toggle()
+        } catch {
+            errorMessage = NSLocalizedString("Torch not available.", comment: "torch fail")
+        }
     }
 
     public func switchCamera() {
-        analytics?.log(.init(name: "capture_switch_cam", category: .capture, params: [:]))
+        analytics?.log(.init(name: "capture_switch_cam",
+                             category: .capture,
+                             params: [:]))
         Task {
             do { try await controller.switchCamera() }
             catch { errorMessage = NSLocalizedString("Can’t switch camera now.", comment: "switch fail") }
@@ -160,7 +169,9 @@ public final class CaptureViewModel: ObservableObject {
         if let idx = all.firstIndex(of: quality) {
             let next = all[(idx + 1) % all.count]
             Task { await controller.setQuality(next) }
-            analytics?.log(.init(name: "capture_quality", category: .capture, params: ["q": .string(next.rawValue)]))
+            analytics?.log(.init(name: "capture_quality",
+                                 category: .capture,
+                                 params: ["q": .string(next.rawValue)]))
         }
     }
 }
@@ -178,7 +189,7 @@ public struct CaptureView: View {
         ZStack {
             // Live Preview (owned by pipeline; we just host its layer)
             PreviewLayerHost(configure: { layer in
-                try? vm.controller.startPreview(on: layer)
+                vm.startPreview(on: layer)
             })
             .ignoresSafeArea()
 
@@ -248,7 +259,14 @@ public struct CaptureView: View {
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(Color.black.opacity(0.35), in: Capsule())
         .foregroundColor(.white)
-        .accessibilityLabel(Text(String(format: NSLocalizedString("Approximately %.0f minutes of recording left", comment: "storage a11y"), minutes)))
+        .accessibilityLabel(
+            Text(
+                String(
+                    format: NSLocalizedString("Approximately %.0f minutes of recording left", comment: "storage a11y"),
+                    minutes
+                )
+            )
+        )
     }
 
     // MARK: Center HUD: timer + level meter
@@ -260,8 +278,15 @@ public struct CaptureView: View {
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .background(Color.black.opacity(0.35), in: Capsule())
                 .foregroundColor(.white)
-                .accessibilityLabel(Text(String(format: NSLocalizedString("Elapsed %@",
-                                    comment: "elapsed a11y"), formatTime(vm.duration))))
+                .accessibilityLabel(
+                    Text(
+                        String(
+                            format: NSLocalizedString("Elapsed %@", comment: "elapsed a11y"),
+                            formatTime(vm.duration)
+                        )
+                    )
+                )
+
             LevelMeter(level: vm.audioLevel)
                 .frame(height: 16)
                 .padding(.horizontal, 32)
@@ -279,24 +304,35 @@ public struct CaptureView: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("capture_rec_button")
-            .accessibilityLabel(Text(vm.state == .recording ?
-                NSLocalizedString("Stop recording", comment: "stop a11y") :
-                NSLocalizedString("Start recording", comment: "start a11y")))
+            .accessibilityLabel(
+                Text(
+                    vm.state == .recording
+                    ? NSLocalizedString("Stop recording", comment: "stop a11y")
+                    : NSLocalizedString("Start recording", comment: "start a11y")
+                )
+            )
             .accessibilityHint(Text(NSLocalizedString("Double tap to toggle recording.", comment: "")))
 
             HStack(spacing: 12) {
                 Button(action: vm.switchCamera) {
-                    Label(NSLocalizedString("Flip", comment: "flip"), systemImage: "arrow.triangle.2.circlepath.camera")
-                        .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    Label(NSLocalizedString("Flip", comment: "flip"),
+                          systemImage: "arrow.triangle.2.circlepath.camera")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
                 }
                 .buttonStyle(.bordered)
                 .frame(minHeight: 44)
                 .accessibilityIdentifier("capture_flip")
 
                 Button(action: vm.toggleTorch) {
-                    Label(vm.isTorchOn ? NSLocalizedString("Torch On", comment: "") : NSLocalizedString("Torch Off", comment: ""),
-                          systemImage: vm.isTorchOn ? "bolt.fill" : "bolt.slash.fill")
-                        .frame(maxWidth: .infinity).padding(.vertical, 12)
+                    Label(
+                        vm.isTorchOn
+                        ? NSLocalizedString("Torch On", comment: "")
+                        : NSLocalizedString("Torch Off", comment: ""),
+                        systemImage: vm.isTorchOn ? "bolt.fill" : "bolt.slash.fill"
+                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
                 }
                 .buttonStyle(.bordered)
                 .frame(minHeight: 44)
@@ -348,7 +384,16 @@ fileprivate func formatTime(_ t: TimeInterval) -> String {
     let h = s / 3600
     let m = (s % 3600) / 60
     let sec = s % 60
-    return h > 0 ? String(format: "%d:%02d:%02d", h, m, sec) : String(format: "%02d:%02d", m, sec)
+    return h > 0
+        ? String(format: "%d:%02d:%02d", h, m, sec)
+        : String(format: "%02d:%02d", m, sec)
+}
+
+fileprivate func autoDismiss(_ body: @escaping () -> Void) {
+    Task {
+        try? await Task.sleep(nanoseconds: 1_800_000_000)
+        await MainActor.run(resultType: body, body: <#@MainActor @Sendable () throws -> _#>)
+    }
 }
 
 fileprivate struct RetroRecButton: View {
@@ -378,7 +423,8 @@ fileprivate struct MeterBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(Color.white.opacity(0.25))
-                Capsule().fill(Color.green).frame(width: geo.size.width * progress)
+                Capsule().fill(Color.green)
+                    .frame(width: geo.size.width * progress)
             }
         }
         .clipShape(Capsule())
@@ -390,7 +436,7 @@ fileprivate struct LevelMeter: View {
     var body: some View {
         HStack(spacing: 2) {
             ForEach(0..<18, id: \.self) { i in
-                let th = Double(i+1) / 18.0
+                let th = Double(i + 1) / 18.0
                 Rectangle()
                     .fill(gradient(for: th))
                     .opacity(Double(level) >= th ? 1.0 : 0.15)
@@ -400,7 +446,9 @@ fileprivate struct LevelMeter: View {
     }
     private func gradient(for t: Double) -> LinearGradient {
         let color: Color = t < 0.7 ? .green : (t < 0.9 ? .yellow : .red)
-        return LinearGradient(colors: [color.opacity(0.9), color], startPoint: .top, endPoint: .bottom)
+        return LinearGradient(colors: [color.opacity(0.9), color],
+                              startPoint: .top,
+                              endPoint: .bottom)
     }
 }
 
@@ -408,13 +456,16 @@ fileprivate struct LevelMeter: View {
 
 fileprivate struct PreviewLayerHost: UIViewRepresentable {
     let configure: (AVCaptureVideoPreviewLayer) -> Void
+
     func makeUIView(context: Context) -> UIView {
         let v = PreviewLayerView()
         configure(v.previewLayer)
         v.previewLayer.videoGravity = .resizeAspectFill
         return v
     }
+
     func updateUIView(_ uiView: UIView, context: Context) {}
+
     private final class PreviewLayerView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
@@ -424,7 +475,8 @@ fileprivate struct PreviewLayerHost: UIViewRepresentable {
 // MARK: - Convenience builder
 
 public extension CaptureView {
-    static func make(controller: CaptureControlling, analytics: AnalyticsLogging? = nil) -> CaptureView {
+    static func make(controller: CaptureControlling,
+                     analytics: AnalyticsLogging? = nil) -> CaptureView {
         CaptureView(viewModel: .init(controller: controller, analytics: analytics))
     }
 }
@@ -436,7 +488,9 @@ private final class CaptureControllerFake: CaptureControlling {
     private let stateS = CurrentValueSubject<CaptureState, Never>(.ready)
     private let durS = CurrentValueSubject<TimeInterval, Never>(0)
     private let lvlS = CurrentValueSubject<Float, Never>(0.2)
-    private let stoS = CurrentValueSubject<StorageEstimate, Never>(.init(freeBytes: 5_000_000_000, estMinutesRemaining: 47))
+    private let stoS = CurrentValueSubject<StorageEstimate, Never>(
+        .init(freeBytes: 5_000_000_000, estMinutesRemaining: 47)
+    )
     private let qS = CurrentValueSubject<CaptureQuality, Never>(.p1080)
     private var timer: Timer?
 
@@ -447,7 +501,7 @@ private final class CaptureControllerFake: CaptureControlling {
     var qualityPublisher: AnyPublisher<CaptureQuality, Never> { qS.eraseToAnyPublisher() }
 
     func configureIfNeeded() async throws {}
-    func startPreview(on layer: AVCaptureVideoPreviewLayer) throws { }
+    func startPreview(on layer: AVCaptureVideoPreviewLayer) throws {}
 
     func startRecording() async throws {
         stateS.send(.recording)
@@ -459,11 +513,13 @@ private final class CaptureControllerFake: CaptureControlling {
             self.lvlS.send(Float(Double.random(in: 0.1...0.95)))
         }
     }
+
     func stopRecording() async {
         timer?.invalidate()
         stateS.send(.ready)
         durS.send(0)
     }
+
     func toggleTorch(_ on: Bool) throws {}
     func switchCamera() async throws {}
     func setQuality(_ quality: CaptureQuality) async { qS.send(quality) }
@@ -492,5 +548,3 @@ struct CaptureView_Previews: PreviewProvider {
 // • Accessibility: REC button is a full circle target ≥96pt; controls ≥44pt; timer uses monospaced digits.
 // • Performance: tear down AVPlayer/recording in pipeline when backgrounded; preview stays muted.
 // • Safety: if free minutes < 1, pipeline should surface a user-visible warning; this view will display minutes regardless.
-
-

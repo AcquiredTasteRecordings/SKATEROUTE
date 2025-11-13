@@ -12,11 +12,6 @@ import os.log
 
 // MARK: - Public Models
 
-public enum BoardScope: Equatable, Hashable {
-    case global
-    case city(key: String)         // e.g., "ca-vancouver" (countryCode-lowercased + slugified locality)
-}
-
 public struct LeaderboardEntry: Codable, Hashable, Identifiable {
     public let id: String                  // stable server id for the *entry* (not user id)
     public let userId: String
@@ -46,13 +41,6 @@ public struct PolylineSummary: Codable, Hashable {
     public let encoded: String         // Google-style or our own; client decodes to rough coords
     public let reportedMeters: Double  // what server says total length is
     public let elapsedSeconds: Double  // total time
-}
-
-// Page result with deterministic cursor (opaque to callers).
-public struct LeaderboardPage: Equatable {
-    public let scope: BoardScope
-    public let items: [LeaderboardEntry]
-    public let nextCursor: String? // nil if end-of-feed
 }
 
 // MARK: - DI seams

@@ -530,34 +530,3 @@ private enum AppStore {
         SKPaymentQueue.canMakePayments()
     }
 }
-
-// MARK: - Analytics shim (small façade so Store has zero compile-time coupling)
-
-public protocol AnalyticsLogger {
-    func log(event: AnalyticsEvent, error: Error?)
-    func log(event: AnalyticsEvent)
-}
-
-public extension AnalyticsLogger {
-    func log(event: AnalyticsEvent) { log(event: event, error: nil) }
-}
-
-public enum AnalyticsEvent {
-    case paywallCatalogLoadStarted
-    case paywallCatalogLoadSucceeded
-    case paywallCatalogLoadFailed
-    case paywallCatalogLoadRecoveredFromCache
-    case purchaseStarted(product: String)
-    case purchaseSucceeded(product: String)
-    case purchaseFailed(product: String)
-    case purchaseCancelled(product: String)
-    case purchasePending(product: String)
-    case purchaseRevoked(product: String)
-    case restoreStarted
-    case restoreSucceeded(count: Int)
-    case restoreFailed
-    case subscriptionInactive(product: String)
-    case offerCodeRedemptionShown
-}
-
-

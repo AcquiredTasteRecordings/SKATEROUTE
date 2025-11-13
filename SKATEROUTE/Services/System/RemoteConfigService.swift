@@ -29,12 +29,24 @@ public protocol RemoteConfigServing {
 
 // MARK: - Type-safe keys
 
+/// Type-safe key wrapper for Remote Config.
+/// Hashability/Equatability are defined **only** by the raw string key, not by T.
 public struct RCKey<T: RCDecodable>: Hashable, Sendable {
     public let raw: String
     public let defaultValue: T
+
     public init(_ raw: String, default defaultValue: T) {
         self.raw = raw
         self.defaultValue = defaultValue
+    }
+
+    // Hashable/Equatable based solely on `raw` so generic T does not need to be Hashable.
+    public static func == (lhs: RCKey<T>, rhs: RCKey<T>) -> Bool {
+        lhs.raw == rhs.raw
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(raw)
     }
 }
 
@@ -42,16 +54,38 @@ public protocol RCDecodable {
     static func decode(from any: Any) -> Self?
 }
 
-extension Bool: RCDecodable { public static func decode(from any: Any) -> Bool? { any as? Bool ?? (any as? NSNumber)?.boolValue } }
-extension Int: RCDecodable { public static func decode(from any: Any) -> Int? { (any as? NSNumber)?.intValue ?? Int("\(any)") }
+extension Bool: RCDecodable {
+    public static func decode(from any: Any) -> Bool? {
+        any as? Bool ?? (any as? NSNumber)?.boolValue
+    }
 }
-extension Double: RCDecodable { public static func decode(from any: Any) -> Double? { (any as? NSNumber)?.doubleValue ?? Double("\(any)") } }
-extension String: RCDecodable { public static func decode(from any: Any) -> String? { any as? String }
+
+extension Int: RCDecodable {
+    public static func decode(from any: Any) -> Int? {
+        (any as? NSNumber)?.intValue ?? Int("\(any)")
+    }
 }
+
+extension Double: RCDecodable {
+    public static func decode(from any: Any) -> Double? {
+        (any as? NSNumber)?.doubleValue ?? Double("\(any)")
+    }
+}
+
+extension String: RCDecodable {
+    public static func decode(from any: Any) -> String? {
+        any as? String
+    }
+}
+
 extension Array: RCDecodable where Element == String {
     public static func decode(from any: Any) -> [String]? {
         if let a = any as? [String] { return a }
-        if let s = any as? String { return s.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } }
+        if let s = any as? String {
+            return s
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+        }
         return nil
     }
 }
@@ -60,27 +94,39 @@ extension Array: RCDecodable where Element == String {
 
 public enum RCKeys {
     // Growth / Paywall
-    public static let paywallMaxInterstitialsPer3Sessions = RCKey<Int>("paywall.max_interstitials_per_3_sessions", default: 1)
-    public static let paywallColdStartGateAfterFirstRide   = RCKey<Bool>("paywall.cold_start_after_first_ride", default: true)
-    public static let paywallSuppressAfterFailedPurchase   = RCKey<Bool>("paywall.suppress_after_failed_purchase", default: true)
+    public static let paywallMaxInterstitialsPer3Sessions =
+        RCKey<Int>("paywall.max_interstitials_per_3_sessions", default: 1)
+    public static let paywallColdStartGateAfterFirstRide =
+        RCKey<Bool>("paywall.cold_start_after_first_ride", default: true)
+    public static let paywallSuppressAfterFailedPurchase =
+        RCKey<Bool>("paywall.suppress_after_failed_purchase", default: true)
 
     // Profile sync
-    public static let profileCloudSyncEnabled = RCKey<Bool>("profile.cloud_sync_enabled", default: false)
+    public static let profileCloudSyncEnabled =
+        RCKey<Bool>("profile.cloud_sync_enabled", default: false)
 
     // Media / Editor
-    public static let editorExportPresets = RCKey<[String]>("editor.export_presets", default: ["feed_720p_30", "story_1080x1920_30", "archive_1080p_60"])
+    public static let editorExportPresets =
+        RCKey<[String]>("editor.export_presets",
+                        default: ["feed_720p_30",
+                                  "story_1080x1920_30",
+                                  "archive_1080p_60"])
 
     // Hazards / Alerts
-    public static let hazardGeofenceRadiusMeters = RCKey<Double>("hazard.geofence_radius_m", default: 120)
+    public static let hazardGeofenceRadiusMeters =
+        RCKey<Double>("hazard.geofence_radius_m", default: 120)
 
     // Voice
-    public static let speechCadenceThrottleSec = RCKey<Double>("speech.cadence_throttle_sec", default: 1.2)
+    public static let speechCadenceThrottleSec =
+        RCKey<Double>("speech.cadence_throttle_sec", default: 1.2)
 
     // Offline tiles
-    public static let offlineCorridorBufferMeters = RCKey<Double>("offline.corridor_buffer_m", default: 150)
+    public static let offlineCorridorBufferMeters =
+        RCKey<Double>("offline.corridor_buffer_m", default: 150)
 
     // Referrals
-    public static let referralsDailyAwardCap = RCKey<Int>("referrals.daily_award_cap", default: 10)
+    public static let referralsDailyAwardCap =
+        RCKey<Int>("referrals.daily_award_cap", default: 10)
 }
 
 // MARK: - Snapshot model (immutable, published)
@@ -91,7 +137,9 @@ public struct RemoteConfigSnapshot: Sendable {
     public let ttlSeconds: TimeInterval
 
     public func value<T: RCDecodable>(for key: RCKey<T>) -> T {
-        if let raw = values[key.raw], let v = T.decode(from: raw) { return v }
+        if let raw = values[key.raw], let v = T.decode(from: raw) {
+            return v
+        }
         return key.defaultValue
     }
 }
@@ -101,24 +149,37 @@ public struct RemoteConfigSnapshot: Sendable {
 @MainActor
 public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
 
-    public enum State: Equatable { case idle, ready, error(String) }
+    public enum State: Equatable {
+        case idle
+        case ready
+        case error(String)
+    }
 
     @Published public private(set) var state: State = .idle
     @Published public private(set) var snapshot: RemoteConfigSnapshot
 
-    public var snapshotPublisher: AnyPublisher<RemoteConfigSnapshot, Never> { $snapshot.eraseToAnyPublisher() }
+    public var snapshotPublisher: AnyPublisher<RemoteConfigSnapshot, Never> {
+        $snapshot.eraseToAnyPublisher()
+    }
 
     // RemoteConfigServing adapter (profile sync + local opt-in)
-    public var isProfileCloudSyncEnabled: Bool { snapshot.value(for: RCKeys.profileCloudSyncEnabled) }
-    public var isProfileCloudOptIn: Bool { UserDefaults.standard.bool(forKey: Self.udkProfileOptIn) }
+    public var isProfileCloudSyncEnabled: Bool {
+        snapshot.value(for: RCKeys.profileCloudSyncEnabled)
+    }
+
+    public var isProfileCloudOptIn: Bool {
+        UserDefaults.standard.bool(forKey: Self.udkProfileOptIn)
+    }
 
     // Config
     public struct Config: Equatable {
         public var cacheTTLSeconds: TimeInterval = 6 * 3600
         public var bundledJSONName: String = "RemoteConfigDefaults" // Resources/RemoteConfigDefaults.json
-        public var firebaseEnabled: Bool = false                   // disable by default
+        public var firebaseEnabled: Bool = false                    // disabled by default
+
         public init() {}
     }
+
     public var config: Config
 
     // Persistence (disk cache)
@@ -135,24 +196,30 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
     public init(config: Config = .init()) {
         self.config = config
 
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let dir = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask)
+            .first!
             .appendingPathComponent("RemoteConfig", isDirectory: true)
+
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+
         self.cacheURL = dir.appendingPathComponent("cache.json")
 
         // Seed snapshot: disk → bundle → defaults
-        let seeded = Self.loadDiskCache(from: cacheURL) ??
-                     Self.loadBundledJSON(named: config.bundledJSONName) ??
-                     Self.defaultSnapshot(ttl: config.cacheTTLSeconds)
+        let seeded = Self.loadDiskCache(from: cacheURL)
+            ?? Self.loadBundledJSON(named: config.bundledJSONName)
+            ?? Self.defaultSnapshot(ttl: config.cacheTTLSeconds)
+
         self.snapshot = seeded
         self.state = .ready
 
         #if canImport(FirebaseRemoteConfig)
         if config.firebaseEnabled {
-            self.remoteConfig = RemoteConfig.remoteConfig()
+            let rc = RemoteConfig.remoteConfig()
             let settings = RemoteConfigSettings()
             settings.minimumFetchInterval = 60 // client-side; we still respect our own TTL
-            self.remoteConfig?.configSettings = settings
+            rc.configSettings = settings
+            self.remoteConfig = rc
         }
         #endif
     }
@@ -170,7 +237,9 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
         if config.firebaseEnabled, let rc = remoteConfig {
             do {
                 try await rc.fetchAndActivate()
-                let merged = snapshotMergingFirebase(rc: rc, ttl: config.cacheTTLSeconds, now: now)
+                let merged = snapshotMergingFirebase(rc: rc,
+                                                     ttl: config.cacheTTLSeconds,
+                                                     now: now)
                 apply(merged, source: "firebase")
                 return merged
             } catch {
@@ -180,7 +249,9 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
         }
         #endif
 
-        if let bundled = Self.loadBundledJSON(named: config.bundledJSONName, now: now, ttl: config.cacheTTLSeconds) {
+        if let bundled = Self.loadBundledJSON(named: config.bundledJSONName,
+                                              now: now,
+                                              ttl: config.cacheTTLSeconds) {
             apply(bundled, source: "bundle")
             return bundled
         }
@@ -196,7 +267,9 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
         if config.firebaseEnabled, let rc = remoteConfig {
             do {
                 try await rc.fetchAndActivate()
-                let merged = snapshotMergingFirebase(rc: rc, ttl: config.cacheTTLSeconds, now: now)
+                let merged = snapshotMergingFirebase(rc: rc,
+                                                     ttl: config.cacheTTLSeconds,
+                                                     now: now)
                 apply(merged, source: "firebase")
                 return merged
             } catch {
@@ -204,10 +277,14 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
             }
         }
         #endif
-        if let bundled = Self.loadBundledJSON(named: config.bundledJSONName, now: now, ttl: config.cacheTTLSeconds) {
+
+        if let bundled = Self.loadBundledJSON(named: config.bundledJSONName,
+                                              now: now,
+                                              ttl: config.cacheTTLSeconds) {
             apply(bundled, source: "bundle")
             return bundled
         }
+
         return snapshot
     }
 
@@ -233,23 +310,41 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
 
     // Merge Firebase values (strings/numbers/bools/JSON arrays) into a clean dictionary.
     #if canImport(FirebaseRemoteConfig)
-    private func snapshotMergingFirebase(rc: RemoteConfig, ttl: TimeInterval, now: Date) -> RemoteConfigSnapshot {
+    private func snapshotMergingFirebase(rc: RemoteConfig,
+                                         ttl: TimeInterval,
+                                         now: Date) -> RemoteConfigSnapshot {
         var dict = snapshot.values // start from existing snapshot so unspecified keys keep current values
-        for (k, v) in rc.allKeys(from: .remote).map({ ($0, rc.configValue(forKey: $0)) }) {
+
+        for (k, v) in rc
+            .allKeys(from: .remote)
+            .map({ ($0, rc.configValue(forKey: $0)) }) {
+
             // Try to parse JSON first for list types, else fall back to typed primitives.
             if let data = v.dataValue, !data.isEmpty,
                let json = try? JSONSerialization.jsonObject(with: data) {
                 dict[k] = json
                 continue
             }
-            if let s = v.stringValue, !s.isEmpty { dict[k] = s; continue }
-            if let n = Double(v.numberValue ?? 0) as Double? {
-                // Heuristic: ints are common; if integral, store as Int to ease decoding.
-                if floor(n) == n { dict[k] = Int(n) } else { dict[k] = n }
+
+            if let s = v.stringValue, !s.isEmpty {
+                dict[k] = s
                 continue
             }
+
+            if let number = v.numberValue {
+                let n = number.doubleValue
+                // Heuristic: ints are common; if integral, store as Int to ease decoding.
+                if floor(n) == n {
+                    dict[k] = Int(n)
+                } else {
+                    dict[k] = n
+                }
+                continue
+            }
+
             dict[k] = v.boolValue
         }
+
         return RemoteConfigSnapshot(values: dict, fetchedAt: now, ttlSeconds: ttl)
     }
     #endif
@@ -257,44 +352,66 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
     // Disk cache (JSON)
     private static func saveDiskCache(_ snap: RemoteConfigSnapshot, to url: URL) {
         let payload: [String: Any] = [
-            "_meta": ["fetchedAt": snap.fetchedAt.timeIntervalSince1970, "ttl": snap.ttlSeconds],
+            "_meta": [
+                "fetchedAt": snap.fetchedAt.timeIntervalSince1970,
+                "ttl": snap.ttlSeconds
+            ],
             "values": snap.values
         ]
-        if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted]) {
+        if let data = try? JSONSerialization.data(withJSONObject: payload,
+                                                  options: [.prettyPrinted]) {
             try? data.write(to: url, options: .atomic)
         }
     }
 
     private static func loadDiskCache(from url: URL) -> RemoteConfigSnapshot? {
-        guard let d = try? Data(contentsOf: url),
-              let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
-              let meta = obj["_meta"] as? [String: Any],
-              let ts = meta["fetchedAt"] as? TimeInterval,
-              let ttl = meta["ttl"] as? TimeInterval,
-              let vals = obj["values"] as? [String: Any] else { return nil }
-        return RemoteConfigSnapshot(values: vals, fetchedAt: Date(timeIntervalSince1970: ts), ttlSeconds: ttl)
+        guard
+            let d = try? Data(contentsOf: url),
+            let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
+            let meta = obj["_meta"] as? [String: Any],
+            let ts = meta["fetchedAt"] as? TimeInterval,
+            let ttl = meta["ttl"] as? TimeInterval,
+            let vals = obj["values"] as? [String: Any]
+        else {
+            return nil
+        }
+
+        return RemoteConfigSnapshot(values: vals,
+                                    fetchedAt: Date(timeIntervalSince1970: ts),
+                                    ttlSeconds: ttl)
     }
 
     // Bundled defaults (Resources/RemoteConfigDefaults.json)
-    private static func loadBundledJSON(named name: String, now: Date = Date(), ttl: TimeInterval = 6*3600) -> RemoteConfigSnapshot? {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "json"),
-              let d = try? Data(contentsOf: url),
-              let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return nil }
+    private static func loadBundledJSON(named name: String,
+                                        now: Date = Date(),
+                                        ttl: TimeInterval = 6 * 3600) -> RemoteConfigSnapshot? {
+        guard
+            let url = Bundle.main.url(forResource: name, withExtension: "json"),
+            let d = try? Data(contentsOf: url),
+            let obj = try? JSONSerialization.jsonObject(with: d) as? [String: Any]
+        else {
+            return nil
+        }
+
         return RemoteConfigSnapshot(values: obj, fetchedAt: now, ttlSeconds: ttl)
     }
 
     private static func defaultSnapshot(ttl: TimeInterval) -> RemoteConfigSnapshot {
-        RemoteConfigSnapshot(values: [
-            RCKeys.profileCloudSyncEnabled.raw: RCKeys.profileCloudSyncEnabled.defaultValue,
-            RCKeys.paywallMaxInterstitialsPer3Sessions.raw: RCKeys.paywallMaxInterstitialsPer3Sessions.defaultValue,
-            RCKeys.paywallColdStartGateAfterFirstRide.raw: RCKeys.paywallColdStartGateAfterFirstRide.defaultValue,
-            RCKeys.paywallSuppressAfterFailedPurchase.raw: RCKeys.paywallSuppressAfterFailedPurchase.defaultValue,
-            RCKeys.editorExportPresets.raw: RCKeys.editorExportPresets.defaultValue,
-            RCKeys.hazardGeofenceRadiusMeters.raw: RCKeys.hazardGeofenceRadiusMeters.defaultValue,
-            RCKeys.speechCadenceThrottleSec.raw: RCKeys.speechCadenceThrottleSec.defaultValue,
-            RCKeys.offlineCorridorBufferMeters.raw: RCKeys.offlineCorridorBufferMeters.defaultValue,
-            RCKeys.referralsDailyAwardCap.raw: RCKeys.referralsDailyAwardCap.defaultValue
-        ], fetchedAt: Date(), ttlSeconds: ttl)
+        RemoteConfigSnapshot(
+            values: [
+                RCKeys.profileCloudSyncEnabled.raw: RCKeys.profileCloudSyncEnabled.defaultValue,
+                RCKeys.paywallMaxInterstitialsPer3Sessions.raw: RCKeys.paywallMaxInterstitialsPer3Sessions.defaultValue,
+                RCKeys.paywallColdStartGateAfterFirstRide.raw: RCKeys.paywallColdStartGateAfterFirstRide.defaultValue,
+                RCKeys.paywallSuppressAfterFailedPurchase.raw: RCKeys.paywallSuppressAfterFailedPurchase.defaultValue,
+                RCKeys.editorExportPresets.raw: RCKeys.editorExportPresets.defaultValue,
+                RCKeys.hazardGeofenceRadiusMeters.raw: RCKeys.hazardGeofenceRadiusMeters.defaultValue,
+                RCKeys.speechCadenceThrottleSec.raw: RCKeys.speechCadenceThrottleSec.defaultValue,
+                RCKeys.offlineCorridorBufferMeters.raw: RCKeys.offlineCorridorBufferMeters.defaultValue,
+                RCKeys.referralsDailyAwardCap.raw: RCKeys.referralsDailyAwardCap.defaultValue
+            ],
+            fetchedAt: Date(),
+            ttlSeconds: ttl
+        )
     }
 
     private static let udkProfileOptIn = "rc.profile.optin"
@@ -306,6 +423,7 @@ public final class RemoteConfigService: ObservableObject, RemoteConfigServing {
 public final class RemoteConfigServiceFake: RemoteConfigServing {
     public var isProfileCloudSyncEnabled: Bool
     public var isProfileCloudOptIn: Bool
+
     public init(enabled: Bool = false, optIn: Bool = false) {
         self.isProfileCloudSyncEnabled = enabled
         self.isProfileCloudOptIn = optIn
@@ -330,7 +448,9 @@ public final class RemoteConfigServiceFake: RemoteConfigServing {
 // • Backward compatibility: Missing bundle file → defaultSnapshot is used; service remains .ready.
 //
 // Integration wiring (AppDI):
-//   let rc = RemoteConfigService(config: .init(cacheTTLSeconds: 21_600, bundledJSONName: "RemoteConfigDefaults", firebaseEnabled: true))
+//   let rc = RemoteConfigService(config: .init(cacheTTLSeconds: 21_600,
+//                                              bundledJSONName: "RemoteConfigDefaults",
+//                                              firebaseEnabled: true))
 //   container.register(RemoteConfigService.self) { rc }
 //   container.register(RemoteConfigServing.self) { rc } // to satisfy narrower protocol users
 //
@@ -342,5 +462,3 @@ public final class RemoteConfigServiceFake: RemoteConfigServing {
 //   "hazard.geofence_radius_m": 120,
 //   "offline.corridor_buffer_m": 150
 // }
-
-

@@ -30,11 +30,6 @@ public protocol CacheManaging {
     func remove(_ keyPath: String) throws
 }
 
-public protocol RemoteConfigServing {
-    var isProfileCloudSyncEnabled: Bool { get } // already used elsewhere; here only presence matters
-    // You may also expose a boolean key like "offline.tiles_enabled" via a wrapper if desired.
-}
-
 // MARK: - Provider contract
 
 public struct TileProvider: Sendable, Equatable {
