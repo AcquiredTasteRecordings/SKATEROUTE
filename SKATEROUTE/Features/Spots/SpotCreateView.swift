@@ -76,25 +76,6 @@ public protocol LocationPicking: AnyObject {
     func pickCoordinate(initial: CLLocationCoordinate2D?) async -> CLLocationCoordinate2D?
 }
 
-public protocol UploadServicing {
-    /// Strips EXIF & geo; returns CDN URL. (Reusing existing protocol from avatar uploads.)
-    func uploadAvatarSanitized(data: Data, key: String, contentType: String) async throws -> URL
-}
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case spots }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool) }
-
 // MARK: - ViewModel
 
 @MainActor

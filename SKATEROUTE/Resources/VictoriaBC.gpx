@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1"
+     creator="SkateRoute"
+     xmlns="http://www.topografix.com/GPX/1/1">
+
+    <!-- Downtown Victoria, BC -->
+    <wpt lat="48.4284" lon="-123.3656">
+        <name>Victoria BC – Downtown</name>
+    </wpt>
+
+    <!-- Optional: simple track so the sim ‘moves’ a bit -->
+    <trk>
+        <name>Victoria Test Ride</name>
+        <trkseg>
+            <trkpt lat="48.4284" lon="-123.3656"></trkpt>
+            <trkpt lat="48.4295" lon="-123.3690"></trkpt>
+            <trkpt lat="48.4302" lon="-123.3735"></trkpt>
+        </trkseg>
+    </trk>
+</gpx>

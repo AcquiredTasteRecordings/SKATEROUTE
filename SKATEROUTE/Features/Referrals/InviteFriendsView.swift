@@ -17,11 +17,8 @@ import UIKit
 
 // MARK: - DI seams (narrow & testable)
 
-public struct SharePayload: Sendable, Equatable {
-    public let url: URL
-    public let image: UIImage?   // OG thumbnail (map snapshot + title)
-    public let text: String      // localized, value-forward copy
-}
+// NOTE: Shared `SharePayload` type is defined elsewhere in the module.
+// We intentionally do NOT redeclare it here to avoid ambiguity/redeclaration errors.
 
 public protocol ReferralServing: AnyObject {
     /// Generate a signed invite link. May include campaign, routeId, or spotId (optional).
@@ -45,25 +42,6 @@ public struct ReferralStatus: Sendable, Equatable {
     public let lastCreditedAt: Date?
 }
 
-public protocol SharePayloadBuilding: AnyObject {
-    /// Builds a social-friendly share pack for an invite link. May snapshot map overlays for context.
-    func buildInviteShare(link: URL, title: String, subtitle: String?) async throws -> SharePayload
-}
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case referrals }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool) }
-
 // MARK: - ViewModel
 
 @MainActor
@@ -83,18 +61,15 @@ public final class InviteFriendsViewModel: ObservableObject {
     public var spotId: String?
 
     private let referral: ReferralServing
-    private let shareBuilder: SharePayloadBuilding
     private let analytics: AnalyticsLogging?
     private let referrerUserId: String
     private var cancellables = Set<AnyCancellable>()
 
     public init(referral: ReferralServing,
-                shareBuilder: SharePayloadBuilding,
                 analytics: AnalyticsLogging?,
                 referrerUserId: String,
                 campaign: String? = "default") {
         self.referral = referral
-        self.shareBuilder = shareBuilder
         self.analytics = analytics
         self.referrerUserId = referrerUserId
         self.campaign = campaign
@@ -116,13 +91,16 @@ public final class InviteFriendsViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let link = try await referral.generateInviteLink(referrerUserId: referrerUserId,
-                                                             campaign: campaign, routeId: routeId, spotId: spotId)
-            let p = try await shareBuilder.buildInviteShare(
-                link: link,
-                title: NSLocalizedString("Skate with me on SkateRoute 🛹", comment: "invite title"),
-                subtitle: NSLocalizedString("Free hazard alerts. Pro tools if you want. Safety first.", comment: "invite subtitle")
-            )
-            self.payload = p
+                                                             campaign: campaign,
+                                                             routeId: routeId,
+                                                             spotId: spotId)
+
+            // Build a simple, value-forward share payload without relying on a local builder protocol.
+            let title = NSLocalizedString("Skate with me on SkateRoute 🛹", comment: "invite title")
+            let subtitle = NSLocalizedString("Free hazard alerts. Pro tools if you want. Safety first.", comment: "invite subtitle")
+            let text = "\(title)\n\(subtitle)\n\(link.absoluteString)"
+
+            self.payload = SharePayload(url: link, image: nil, text: text)
         } catch {
             self.errorMessage = NSLocalizedString("Couldn’t prepare your invite. Check your network and try again.", comment: "invite error")
         }
@@ -143,6 +121,10 @@ public final class InviteFriendsViewModel: ObservableObject {
     public func toggleQR() {
         analytics?.log(.init(name: "referral_qr_toggle", category: .referrals, params: ["visible": .bool(!showQR)]))
         showQR.toggle()
+    }
+
+    public func canEarnMoreToday() -> Bool {
+        referral.canEarnMoreToday()
     }
 }
 
@@ -291,12 +273,15 @@ public struct InviteFriendsView: View {
                 }
                 .accessibilityElement(children: .combine)
                 if let last = vm.status.lastCreditedAt {
-                    Text(String(format: NSLocalizedString("Last reward: %@", comment: "last"), last.formatted(date: .abbreviated, time: .omitted)))
-                        .font(.footnote).foregroundStyle(.secondary)
+                    Text(String(format: NSLocalizedString("Last reward: %@", comment: "last"),
+                                last.formatted(date: .abbreviated, time: .omitted)))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                if !vm.referral.canEarnMoreToday() {
+                if !vm.canEarnMoreToday() {
                     Text(NSLocalizedString("Daily reward cap reached. Tomorrow resets.", comment: "cap"))
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -341,7 +326,9 @@ public struct InviteFriendsView: View {
                     .frame(width: 220, height: 220)
                     .accessibilityLabel(Text(NSLocalizedString("QR code for your invite link", comment: "")))
                 Text(url.absoluteString)
-                    .font(.footnote).lineLimit(1).minimumScaleFactor(0.6)
+                    .font(.footnote)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                     .textSelection(.enabled)
                 Text(NSLocalizedString("Scan with camera to join you on SkateRoute.", comment: "qr hint"))
                     .font(.caption)
@@ -378,14 +365,18 @@ public struct InviteFriendsView: View {
             Image(systemName: system).imageScale(.large).accessibilityHidden(true)
             Text(text).font(.callout).multilineTextAlignment(.leading)
         }
-        .padding(.vertical, 12).padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
         .background(bg.opacity(0.92), in: RoundedRectangle(cornerRadius: 14))
         .foregroundColor(.white)
         .accessibilityLabel(Text(text))
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { try? await Task.sleep(nanoseconds: 2_000_000_000); await MainActor.run(body) }
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            await MainActor.run { body() }
+        }
     }
 }
 
@@ -398,7 +389,10 @@ fileprivate struct QRCodeView: View {
     var body: some View {
         GeometryReader { geo in
             if let img = makeQR(size: geo.size) {
-                Image(uiImage: img).resizable().interpolation(.none).scaledToFit()
+                Image(uiImage: img)
+                    .resizable()
+                    .interpolation(.none)
+                    .scaledToFit()
             } else {
                 Color.secondary.opacity(0.2)
             }
@@ -420,7 +414,10 @@ fileprivate struct QRCodeView: View {
 
 // MARK: - UIKit share sheet wrapper
 
-fileprivate struct ShareSheetItem: Identifiable { let id = UUID(); let items: [Any] }
+fileprivate struct ShareSheetItem: Identifiable {
+    let id = UUID()
+    let items: [Any]
+}
 
 fileprivate struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
@@ -437,18 +434,17 @@ fileprivate struct ActivityView: UIViewControllerRepresentable {
 
 public extension InviteFriendsView {
     static func make(referral: ReferralServing,
-                     shareBuilder: SharePayloadBuilding,
                      analytics: AnalyticsLogging?,
                      referrerUserId: String,
                      campaign: String? = "default",
                      routeId: String? = nil,
                      spotId: String? = nil) -> InviteFriendsView {
         let vm = InviteFriendsViewModel(referral: referral,
-                                        shareBuilder: shareBuilder,
                                         analytics: analytics,
                                         referrerUserId: referrerUserId,
                                         campaign: campaign)
-        vm.routeId = routeId; vm.spotId = spotId
+        vm.routeId = routeId
+        vm.spotId = spotId
         return InviteFriendsView(viewModel: vm)
     }
 }
@@ -458,7 +454,11 @@ public extension InviteFriendsView {
 #if DEBUG
 private final class ReferralServiceFake: ReferralServing {
     private let subject = CurrentValueSubject<ReferralStatus, Never>(
-        .init(invitesSent: 12, clicks: 34, signupsCredited: 7, rewardsIssued: 7, lastCreditedAt: Date().addingTimeInterval(-86_400))
+        .init(invitesSent: 12,
+              clicks: 34,
+              signupsCredited: 7,
+              rewardsIssued: 7,
+              lastCreditedAt: Date().addingTimeInterval(-86_400))
     )
     func generateInviteLink(referrerUserId: String, campaign: String?, routeId: String?, spotId: String?) async throws -> URL {
         URL(string: "https://skateroute.app/invite?code=FAKE123&ref=\(referrerUserId)")!
@@ -468,35 +468,10 @@ private final class ReferralServiceFake: ReferralServing {
     func canEarnMoreToday() -> Bool { true }
 }
 
-private final class ShareBuilderFake: SharePayloadBuilding {
-    func buildInviteShare(link: URL, title: String, subtitle: String?) async throws -> SharePayload {
-        // Simple thumbnail placeholder
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 600, height: 315))
-        let img = renderer.image { ctx in
-            UIColor.systemBackground.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 600, height: 315))
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.boldSystemFont(ofSize: 34),
-                .foregroundColor: UIColor.label
-            ]
-            title.draw(in: CGRect(x: 24, y: 24, width: 552, height: 120), withAttributes: attrs)
-            let subAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 18),
-                .foregroundColor: UIColor.secondaryLabel
-            ]
-            (subtitle ?? "").draw(in: CGRect(x: 24, y: 160, width: 552, height: 80), withAttributes: subAttrs)
-            UIColor.systemBlue.setFill()
-            UIBezierPath(roundedRect: CGRect(x: 24, y: 260, width: 200, height: 28), cornerRadius: 6).fill()
-        }
-        let text = "Skate with me on SkateRoute 🛹\n\(link.absoluteString)"
-        return SharePayload(url: link, image: img, text: text)
-    }
-}
-
 struct InviteFriendsView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             InviteFriendsView.make(referral: ReferralServiceFake(),
-                                   shareBuilder: ShareBuilderFake(),
                                    analytics: nil,
                                    referrerUserId: "u_demo",
                                    campaign: "onboarding")
@@ -505,7 +480,6 @@ struct InviteFriendsView_Previews: PreviewProvider {
 
         NavigationView {
             InviteFriendsView.make(referral: ReferralServiceFake(),
-                                   shareBuilder: ShareBuilderFake(),
                                    analytics: nil,
                                    referrerUserId: "u_demo",
                                    campaign: "map")
@@ -521,15 +495,13 @@ struct InviteFriendsView_Previews: PreviewProvider {
 
 // MARK: - Test plan (unit / UI)
 // Unit:
-// 1) Payload happy path: ReferralServiceFake returns URL, ShareBuilderFake returns image → vm.payload set, isLoading gates.
+// 1) Payload happy path: ReferralServiceFake returns URL → vm.payload set, isLoading gates.
 // 2) Copy link writes UIPasteboard; info toast pops.
 // 3) Status stream mapping: when subject sends new counts → labels update; daily cap notice appears when canEarnMoreToday() == false.
 // 4) Error path: generateInviteLink throws → error toast shown; share/QR disabled.
 //
 // UI:
-// • Share button opens UIActivityViewController with text + URL + image.
+// • Share button opens UIActivityViewController with text + URL (+ image, once you wire builder in globally).
 // • QR toggles on; QR renders at large size and is readable with real devices.
 // • Dynamic Type at AX3XL keeps buttons ≥44pt, no clipping.
 // • VoiceOver reads: “Invite Friends, Share, Copy, Show QR, Referral status: Sent 12, Clicks 34, Sign-ups 7, Rewards 7”.
-
-

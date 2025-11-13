@@ -304,69 +304,20 @@ public struct RideTelemetryHUD: View {
 
 #if DEBUG
 struct RideTelemetryHUD_Previews: PreviewProvider {
-    final class FakeRecorder: RideRecorder {
-        // Convenience wrapper to let previews run without DI; not used at runtime.
-    }
-
     static var previews: some View {
-        // Mock simple recorder via protocol-compatible type would be better;
-        // for demo, build a fake observable object.
-        class MockRecorder: ObservableObject {
-            @Published var isRecording = true
-            @Published var currentRoute: MKRoute?
-            @Published var stepIndex: Int? = 2
-            @Published var speedKmh: Double = 18.4
-            @Published var avgSpeedKmh: Double = 15.2
-            @Published var distanceMeters: Double = 3280
-            @Published var elapsed: TimeInterval = 742
-            @Published var coastRatio: Double = 0.62
-            @Published var lastLocation: CLLocation? = CLLocation(latitude: 37.7749, longitude: -122.4194)
-            func stop() {}
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 16) {
+                Text("Ride Telemetry HUD")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                Text("Preview stub (no live data)")
+                    .foregroundColor(.secondary)
+                // In the real app, this HUD will be constructed with a live RideRecorder + TurnCueEngine from AppDI.
+            }
+            .padding()
         }
-
-        final class MockCue: TurnCueEngine, ObservableObject {
-            @Published var latestCuePub: TurnCue?
-            override var latestCue: TurnCue? { latestCuePub }
-        }
-
-        let mockCue = TurnCueEngine()
-        // Inject a cue for preview
-        mockCue.setRoute(nil)
-        mockCue.reset()
-        // Temporary latest cue setter using reflection workaround for preview
-        let cue = TurnCue(stepIndex: 3, kind: .turnRight, tier: .near, instruction: "80 m • Turn right onto Bay St", distanceMeters: 80, iconName: "arrow.turn.right.up", shouldSpeak: false, shouldHaptic: true)
-        // Private property isn’t settable; we’ll just display with nil → banner title fallback
-
-        // This preview uses a placeholder due to limited DI context.
-        VStack {
-            Text("Preview Host").foregroundColor(.white)
-            RideTelemetryHUD(recorder: DummyRecorder(), cueEngine: mockCue)
-        }
-        .padding()
-        .background(Color.black)
         .previewLayout(.sizeThatFits)
-    }
-
-    // Minimal dummy to satisfy the HUD’s APIs at compile time in previews.
-    private final class DummyRecorder: RideRecorder {
-        // Shim preserving the published properties signature for preview-only:
-        @Published override public private(set) var isRecording: Bool = true
-        @Published override public private(set) var currentRoute: MKRoute?
-        @Published override public private(set) var stepIndex: Int? = 2
-        @Published override public private(set) var speedKmh: Double = 18.4
-        @Published override public private(set) var avgSpeedKmh: Double = 15.2
-        @Published override public private(set) var distanceMeters: Double = 3280
-        @Published override public private(set) var elapsed: TimeInterval = 742
-        @Published override public private(set) var coastRatio: Double = 0.62
-        @Published override public private(set) var lastLocation: CLLocation? = CLLocation(latitude: 37.7749, longitude: -122.4194)
-        init() {
-            // Won’t call super; this is preview-only shim.
-            // Using fatalError on super init would break previews.
-            // Leave uninitialized methods unused.
-        }
-        override public func stop() {}
     }
 }
 #endif
-
-

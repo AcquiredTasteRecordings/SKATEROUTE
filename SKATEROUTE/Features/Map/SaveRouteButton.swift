@@ -111,7 +111,8 @@ public final class SaveRouteButtonViewModel: ObservableObject {
                 isSaved = false
                 isOfflineOn = false
                 prefetchProgress = 0
-                analytics?.log(.init(name: "route_unsave", category: .favorites,
+                analytics?.log(.init(name: "route_unsave",
+                                     category: .favorites,
                                      params: ["id": .string(summary.id)]))
                 announce(NSLocalizedString("Removed from favorites.", comment: "unsave"))
             } catch {
@@ -121,7 +122,8 @@ public final class SaveRouteButtonViewModel: ObservableObject {
             do {
                 try favorites.save(summary)
                 isSaved = true
-                analytics?.log(.init(name: "route_save", category: .favorites,
+                analytics?.log(.init(name: "route_save",
+                                     category: .favorites,
                                      params: ["id": .string(summary.id),
                                               "dist_m": .int(Int(summary.distanceMeters))]))
                 announce(NSLocalizedString("Saved to favorites.", comment: "save"))
@@ -150,7 +152,8 @@ public final class SaveRouteButtonViewModel: ObservableObject {
         } else {
             cancelPrefetch()
             prefetchProgress = 0
-            analytics?.log(.init(name: "route_offline_off", category: .favorites,
+            analytics?.log(.init(name: "route_offline_off",
+                                 category: .favorites,
                                  params: ["id": .string(summary.id)]))
             announce(NSLocalizedString("Offline disabled for this route.", comment: "offline off"))
         }
@@ -160,7 +163,8 @@ public final class SaveRouteButtonViewModel: ObservableObject {
         // Cancel any existing task first
         cancelPrefetch()
         prefetchProgress = tiles.isCorridorReady(routeId: summary.id) ? 1.0 : 0.0
-        analytics?.log(.init(name: "route_offline_on", category: .favorites,
+        analytics?.log(.init(name: "route_offline_on",
+                             category: .favorites,
                              params: ["id": .string(summary.id),
                                       "radius_m": .int(Int(corridorRadius))]))
 
@@ -341,7 +345,10 @@ public struct SaveRouteButton: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { try? await Task.sleep(nanoseconds: 1_800_000_000); await MainActor.run(body) }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            body()
+        }
     }
 }
 
@@ -374,13 +381,19 @@ private final class FavsFake: RouteFavoritesManaging {
     func isFavorited(routeId: String) -> Bool { saved.contains(routeId) }
     func save(_ summary: RouteMiniSummary) throws { saved.insert(summary.id) }
     func remove(routeId: String) throws { saved.remove(routeId); offline.remove(routeId) }
-    func setOfflineEnabled(_ on: Bool, routeId: String) throws { if on { offline.insert(routeId) } else { offline.remove(routeId) } }
+    func setOfflineEnabled(_ on: Bool, routeId: String) throws {
+        if on { offline.insert(routeId) } else { offline.remove(routeId) }
+    }
     func isOfflineEnabled(routeId: String) -> Bool { offline.contains(routeId) }
 }
 
 private final class TilesFake: OfflineCorridorPrefetching {
     private var ready: Set<String> = []
-    func prefetchCorridor(for routeId: String, polyline: MKPolyline, radiusMeters: Double, priority: Float, progress: @escaping (Double) -> Void) async throws {
+    func prefetchCorridor(for routeId: String,
+                          polyline: MKPolyline,
+                          radiusMeters: Double,
+                          priority: Float,
+                          progress: @escaping (Double) -> Void) async throws {
         // Simulate progress
         for step in 1...10 {
             try await Task.sleep(nanoseconds: 80_000_000)
@@ -406,7 +419,11 @@ struct SaveRouteButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 12) {
             SaveRouteButton.make(
-                summary: .init(id: "r1", name: "Downtown Line", distanceMeters: 4200, expectedTravelTime: 900, polyline: samplePolyline()),
+                summary: .init(id: "r1",
+                               name: "Downtown Line",
+                               distanceMeters: 4200,
+                               expectedTravelTime: 900,
+                               polyline: samplePolyline()),
                 favorites: FavsFake(),
                 tiles: TilesFake(),
                 showOfflineSwitch: true
@@ -414,7 +431,11 @@ struct SaveRouteButton_Previews: PreviewProvider {
             .padding(.horizontal)
 
             SaveRouteButton.make(
-                summary: .init(id: "r2", name: "Seawall Cruise", distanceMeters: 8800, expectedTravelTime: 2100, polyline: samplePolyline()),
+                summary: .init(id: "r2",
+                               name: "Seawall Cruise",
+                               distanceMeters: 8800,
+                               expectedTravelTime: 2100,
+                               polyline: samplePolyline()),
                 favorites: FavsFake(),
                 tiles: TilesFake(),
                 showOfflineSwitch: false
@@ -444,5 +465,3 @@ struct SaveRouteButton_Previews: PreviewProvider {
 // • Accessibility reads “Save route, Saved/Not saved. Offline ready/preparing.”
 // • Context menu exposes Save/Remove + Enable/Disable offline; Toggle exists disabled when not saved.
 // • UITest identifiers: “save_route_button”, “offline_toggle”, “offline_pill”.
-
-

@@ -8,7 +8,6 @@
 //
 // Integration:
 // • Uses DI seams for permission services (Location/Motion/Notifications) that follow our CoreLocation patterns.
-// • Emits minimal analytics via AnalyticsLogger (category: onboarding) with redaction by default.
 // • AppCoordinator should set a persisted onboarding-complete flag and advance to Home.
 //
 // Tests (UI/E2E targets reference):
@@ -51,26 +50,18 @@ public protocol OnboardingRouting: AnyObject {
     func completeOnboarding() // AppCoordinator flips persisted flag and routes to main app
 }
 
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case onboarding }
-    public let name: String; public let category: Category; public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) { self.name = name; self.category = category; self.params = params }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
-
 // MARK: - ViewModel
 
 @MainActor
 public final class OnboardingFlowViewModel: ObservableObject {
     enum Step: Int, CaseIterable { case permissions = 0, safety, norms }
 
-    @Published public private(set) var step: Step = .permissions
-    @Published public private(set) var locStatus: PermissionStatus = .notDetermined
-    @Published public private(set) var motionStatus: PermissionStatus = .notDetermined
-    @Published public private(set) var notifStatus: PermissionStatus = .notDetermined
+    // step must be writable for TabView(selection:) binding, and internal
+    @Published var step: Step = .permissions
+
+    @Published private(set) var locStatus: PermissionStatus = .notDetermined
+    @Published private(set) var motionStatus: PermissionStatus = .notDetermined
+    @Published private(set) var notifStatus: PermissionStatus = .notDetermined
     @Published public var acceptedNorms: Bool = false
     @Published public var errorMessage: String?
 
@@ -78,55 +69,48 @@ public final class OnboardingFlowViewModel: ObservableObject {
     private let motion: MotionPermissioning
     private let notifications: NotificationPermissioning
     private let router: OnboardingRouting
-    private let analytics: AnalyticsLogging?
 
     private var cancellables = Set<AnyCancellable>()
 
     public init(location: LocationPermissioning,
                 motion: MotionPermissioning,
                 notifications: NotificationPermissioning,
-                router: OnboardingRouting,
-                analytics: AnalyticsLogging?) {
+                router: OnboardingRouting) {
         self.location = location
         self.motion = motion
         self.notifications = notifications
         self.router = router
-        self.analytics = analytics
         bind()
     }
 
     private func bind() {
         location.statusPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$locStatus)
+            .assign(to: &self.$locStatus)
         motion.statusPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$motionStatus)
+            .assign(to: &self.$motionStatus)
         notifications.statusPublisher
             .receive(on: RunLoop.main)
-            .assign(to: &$notifStatus)
+            .assign(to: &self.$notifStatus)
     }
 
     // MARK: - Actions
 
     public func requestLocationWhenInUse() {
         Task { await location.requestWhenInUse() }
-        analytics?.log(.init(name: "perm_loc_request_wiuse", category: .onboarding, params: [:]))
     }
 
     public func requestLocationAlways() {
         Task { await location.requestAlways() }
-        analytics?.log(.init(name: "perm_loc_request_always", category: .onboarding, params: [:]))
     }
 
     public func requestMotion() {
         Task { await motion.request() }
-        analytics?.log(.init(name: "perm_motion_request", category: .onboarding, params: [:]))
     }
 
     public func requestNotifications() {
         Task { await notifications.request() }
-        analytics?.log(.init(name: "perm_notifications_request", category: .onboarding, params: [:]))
     }
 
     public func openSettings() {
@@ -138,10 +122,8 @@ public final class OnboardingFlowViewModel: ObservableObject {
         switch step {
         case .permissions:
             step = .safety
-            analytics?.log(.init(name: "step_safety_show", category: .onboarding, params: [:]))
         case .safety:
             step = .norms
-            analytics?.log(.init(name: "step_norms_show", category: .onboarding, params: [:]))
         case .norms:
             finish()
         }
@@ -149,9 +131,12 @@ public final class OnboardingFlowViewModel: ObservableObject {
 
     public func back() {
         switch step {
-        case .permissions: break
-        case .safety: step = .permissions
-        case .norms: step = .safety
+        case .permissions:
+            break
+        case .safety:
+            step = .permissions
+        case .norms:
+            step = .safety
         }
     }
 
@@ -160,10 +145,6 @@ public final class OnboardingFlowViewModel: ObservableObject {
             errorMessage = NSLocalizedString("Please accept our community norms to continue.", comment: "norms needed")
             return
         }
-        analytics?.log(.init(name: "onboarding_complete", category: .onboarding,
-                             params: ["loc": .string(text(for: locStatus)),
-                                      "motion": .string(text(for: motionStatus)),
-                                      "notif": .string(text(for: notifStatus))]))
         router.completeOnboarding()
     }
 
@@ -240,7 +221,7 @@ public struct OnboardingFlowView: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
 
-                PermissionCard(
+                OnboardingPermissionCard(
                     title: NSLocalizedString("Location", comment: "loc"),
                     description: NSLocalizedString("Needed for turn-by-turn guidance and hazard alerts. “Always” lets us keep you safe during lock screen, but “While Using” also works.", comment: "loc desc"),
                     statusText: vm.text(for: vm.locStatus),
@@ -253,7 +234,7 @@ public struct OnboardingFlowView: View {
                     openSettings: vm.openSettings
                 )
 
-                PermissionCard(
+                OnboardingPermissionCard(
                     title: NSLocalizedString("Motion", comment: "motion"),
                     description: NSLocalizedString("Used to estimate speed and smoothness. We don’t track your fitness profile; just enough to keep rides accurate.", comment: "motion desc"),
                     statusText: vm.text(for: vm.motionStatus),
@@ -264,7 +245,7 @@ public struct OnboardingFlowView: View {
                     openSettings: vm.openSettings
                 )
 
-                PermissionCard(
+                OnboardingPermissionCard(
                     title: NSLocalizedString("Notifications", comment: "notif"),
                     description: NSLocalizedString("For hazard warnings and ride status. We’ll be quiet otherwise.", comment: "notif desc"),
                     statusText: vm.text(for: vm.notifStatus),
@@ -422,16 +403,18 @@ public struct OnboardingFlowView: View {
             .foregroundColor(.white)
             .padding(.bottom, 12)
             .onAppear {
-                Task { try? await Task.sleep(nanoseconds: 1_800_000_000); await MainActor.run { vm.errorMessage = nil } }
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_800_000_000)
+                    await MainActor.run { vm.errorMessage = nil }
+                }
             }
         }
     }
 }
 
-// MARK: - Minimal PermissionCard (reusable)
-// If you already ship Features/Onboarding/PermissionCard.swift, remove this local version and import it.
+// MARK: - Minimal Permission card used only in onboarding
 
-fileprivate struct PermissionCard: View {
+fileprivate struct OnboardingPermissionCard: View {
     let title: String
     let description: String
     let statusText: String
@@ -516,8 +499,7 @@ struct OnboardingFlowView_Previews: PreviewProvider {
                 viewModel: .init(location: LocationPermFake(),
                                  motion: MotionPermFake(),
                                  notifications: NotifPermFake(),
-                                 router: RouterFake(),
-                                 analytics: nil)
+                                 router: RouterFake())
             )
         }
         .preferredColorScheme(.dark)
@@ -534,5 +516,3 @@ struct OnboardingFlowView_Previews: PreviewProvider {
 // • `NotificationPermissioning` wraps UNUserNotificationCenter.current().requestAuthorization(...) and publishes status changes.
 // • On finish, AppCoordinator flips a persisted flag (e.g., UserDefaults/SwiftData) and routes to HomeView.
 // • Respect PaywallRules: onboarding never shows paywall, and hazard/reroute features remain available regardless of purchase state.
-
-

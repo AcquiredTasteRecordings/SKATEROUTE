@@ -27,17 +27,40 @@ public struct LeaderboardEntryViewModel: Identifiable, Equatable, Sendable {
     public let isVerified: Bool         // server-side checks passed
     public let isFlagged: Bool          // anti-cheat heuristics flagged; needs verify to appear fully
     public let createdAt: Date
-    public init(id: String, rank: Int, displayName: String, cityCode: String?, valueMeters: Double, avatarURL: URL?, isYou: Bool, isVerified: Bool, isFlagged: Bool, createdAt: Date) {
-        self.id = id; self.rank = rank; self.displayName = displayName; self.cityCode = cityCode
-        self.valueMeters = valueMeters; self.avatarURL = avatarURL; self.isYou = isYou
-        self.isVerified = isVerified; self.isFlagged = isFlagged; self.createdAt = createdAt
+
+    public init(
+        id: String,
+        rank: Int,
+        displayName: String,
+        cityCode: String?,
+        valueMeters: Double,
+        avatarURL: URL?,
+        isYou: Bool,
+        isVerified: Bool,
+        isFlagged: Bool,
+        createdAt: Date
+    ) {
+        self.id = id
+        self.rank = rank
+        self.displayName = displayName
+        self.cityCode = cityCode
+        self.valueMeters = valueMeters
+        self.avatarURL = avatarURL
+        self.isYou = isYou
+        self.isVerified = isVerified
+        self.isFlagged = isFlagged
+        self.createdAt = createdAt
     }
 }
 
 public struct LeaderboardPage: Sendable, Equatable {
     public let items: [LeaderboardEntryViewModel]
     public let nextToken: String?
-    public init(items: [LeaderboardEntryViewModel], nextToken: String?) { self.items = items; self.nextToken = nextToken }
+
+    public init(items: [LeaderboardEntryViewModel], nextToken: String?) {
+        self.items = items
+        self.nextToken = nextToken
+    }
 }
 
 // MARK: - DI seams
@@ -91,18 +114,17 @@ public final class LeaderboardViewModel: ObservableObject {
     private let reader: LeaderboardReading
     private let verifier: VerificationActing?
     private let city: CityProviding
-    private let analytics: AnalyticsLogging?
     private let pageSize = 30
 
-    public init(reader: LeaderboardReading,
-                verifier: VerificationActing?,
-                city: CityProviding,
-                analytics: AnalyticsLogging?,
-                initialScope: BoardScope = .city) {
+    public init(
+        reader: LeaderboardReading,
+        verifier: VerificationActing?,
+        city: CityProviding,
+        initialScope: BoardScope = .city
+    ) {
         self.reader = reader
         self.verifier = verifier
         self.city = city
-        self.analytics = analytics
         self.scope = initialScope
     }
 
@@ -111,7 +133,9 @@ public final class LeaderboardViewModel: ObservableObject {
     }
 
     public func onAppear() {
-        if items.isEmpty { Task { await load(reset: true) } }
+        if items.isEmpty {
+            Task { await load(reset: true) }
+        }
     }
 
     public func setScope(_ s: BoardScope) {
@@ -126,12 +150,19 @@ public final class LeaderboardViewModel: ObservableObject {
 
     public func loadMoreIfNeeded(current item: LeaderboardEntryViewModel) {
         guard !isLoadingMore, let tok = nextToken else { return }
-        guard let idx = items.firstIndex(where: { $0.id == item.id }), idx >= items.count - 6 else { return }
+        guard let idx = items.firstIndex(where: { $0.id == item.id }),
+              idx >= items.count - 6 else { return }
+
         isLoadingMore = true
         Task {
             defer { isLoadingMore = false }
             do {
-                let page = try await reader.fetch(scope: scope, cityCode: cityParam, pageSize: pageSize, nextToken: tok)
+                let page = try await reader.fetch(
+                    scope: scope,
+                    cityCode: cityParam,
+                    pageSize: pageSize,
+                    nextToken: tok
+                )
                 merge(page: page)
             } catch {
                 // Non-fatal: keep existing list
@@ -141,22 +172,28 @@ public final class LeaderboardViewModel: ObservableObject {
 
     public func verifyMeTapped() {
         guard let verifier else { return }
-        showVerifySheet = true
-        analytics?.log(.init(name: "lb_verify_open", category: .leaderboard, params: ["scope": .string(scope.rawValue)]))
+        showVerifySheet = false   // dismiss sheet right away
         Task {
             do {
                 let ok = try await verifier.verifyMe()
                 if ok {
-                    infoMessage = NSLocalizedString("Verification submitted. We’ll refresh your rank shortly.", comment: "verify ok")
-                    analytics?.log(.init(name: "lb_verify_success", category: .leaderboard, params: ["scope": .string(scope.rawValue)]))
+                    infoMessage = NSLocalizedString(
+                        "Verification submitted. We’ll refresh your rank shortly.",
+                        comment: "verify ok"
+                    )
                     await load(reset: true)
                 } else {
-                    infoMessage = NSLocalizedString("Verification cancelled.", comment: "verify cancel")
+                    infoMessage = NSLocalizedString(
+                        "Verification cancelled.",
+                        comment: "verify cancel"
+                    )
                 }
             } catch {
-                errorMessage = NSLocalizedString("Couldn’t complete verification.", comment: "verify fail")
+                errorMessage = NSLocalizedString(
+                    "Couldn’t complete verification.",
+                    comment: "verify fail"
+                )
             }
-            showVerifySheet = false
         }
     }
 
@@ -168,36 +205,50 @@ public final class LeaderboardViewModel: ObservableObject {
 
     private func load(reset: Bool, useRefresh: Bool = false) async {
         if reset {
-            if useRefresh { isRefreshing = true } else { isLoading = true }
+            if useRefresh {
+                isRefreshing = true
+            } else {
+                isLoading = true
+            }
         }
+
         defer {
             isLoading = false
             isRefreshing = false
         }
+
         do {
             let page: LeaderboardPage
             if reset {
                 page = try await reader.refresh(scope: scope, cityCode: cityParam)
             } else {
-                page = try await reader.fetch(scope: scope, cityCode: cityParam, pageSize: pageSize, nextToken: nextToken)
+                page = try await reader.fetch(
+                    scope: scope,
+                    cityCode: cityParam,
+                    pageSize: pageSize,
+                    nextToken: nextToken
+                )
             }
             apply(page: page)
         } catch {
-            errorMessage = NSLocalizedString("Couldn’t load leaderboard.", comment: "load fail")
+            errorMessage = NSLocalizedString(
+                "Couldn’t load leaderboard.",
+                comment: "load fail"
+            )
         }
     }
 
     private func apply(page: LeaderboardPage) {
         let existingIDs = Set(items.map { $0.id })
         let new = page.items.filter { !existingIDs.contains($0.id) }
-        if nextToken == nil { // first page
+
+        if nextToken == nil {
+            // first page
             items = page.items
         } else {
             items += new
         }
         nextToken = page.nextToken
-        analytics?.log(.init(name: "lb_page", category: .leaderboard,
-                             params: ["scope": .string(scope.rawValue), "count": .int(items.count)]))
     }
 
     private func merge(page: LeaderboardPage) {
@@ -211,9 +262,10 @@ public final class LeaderboardViewModel: ObservableObject {
 
 public struct LeaderboardView: View {
     @ObservedObject private var vm: LeaderboardViewModel
-    @State private var showingScopePicker = false
 
-    public init(viewModel: LeaderboardViewModel) { self.vm = viewModel }
+    public init(viewModel: LeaderboardViewModel) {
+        self.vm = viewModel
+    }
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -224,7 +276,10 @@ public struct LeaderboardView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { vm.onAppear() }
         .sheet(isPresented: $vm.showVerifySheet) {
-            VerifySheet(verify: vm.verifyMeTapped, onDismiss: { vm.showVerifySheet = false })
+            VerifySheet(
+                verify: vm.verifyMeTapped,
+                onDismiss: { vm.showVerifySheet = false }
+            )
         }
         .overlay(toasts)
         .accessibilityIdentifier("leaderboard_root")
@@ -251,9 +306,20 @@ public struct LeaderboardView: View {
             if vm.scope == .city, let code = vm.currentCityCode {
                 Text(code)
                     .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                     .background(Color.secondary.opacity(0.15), in: Capsule())
-                    .accessibilityLabel(Text(String(format: NSLocalizedString("City %@", comment: "city code ax"), code)))
+                    .accessibilityLabel(
+                        Text(
+                            String(
+                                format: NSLocalizedString(
+                                    "City %@",
+                                    comment: "city code ax"
+                                ),
+                                code
+                            )
+                        )
+                    )
             }
 
             Spacer()
@@ -264,7 +330,9 @@ public struct LeaderboardView: View {
                     .frame(width: 36, height: 36)
             }
             .buttonStyle(.bordered)
-            .accessibilityLabel(Text(NSLocalizedString("Refresh", comment: "refresh")))
+            .accessibilityLabel(
+                Text(NSLocalizedString("Refresh", comment: "refresh"))
+            )
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
@@ -277,9 +345,11 @@ public struct LeaderboardView: View {
         List {
             Section(footer: footer) {
                 ForEach(vm.items) { e in
-                    EntryRow(entry: e,
-                             verify: { vm.showVerifySheet = true })
-                        .onAppear { vm.loadMoreIfNeeded(current: e) }
+                    EntryRow(
+                        entry: e,
+                        verify: { vm.showVerifySheet = true }
+                    )
+                    .onAppear { vm.loadMoreIfNeeded(current: e) }
                 }
             }
         }
@@ -290,9 +360,14 @@ public struct LeaderboardView: View {
     private var footer: some View {
         HStack {
             if vm.isLoading || vm.isRefreshing || vm.isLoadingMore {
-                ProgressView().accessibilityLabel(Text(NSLocalizedString("Loading", comment: "loading")))
+                ProgressView()
+                    .accessibilityLabel(
+                        Text(NSLocalizedString("Loading", comment: "loading"))
+                    )
             } else if vm.nextToken == nil {
-                Text(NSLocalizedString("End of board", comment: "end")).font(.footnote).foregroundStyle(.secondary)
+                Text(NSLocalizedString("End of board", comment: "end"))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -305,25 +380,44 @@ public struct LeaderboardView: View {
         VStack {
             Spacer()
             if let msg = vm.errorMessage {
-                toast(text: msg, system: "exclamationmark.triangle.fill", bg: .red)
-                    .onAppear { autoDismiss { vm.errorMessage = nil } }
+                toast(
+                    text: msg,
+                    system: "exclamationmark.triangle.fill",
+                    bg: .red
+                )
+                .onAppear { autoDismiss { vm.errorMessage = nil } }
             } else if let info = vm.infoMessage {
-                toast(text: info, system: "checkmark.seal.fill", bg: .green)
-                    .onAppear { autoDismiss { vm.infoMessage = nil } }
+                toast(
+                    text: info,
+                    system: "checkmark.seal.fill",
+                    bg: .green
+                )
+                .onAppear { autoDismiss { vm.infoMessage = nil } }
             }
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 12)
-        .animation(.easeInOut, value: vm.errorMessage != nil || vm.infoMessage != nil)
+        .animation(
+            .easeInOut,
+            value: vm.errorMessage != nil || vm.infoMessage != nil
+        )
     }
 
     private func toast(text: String, system: String, bg: Color) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: system).imageScale(.large).accessibilityHidden(true)
-            Text(text).font(.callout).multilineTextAlignment(.leading)
+            Image(systemName: system)
+                .imageScale(.large)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(.callout)
+                .multilineTextAlignment(.leading)
         }
-        .padding(.vertical, 12).padding(.horizontal, 16)
-        .background(bg.opacity(0.92), in: RoundedRectangle(cornerRadius: 14))
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(
+            bg.opacity(0.92),
+            in: RoundedRectangle(cornerRadius: 14)
+        )
         .foregroundColor(.white)
         .accessibilityLabel(Text(text))
     }
@@ -344,6 +438,7 @@ public struct LeaderboardView: View {
         case .friends: return NSLocalizedString("Friends", comment: "friends")
         }
     }
+
     private func icon(for s: BoardScope) -> String {
         switch s {
         case .city: return "building.2"
@@ -498,12 +593,20 @@ fileprivate struct VerifySheet: View {
 // MARK: - Convenience builder
 
 public extension LeaderboardView {
-    static func make(reader: LeaderboardReading,
-                     verifier: VerificationActing? = nil,
-                     city: CityProviding,
-                     analytics: AnalyticsLogging? = nil,
-                     initialScope: BoardScope = .city) -> LeaderboardView {
-        LeaderboardView(viewModel: .init(reader: reader, verifier: verifier, city: city, analytics: analytics, initialScope: initialScope))
+    static func make(
+        reader: LeaderboardReading,
+        verifier: VerificationActing? = nil,
+        city: CityProviding,
+        initialScope: BoardScope = .city
+    ) -> LeaderboardView {
+        LeaderboardView(
+            viewModel: .init(
+                reader: reader,
+                verifier: verifier,
+                city: city,
+                initialScope: initialScope
+            )
+        )
     }
 }
 

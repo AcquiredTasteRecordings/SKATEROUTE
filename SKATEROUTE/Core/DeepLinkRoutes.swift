@@ -1,6 +1,6 @@
 // Core/DeepLinkRoutes.swift
 // Canonical URL schema + parsing/building for SkateRoute.
-// Consistent with DownhillNavigatorApp handlers. Pure, testable, and localized where it touches UX.
+// Pure, testable, and localized where it touches UX.
 
 import Foundation
 import CoreLocation

@@ -46,22 +46,6 @@ public struct PaywallContext: Equatable, Sendable {
 
 public enum PaywallPlacement: Equatable { case banner, sheet, fullscreen }
 
-// Optional analytics façade (no PII)
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case paywall }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool) }
-
 // MARK: - ViewModel
 
 @MainActor

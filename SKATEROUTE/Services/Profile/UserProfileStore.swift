@@ -48,16 +48,6 @@ public final class UserProfile {
 
 // MARK: - Protocol seams (DI)
 
-public protocol RemoteConfigServing {
-    var isProfileCloudSyncEnabled: Bool { get }  // toggled remotely; persisted locally
-    var isProfileCloudOptIn: Bool { get }        // user’s explicit opt-in; default false
-}
-
-public protocol UploadServicing {
-    /// Must strip EXIF/location before upload. Returns a stable, cacheable URL.
-    func uploadAvatarSanitized(data: Data, key: String, contentType: String) async throws -> URL
-}
-
 public struct CloudProfile: Sendable, Equatable {
     public let id: String
     public let displayName: String

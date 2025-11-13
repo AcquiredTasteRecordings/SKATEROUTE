@@ -41,20 +41,6 @@ public protocol RemoteHandleValidating: AnyObject {
     func isDisplayNameAvailableRemotely(_ normalized: String) async -> Bool
 }
 
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case profile }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), bool(Bool) }
-
 // MARK: - ViewModel
 
 @MainActor
@@ -471,24 +457,6 @@ public extension EditProfileView {
 
 // MARK: - DEBUG fakes (previews)
 
-#if DEBUG
-private final class StoreFake: ProfileEditing {
-    var currentUserId: String = "u_demo"
-    private let subject = CurrentValueSubject<UserProfileEditable, Never>(
-        .init(id: "u_demo", displayName: "River", city: "Vancouver", avatarURL: URL(string: "https://picsum.photos/200"), hideCity: false, hideRoutes: false)
-    )
-    var profilePublisher: AnyPublisher<UserProfileEditable, Never> { subject.eraseToAnyPublisher() }
-    func load(userId: String) async {}
-    func update(id: String, displayName: String?, city: String?, hideCity: Bool?, hideRoutes: Bool?) async {
-        subject.value = .init(id: id,
-                              displayName: displayName ?? subject.value.displayName,
-                              city: city ?? subject.value.city,
-                              avatarURL: subject.value.avatarURL,
-                              hideCity: hideCity ?? subject.value.hideCity,
-                              hideRoutes: hideRoutes ?? subject.value.hideRoutes)
-    }
-    func setAvatar(userId: String, imageData: Data, contentType: String) async {}
-}
 private final class IndexFake: LocalHandleIndexing {
     func isDisplayNameAvailableLocally(_ normalized: String) -> Bool {
         // Block only a specific sample for preview

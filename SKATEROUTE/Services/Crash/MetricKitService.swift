@@ -30,13 +30,6 @@ public protocol MetricEventsSink {
     func onBudgetBreach(_ breach: MetricKitService.Breach)
 }
 
-public protocol AnalyticsLogging // narrow ref so we don't import full file here
-{
-    func log(_ event: AnalyticsEvent)
-    func beginSpan(_ span: AnalyticsSpan) -> AnalyticsSpanHandle
-    func endSpan(_ handle: AnalyticsSpanHandle)
-}
-
 // MARK: - Service
 
 @MainActor
@@ -300,32 +293,6 @@ extension MetricKitService: MXMetricManagerSubscriber {
 }
 
 // MARK: - Events used by AnalyticsLogger façade (minimal mirror)
-
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case routing, elevation, recorder, overlay, privacy, commerce, referrals, paywall, media, hazards }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public let sampleRateOverride: Double?
-    public init(name: String, category: Category, params: [String: AnalyticsValue] = [:], sampleRateOverride: Double? = nil) {
-        self.name = name; self.category = category; self.params = params; self.sampleRateOverride = sampleRateOverride
-    }
-}
-
-public enum AnalyticsValue: Sendable, Hashable {
-    case string(String), int(Int), double(Double), bool(Bool)
-}
-
-public struct AnalyticsSpan: Sendable, Hashable {
-    public enum Category: String { case routing, elevation, recorder, overlay, privacy, media }
-    public let name: String
-    public let category: Category
-    public let metadata: String?
-    public init(_ name: String, category: Category, metadata: String? = nil) {
-        self.name = name; self.category = category; self.metadata = metadata
-    }
-}
-public struct AnalyticsSpanHandle: Sendable, Hashable { fileprivate let id = UUID(); fileprivate let span: AnalyticsSpan = .init("x", category: .media) }
 
 // MARK: - DEBUG fakes (for tests)
 

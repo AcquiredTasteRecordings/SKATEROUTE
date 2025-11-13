@@ -46,20 +46,6 @@ public protocol ChallengeJoining: AnyObject {
     func joinChallenge(campaignId: String) async throws -> Bool
 }
 
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case referrals }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) {
-        self.name = name; self.category = category; self.params = params
-    }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), bool(Bool) }
-
 // MARK: - ViewModel
 
 @MainActor
