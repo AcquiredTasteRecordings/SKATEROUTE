@@ -182,7 +182,8 @@ public final class LiveAppDI: ObservableObject, AppDependencyContainer {
         self.clearSegments = { segmentsStore.clear() }
 
         let elevationService = ElevationService()
-        let routeContextBuilder = RouteContextBuilder(attributes: LocalAttributionProvider(),
+        let attributionProvider = LocalAttributionProvider()
+        let routeContextBuilder = RouteContextBuilder(attributes: attributionProvider,
                                                       segments: segmentsStore)
         let routeScorer = SkateRouteScorer()
         let motionService = MotionRoughnessService.shared
