@@ -78,12 +78,6 @@ public final class RouteService: RoutingService {
         cacheQueue.sync { routeCache.removeAll() }
     }
 
-    public func warmUpIfNeeded() async {
-        // No heavy warm-up required right now. Yield once so callers awaiting this
-        // hook still get off the main actor before routing work begins.
-        await Task.yield()
-    }
-
     public func requestDirections(
         from source: CLLocationCoordinate2D,
         to destination: CLLocationCoordinate2D,

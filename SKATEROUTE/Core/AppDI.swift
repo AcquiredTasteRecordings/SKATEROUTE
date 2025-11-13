@@ -67,14 +67,12 @@ public protocol SegmentStoring: AnyObject {
 
 public protocol ElevationServing: AnyObject {
     func summarizeGrades(on route: MKRoute, sampleMeters: Double) async -> GradeSummary
-    func warmUpIfNeeded() async
 }
 
 public extension ElevationServing {
     func summarizeGrades(on route: MKRoute) async -> GradeSummary {
         await summarizeGrades(on: route, sampleMeters: 75)
     }
-    func warmUpIfNeeded() async {}
 }
 
 public protocol RouteContextBuilding: AnyObject {
@@ -100,7 +98,6 @@ public protocol RoutingService: AnyObject {
                       mode: RideMode,
                       preferSkateLegal: Bool) async throws -> [RouteService.RouteCandidate]
     func clearCache()
-    func warmUpIfNeeded() async
 }
 
 public protocol RouteOptionsReducing: AnyObject {
