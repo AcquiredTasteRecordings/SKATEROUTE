@@ -17,7 +17,7 @@ public protocol LocationManaging: ObservableObject {
     var currentLocationPublisher: AnyPublisher<CLLocation?, Never> { get }
     var geofenceEventHandler: ((LocationGeofenceEvent) -> Void)? { get set }
 
-    func applyAccuracy(_ profile: LocationManagerService.AccuracyProfile)
+    func applyAccuracy(_ profile: AccuracyProfile)
     func applyPowerBudgetForMonitoring()
     func applyPowerBudgetForActiveNavigation()
     func installGeofences(along route: MKRoute,
@@ -179,7 +179,8 @@ public final class LiveAppDI: ObservableObject, AppDependencyContainer {
         self.clearSegments = { segmentsStore.clear() }
 
         let elevationService = ElevationService()
-        let routeContextBuilder = RouteContextBuilder(attributes: LocalAttributionProvider(),
+        let attributionProvider = LocalAttributionProvider()
+        let routeContextBuilder = RouteContextBuilder(attributes: attributionProvider,
                                                       segments: segmentsStore)
         let routeScorer = SkateRouteScorer()
         let motionService = MotionRoughnessService.shared

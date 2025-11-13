@@ -1,7 +1,7 @@
 // Features/Challenges/LeaderboardView.swift
 // City / Top Friends leaderboards with pagination and “Verify me” flow for flagged entries.
 // - Integrates with Services/Challenges/LeaderboardService (read API) and (optional) identity/receipt checks.
-// - Tabs: City, Global, Friends. Time range: This Week (can extend later).
+// - Tabs: City, Global, Friends. Time range: This Week (can extend later).                                 
 // - Infinite scroll pagination via `nextToken`; duplicate suppression; pull-to-refresh.
 // - “Flagged / needs verification” rows show a compact CTA -> Verify sheet (anti-cheat UX).
 // - A11y: VO-friendly labels (“#3, 12.4 km, Alex, verified”); Dynamic Type; ≥44pt.
@@ -84,6 +84,18 @@ public protocol CityProviding {
     var currentCityCode: String? { get }
 }
 
+public protocol AnalyticsLogging {
+    func log(_ event: AnalyticsEvent)
+}
+public struct AnalyticsEvent: Sendable, Hashable {
+    public enum Category: String, Sendable { case leaderboard }
+    public let name: String
+    public let category: Category
+    public let params: [String: AnalyticsValue]
+    public init(name: String, category: Category, params: [String: AnalyticsValue]) { self.name = name; self.category = category; self.params = params }
+}
+public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
+
 // MARK: - ViewModel
 
 @MainActor
@@ -114,6 +126,10 @@ public final class LeaderboardViewModel: ObservableObject {
         self.verifier = verifier
         self.city = city
         self.scope = initialScope
+    }
+
+    public var currentCityCode: String? {
+        city.currentCityCode
     }
 
     public func onAppear() {
@@ -183,8 +199,8 @@ public final class LeaderboardViewModel: ObservableObject {
 
     // MARK: - Internals
 
-    var cityParam: String? {
-        scope == .city ? city.currentCityCode : nil
+    private var cityParam: String? {
+        scope == .city ? currentCityCode : nil
     }
 
     private func load(reset: Bool, useRefresh: Bool = false) async {
@@ -287,7 +303,7 @@ public struct LeaderboardView: View {
             }
             .buttonStyle(.bordered)
 
-            if vm.scope == .city, let code = vm.cityParam {
+            if vm.scope == .city, let code = vm.currentCityCode {
                 Text(code)
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
@@ -407,9 +423,9 @@ public struct LeaderboardView: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(nanoseconds: 1_800_000_000)
-            body()
+            await MainActor.run { body() }
         }
     }
 

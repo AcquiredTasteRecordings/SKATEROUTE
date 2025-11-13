@@ -13,7 +13,7 @@ public final class RideRecorder: ObservableObject {
 
     private let location: LocationManaging
     private let matcher: RouteMatching
-    private let segments: SegmentStore          // actor passed via DI; we call only adapter methods
+    private let segments: SegmentStoring         // protocol adapter keeps DI flexible
     private let motion: MotionRoughnessMonitoring
     private let logger: SessionLogging
 
@@ -53,7 +53,7 @@ public final class RideRecorder: ObservableObject {
 
     public init(location: LocationManaging,
                 matcher: RouteMatching,
-                segments: SegmentStore,
+                segments: SegmentStoring,
                 motion: MotionRoughnessMonitoring,
                 logger: SessionLogging) {
         self.location = location
@@ -134,6 +134,7 @@ public final class RideRecorder: ObservableObject {
     // MARK: - Handlers
 
     private func handleLocation(_ location: CLLocation) {
+        let previousLocation = lastLocation
         lastLocation = location
         guard isRecording else { return }
 
@@ -141,12 +142,13 @@ public final class RideRecorder: ObservableObject {
         if let start = startTime { elapsed = Date().timeIntervalSince(start) }
 
         // Distance & speed
-        if let prev = lastUpdateAt, let last = lastLocation, last !== location {
+        if let prevTimestamp = lastUpdateAt {
             // If caller provided loc.speed, prefer it if valid; otherwise compute delta/time
-            let dt = max(0.01, location.timestamp.timeIntervalSince(prev))
+            let dt = max(0.01, location.timestamp.timeIntervalSince(prevTimestamp))
             var mps = location.speed > 0 ? location.speed : {
-                let d = location.distance(from: last)
-                return d / dt
+                guard let prevLocation = previousLocation else { return 0 }
+                let delta = location.distance(from: prevLocation)
+                return delta / dt
             }()
 
             if !mps.isFinite || mps.isNaN { mps = 0 }
@@ -157,7 +159,11 @@ public final class RideRecorder: ObservableObject {
             let finalMps = ema < minValidSpeedMps ? 0 : ema
 
             speedKmh = finalMps * 3.6
-            distanceMeters += max(0, finalMps * dt)
+            let deltaDistance = max(0, finalMps * dt)
+            distanceMeters += deltaDistance
+            if elapsed > 0 {
+                avgSpeedKmh = (distanceMeters / elapsed) * 3.6
+            }
         } else {
             // First sample init
             lastSpeedEMA = max(0, location.speed)

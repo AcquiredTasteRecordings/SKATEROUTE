@@ -271,7 +271,7 @@ public struct CommentsSheet: View {
                     CommentRow(comment: c,
                                onAppear: { Task { await vm.loadMoreIfNeeded(current: c) } },
                                onDelete: { vm.delete(c.id) },
-                               onReport: { reason, msg in $vm.report(c.id, reason: reason, message: msg) })
+                               onReport: { reason, msg in vm.report(c.id, reason: reason, message: msg) })
                     .padding(.horizontal, 16)
                 }
             }.padding(.vertical, 10)
@@ -355,10 +355,9 @@ public struct CommentsSheet: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
-            // TODO: e.g. auto-dismiss success banner or reload comments
-            // await viewModel.reloadComments()
+            await MainActor.run { body() }
         }
     }
 }

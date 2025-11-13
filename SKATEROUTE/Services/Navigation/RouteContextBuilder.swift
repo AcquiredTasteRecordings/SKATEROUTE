@@ -41,7 +41,7 @@ public struct StepContext: Sendable {
         self.distanceMeters = distanceMeters
         self.expectedTravelTime = expectedTravelTime
         self.avgGradePercent = avgGradePercent
-        self.maxUphillPercent = maxDownhillPercent
+        self.maxUphillPercent = maxUphillPercent
         self.maxDownhillPercent = maxDownhillPercent
         self.isPredominantlyDownhill = isPredominantlyDownhill
         self.bearingDegrees = bearingDegrees
@@ -51,25 +51,14 @@ public struct StepContext: Sendable {
     }
 }
 
-// MARK: - Attribution
-
-public protocol LocalAttributionProviding {
-    func text(for step: MKRoute.Step) -> String?
-}
-
-public struct LocalAttributionProvider: LocalAttributionProviding {
-    public init() {}
-    public func text(for step: MKRoute.Step) -> String? { nil }
-}
-
 // MARK: - Builder
 
 @MainActor
 public final class RouteContextBuilder: RouteContextBuilding {
-    private let attributes: LocalAttributionProviding
-    private let segments: SegmentStore
+    private let attributes: any StepAttributesProvider
+    private let segments: SegmentStoring
 
-    public init(attributes: LocalAttributionProviding, segments: SegmentStore) {
+    public init(attributes: any StepAttributesProvider, segments: SegmentStoring) {
         self.attributes = attributes
         self.segments = segments
     }
@@ -89,6 +78,8 @@ public final class RouteContextBuilder: RouteContextBuilding {
         var output: [StepContext] = []
         output.reserveCapacity(route.steps.count)
 
+        let stepTags = await attributes.tags(for: route.steps)
+
         for (idx, step) in route.steps.enumerated() {
             let poly = step.polyline
             let distance = step.distance > 0 ? step.distance : poly.distanceMetersFallback()
@@ -96,7 +87,8 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)
 
-            let instruction = attributes.text(for: step) ?? (step.instructions.isEmpty ? nil : step.instructions)
+            let tags = idx < stepTags.count ? stepTags[idx] : StepTags()
+            let instruction = Self.makeInstruction(for: step, tags: tags)
 
             // Surface/roughness hints: placeholder.
             // Future: query `segments.segments(intersecting:)` and aggregate any surface enums.
@@ -127,6 +119,31 @@ public final class RouteContextBuilder: RouteContextBuilding {
 // MARK: - Utilities
 
 private extension RouteContextBuilder {
+    static func makeInstruction(for step: MKRoute.Step, tags: StepTags) -> String? {
+        let base = step.instructions.isEmpty ? nil : step.instructions
+
+        var hints: [String] = []
+        if tags.hasProtectedLane {
+            hints.append("Protected lane")
+        } else if tags.hasPaintedLane {
+            hints.append("Painted lane")
+        }
+        if tags.surfaceRough {
+            hints.append("Rough surface")
+        }
+        if tags.hazardCount > 0 {
+            hints.append("Hazard ×\(tags.hazardCount)")
+        }
+        if let surface = tags.surface, !surface.isEmpty {
+            hints.append(surface.capitalized)
+        }
+
+        guard !hints.isEmpty else { return base }
+        let summary = hints.joined(separator: ", ")
+        if let base { return "\(base) – \(summary)" }
+        return summary
+    }
+
     static func estimateETA(_ distanceMeters: CLLocationDistance) -> TimeInterval {
         // Fallback walking-ish pace (m/s). We’ll replace with mode-aware speed profiles later.
         let mps = 1.4

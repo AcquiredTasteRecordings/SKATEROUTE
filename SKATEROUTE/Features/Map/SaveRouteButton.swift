@@ -60,14 +60,6 @@ public protocol OfflineCorridorPrefetching: AnyObject {
     func isCorridorReady(routeId: String) -> Bool
 }
 
-// MARK: - Analytics helpers
-
-extension AnalyticsEvent.Category {
-    /// Map "favorites" events into the existing hazards bucket for now so we
-    /// don't need to add a new analytics category to the core type.
-    static let favorites = AnalyticsEvent.Category.hazards
-}
-
 // MARK: - ViewModel
 
 @MainActor

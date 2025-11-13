@@ -380,9 +380,9 @@ public struct ChallengesView: View {
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(nanoseconds: 1_800_000_000)
-            body()
+            await MainActor.run { body() }
         }
     }
 }
