@@ -35,6 +35,7 @@ public protocol AnalyticsLogging: AnyObject {
 public struct AnalyticsEvent: Sendable, Hashable {
     public enum Category: String, Sendable {
         case routing, elevation, recorder, overlay, privacy, commerce, referrals, paywall, media, hazards
+        case challenges, leaderboard, comments, favorites
     }
 
     /// Canonical snake_case name, e.g., "route_planned", "hazard_merged"
@@ -166,16 +167,20 @@ public final class AnalyticsLogger: AnalyticsLogging {
     private var spanMap: [UUID: (log: OSLog, signpost: OSSignpostID)] = [:]
 
     // OSLog categories (stable)
-    private let logRouting   = Logger(subsystem: "com.skateroute", category: "routing")
-    private let logElevation = Logger(subsystem: "com.skateroute", category: "elevation")
-    private let logRecorder  = Logger(subsystem: "com.skateroute", category: "recorder")
-    private let logOverlay   = Logger(subsystem: "com.skateroute", category: "overlay")
-    private let logPrivacy   = Logger(subsystem: "com.skateroute", category: "privacy")
-    private let logCommerce  = Logger(subsystem: "com.skateroute", category: "commerce")
-    private let logReferrals = Logger(subsystem: "com.skateroute", category: "referrals")
-    private let logPaywall   = Logger(subsystem: "com.skateroute", category: "paywall")
-    private let logMedia     = Logger(subsystem: "com.skateroute", category: "media")
-    private let logHazards   = Logger(subsystem: "com.skateroute", category: "hazards")
+    private let logRouting     = Logger(subsystem: "com.skateroute", category: "routing")
+    private let logElevation   = Logger(subsystem: "com.skateroute", category: "elevation")
+    private let logRecorder    = Logger(subsystem: "com.skateroute", category: "recorder")
+    private let logOverlay     = Logger(subsystem: "com.skateroute", category: "overlay")
+    private let logPrivacy     = Logger(subsystem: "com.skateroute", category: "privacy")
+    private let logCommerce    = Logger(subsystem: "com.skateroute", category: "commerce")
+    private let logReferrals   = Logger(subsystem: "com.skateroute", category: "referrals")
+    private let logPaywall     = Logger(subsystem: "com.skateroute", category: "paywall")
+    private let logMedia       = Logger(subsystem: "com.skateroute", category: "media")
+    private let logHazards     = Logger(subsystem: "com.skateroute", category: "hazards")
+    private let logChallenges  = Logger(subsystem: "com.skateroute", category: "challenges")
+    private let logLeaderboard = Logger(subsystem: "com.skateroute", category: "leaderboard")
+    private let logComments    = Logger(subsystem: "com.skateroute", category: "comments")
+    private let logFavorites   = Logger(subsystem: "com.skateroute", category: "favorites")
 
     private func osLogger(for cat: AnalyticsSpan.Category) -> OSLog {
         switch cat {
@@ -193,16 +198,20 @@ public final class AnalyticsLogger: AnalyticsLogging {
         let kv = safe.map { "\($0.key)=\($0.value)" }.joined(separator: " ")
         let line = "[\(event.name)] \(kv)"
         switch event.category {
-        case .routing:   logRouting.log("\(line, privacy: .public)")
-        case .elevation: logElevation.log("\(line, privacy: .public)")
-        case .recorder:  logRecorder.log("\(line, privacy: .public)")
-        case .overlay:   logOverlay.log("\(line, privacy: .public)")
-        case .privacy:   logPrivacy.log("\(line, privacy: .public)")
-        case .commerce:  logCommerce.log("\(line, privacy: .public)")
-        case .referrals: logReferrals.log("\(line, privacy: .public)")
-        case .paywall:   logPaywall.log("\(line, privacy: .public)")
-        case .media:     logMedia.log("\(line, privacy: .public)")
-        case .hazards:   logHazards.log("\(line, privacy: .public)")
+        case .routing:     logRouting.log("\(line, privacy: .public)")
+        case .elevation:   logElevation.log("\(line, privacy: .public)")
+        case .recorder:    logRecorder.log("\(line, privacy: .public)")
+        case .overlay:     logOverlay.log("\(line, privacy: .public)")
+        case .privacy:     logPrivacy.log("\(line, privacy: .public)")
+        case .commerce:    logCommerce.log("\(line, privacy: .public)")
+        case .referrals:   logReferrals.log("\(line, privacy: .public)")
+        case .paywall:     logPaywall.log("\(line, privacy: .public)")
+        case .media:       logMedia.log("\(line, privacy: .public)")
+        case .hazards:     logHazards.log("\(line, privacy: .public)")
+        case .challenges:  logChallenges.log("\(line, privacy: .public)")
+        case .leaderboard: logLeaderboard.log("\(line, privacy: .public)")
+        case .comments:    logComments.log("\(line, privacy: .public)")
+        case .favorites:   logFavorites.log("\(line, privacy: .public)")
         }
     }
 
