@@ -276,12 +276,6 @@ public final class ElevationService: ElevationServing {
 // MARK: - Polyline helpers
 
 private extension MKPolyline {
-    func coordinates() -> [CLLocationCoordinate2D] {
-        var coords = [CLLocationCoordinate2D](repeating: kCLLocationCoordinate2DInvalid, count: pointCount)
-        getCoordinates(&coords, range: NSRange(location: 0, length: pointCount))
-        return coords
-    }
-
     static func approxLength(_ coords: [CLLocationCoordinate2D]) -> CLLocationDistance {
         guard coords.count > 1 else { return 0 }
         var total: CLLocationDistance = 0
