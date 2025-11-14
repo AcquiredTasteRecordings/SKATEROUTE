@@ -86,7 +86,7 @@ public final class SkateRouteScorer {
 
     // MARK: - Config
 
-    private let logger = Logger(subsystem: "com.yourcompany.skateroute", category: "Scorer")
+    private let logger = Logger(subsystem: "com.skateroute.app", category: "Scorer")
 
     private let skill: SkillLevel
 

@@ -73,7 +73,7 @@ public final class Store: ObservableObject {
 
     private let entitlements: Entitlements
     private let analytics: AnalyticsLogger?
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Store")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "Store")
 
     // MARK: - Caching (catalog + entitlements)
 

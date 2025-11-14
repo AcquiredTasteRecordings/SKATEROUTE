@@ -181,7 +181,7 @@ extension AppError: LocalizedError {
 // MARK: - CustomNSError (stable domain/codes)
 
 extension AppError: CustomNSError {
-    public static var errorDomain: String { "com.yourcompany.skateroute" }
+    public static var errorDomain: String { "com.skateroute.app" }
 
     public var errorCode: Int {
         switch self {

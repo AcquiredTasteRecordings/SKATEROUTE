@@ -24,7 +24,7 @@ private struct CoordinateKey: Hashable, Sendable {
     }
 }
 
-private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Attribution")
+private let log = Logger(subsystem: "com.skateroute.app", category: "Attribution")
 
 // MARK: - Provider protocol
 
