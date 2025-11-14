@@ -122,10 +122,13 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
 // MARK: - Utilities
 
-private extension RouteContextBuilder {
+extension RouteContextBuilder {
     static func makeInstruction(for step: MKRoute.Step, tags: StepTags) -> String? {
         let base = step.instructions.isEmpty ? nil : step.instructions
+        return composeInstruction(base: base, tags: tags)
+    }
 
+    static func composeInstruction(base: String?, tags: StepTags) -> String? {
         var hints: [String] = []
         if tags.hasProtectedLane {
             hints.append("Protected lane")
@@ -144,7 +147,9 @@ private extension RouteContextBuilder {
 
         guard !hints.isEmpty else { return base }
         let summary = hints.joined(separator: ", ")
-        if let base { return "\(base) – \(summary)" }
+        if let base {
+            return "\(base) – \(summary)"
+        }
         return summary
     }
 
