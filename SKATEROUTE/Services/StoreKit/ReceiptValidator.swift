@@ -68,9 +68,9 @@ public final class ReceiptValidator: ObservableObject {
 
     public init(
         premiumProductIDs: Set<String> = [
-            "skateroute.premium.monthly",
-            "skateroute.premium.yearly",
-            "skateroute.premium.lifetime"
+            "com.skateroute.pro.monthly",
+            "com.skateroute.pro.yearly",
+            "com.skateroute.pro.lifetime"
         ],
         cacheKey: String = "premium.status.cache",
         userDefaults: UserDefaults = .standard
