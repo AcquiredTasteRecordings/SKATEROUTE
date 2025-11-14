@@ -57,18 +57,19 @@ SkateRoute solves this with a **skateability‑first** routing engine, **crowdso
 
 **Module map**
 ```
-Core/            Domain logic (routing, scoring, hazard models, analytics schemas)
-Services/        RouteService, RouteContextBuilder, ElevationService, GeocoderService,
-                 MotionRoughnessService, Matcher, CacheManager, SessionLogger, SkateRouteScorer
+Core/            Domain orchestration (AppCoordinator, AppDI, policy, entitlements)
+Services/        Navigation, Offline, StoreKit, Media, Hazards, Rewards, Referrals, Logging, System
 Features/
   Home/          Search, recents, challenges widget, referral card
-  Map/           MapScreen, MapViewContainer (UIKit bridge), SmoothOverlayRenderer, TurnCueEngine
-  Navigate/      Ride HUD, cues, reroute, alerts
+  Map/           Route planning, overlays, planner view model
+  UX/            Ride HUD, cues, reroute messaging, ride telemetry
+  Search/        Place search view + debounced MKLocalSearch view model
   Spots/         Discovery list, detail, add-a-spot flows
-  Social/        Capture, Edit, Upload Queue, Feed, Profile
-  Commerce/      Paywall, IAP, Apple Pay/Stripe flows
+  Media/         Capture, edit, upload queue bridges
+  Feed/          Clip feed, moderation actions
+  Community/     Quick hazard reporting, surface ratings
+  Monetization/  Paywall + subscription management (commerce UI)
   Settings/      Permissions, privacy, data export/delete
-DesignSystem/    Typography, colors, icons, haptics, motion
 Support/         Utilities, previews, test fixtures, GPX
 Docs/            Specs, ADRs, telemetry schemas, checklists
 ```

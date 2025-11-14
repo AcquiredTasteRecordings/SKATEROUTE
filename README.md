@@ -76,16 +76,16 @@ SkateRoute is a **skateboard‑first navigation + social** app. It delivers grad
 ---
 
 ## UX Surfaces
-- **Home:** search, recents, challenges widget, referral card.
-- **Map:** destination card, multi‑route options, color‑banded polyline, hazard/spot toggles.
-- **Ride HUD:** big next‑turn, distance, ETA, speed, braking indicator; voice + haptic cues.
-- **Spots:** map/list, filters, detail with media, add‑a‑spot with privacy.
-- **Capture/Edit:** filters, trim, speed overlay; background upload state.
-- **Feed:** clips + route cards; moderation actions; system share.
-- **Profile:** stats, badges, routes, videos; privacy controls; data export/delete.
-- **Commerce:** paywall, manage subscriptions, Apple Pay/Stripe checkout.
-- **Offline Packs:** city selector, size, update cadence, delete.
-- **Settings:** permissions, units, voice/haptics, analytics opt‑in, legal.
+- **Home (Features/Home):** search, recents, challenges widget, referral card.
+- **Map (Features/Map):** destination card, multi-route options, color-banded polyline, hazard/spot toggles.
+- **Ride HUD (Features/UX):** next-turn emphasis, braking indicator, live speed; voice + haptic cues.
+- **Spots (Features/Spots):** map/list, filters, detail with media, add-a-spot with privacy.
+- **Capture/Edit (Features/Media):** filters, trim, speed overlay; background upload state.
+- **Feed (Features/Feed):** clips + route cards; moderation actions; system share.
+- **Profile (Features/Profile):** stats, badges, routes, videos; privacy controls; data export/delete.
+- **Monetization (Features/Monetization):** paywall, manage subscriptions; Apple Pay/Stripe checkout hooks.
+- **Offline Packs (Services/Offline, UI pending):** route pack lifecycle wired through services; dedicated feature shell to be scheduled.
+- **Settings (Features/Settings):** permissions, units, voice/haptics, analytics opt-in, legal.
 
 ---
 
@@ -101,18 +101,19 @@ SkateRoute is a **skateboard‑first navigation + social** app. It delivers grad
 
 ## Module Map
 ```
-Core/            Domain logic (routing, scoring, hazard models, analytics schemas)
-Services/        RouteService, RouteContextBuilder, ElevationService, GeocoderService,
-                 MotionRoughnessService, Matcher, CacheManager, SessionLogger, SkateRouteScorer
+Core/            Domain orchestration (AppDI, AppCoordinator, policy, entitlements)
+Services/        Navigation, Offline, StoreKit, Media, Hazards, Rewards, Referrals, Logging, System
 Features/
   Home/          Entry, search, recents, challenges widget
-  Map/           MapScreen, MapViewContainer (UIKit bridge), SmoothOverlayRenderer, TurnCueEngine
-  Navigate/      Ride HUD, cues, reroute, alerts
+  Map/           Route planning, overlays, planner view model
+  UX/            Ride HUD, turn cues, ride telemetry surfaces
+  Search/        Place search view + debounced MKLocalSearch view model
   Spots/         Discovery list, detail, add-a-spot flows
-  Social/        Capture, Edit, Upload Queue, Feed, Profile
-  Commerce/      Paywall, IAP, Apple Pay/Stripe flows
+  Media/         Capture, editor, background upload bridges
+  Feed/          Clip feed, moderation actions
+  Community/     Quick hazard reporting, surface ratings
+  Monetization/  Paywall + subscription management (commerce UI)
   Settings/      Permissions, privacy, data export/delete
-DesignSystem/    Typography, color, iconography, haptics, motion
 Support/         Utilities, previews, test fixtures, GPX
 Docs/            Specs, ADRs, telemetry schemas, checklists
 ```
