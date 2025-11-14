@@ -58,15 +58,20 @@
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
-				1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */,
-			);
-			path = SKATEROUTE;
-			sourceTree = "<group>";
-		};
+                1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */ = {
+                        isa = PBXFileSystemSynchronizedRootGroup;
+                        exceptions = (
+                                1CAB1E582EBC7EE5002944A8 /* Exceptions for "SKATEROUTE" folder in "SKATEROUTE" target */,
+                                1CAB1ED22EBCFFFE002944A8 /* Exceptions for "SKATEROUTE" folder in "Compile Sources" phase from "SKATEROUTE" target */,
+                        );
+                        path = SKATEROUTE;
+                        sourceTree = "<group>";
+                };
+                1CF0E5A52F12345600BCB90A /* SKATEROUTEUITests */ = {
+                        isa = PBXFileSystemSynchronizedRootGroup;
+                        path = SKATEROUTEUITests;
+                        sourceTree = "<group>";
+                };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,15 +99,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1C2D2A522EB20E7C00BCB90A = {
-			isa = PBXGroup;
-			children = (
-				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5C2EB20E7C00BCB90A /* Products */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
-			);
-			sourceTree = "<group>";
-		};
+                1C2D2A522EB20E7C00BCB90A = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
+                                1C2D2A5C2EB20E7C00BCB90A /* Products */,
+                                1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
+                                1CF0E5A52F12345600BCB90A /* SKATEROUTEUITests */,
+                        );
+                        sourceTree = "<group>";
+                };
 		1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,24 +165,27 @@
 			productReference = 1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		1C2D2A752EB20E7E00BCB90A /* SKATEROUTEUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 1C2D2A872EB20E7E00BCB90A /* Build configuration list for PBXNativeTarget "SKATEROUTEUITests" */;
-			buildPhases = (
-				1C2D2A722EB20E7E00BCB90A /* Sources */,
-				1C2D2A732EB20E7E00BCB90A /* Frameworks */,
-				1C2D2A742EB20E7E00BCB90A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				1C2D2A782EB20E7E00BCB90A /* PBXTargetDependency */,
-			);
-			name = SKATEROUTEUITests;
-			packageProductDependencies = (
-			);
-			productName = SKATEROUTEUITests;
-			productReference = 1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */;
+                1C2D2A752EB20E7E00BCB90A /* SKATEROUTEUITests */ = {
+                        isa = PBXNativeTarget;
+                        buildConfigurationList = 1C2D2A872EB20E7E00BCB90A /* Build configuration list for PBXNativeTarget "SKATEROUTEUITests" */;
+                        buildPhases = (
+                                1C2D2A722EB20E7E00BCB90A /* Sources */,
+                                1C2D2A732EB20E7E00BCB90A /* Frameworks */,
+                                1C2D2A742EB20E7E00BCB90A /* Resources */,
+                        );
+                        buildRules = (
+                        );
+                        dependencies = (
+                                1C2D2A782EB20E7E00BCB90A /* PBXTargetDependency */,
+                        );
+                        fileSystemSynchronizedGroups = (
+                                1CF0E5A52F12345600BCB90A /* SKATEROUTEUITests */,
+                        );
+                        name = SKATEROUTEUITests;
+                        packageProductDependencies = (
+                        );
+                        productName = SKATEROUTEUITests;
+                        productReference = 1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */

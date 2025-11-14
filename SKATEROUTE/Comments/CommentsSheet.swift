@@ -271,7 +271,7 @@ public struct CommentsSheet: View {
                     CommentRow(comment: c,
                                onAppear: { Task { await vm.loadMoreIfNeeded(current: c) } },
                                onDelete: { vm.delete(c.id) },
-                               onReport: { reason, msg in $vm.report(c.id, reason: reason, message: msg) })
+                               onReport: { reason, msg in vm.report(c.id, reason: reason, message: msg) })
                     .padding(.horizontal, 16)
                 }
             }.padding(.vertical, 10)
@@ -352,13 +352,13 @@ public struct CommentsSheet: View {
         .background(bg.opacity(0.92), in: RoundedRectangle(cornerRadius: 14))
         .foregroundColor(.white)
         .accessibilityLabel(Text(text))
+        .accessibilityIdentifier("comments_toast")
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
-        Task { @MainActor in
+        Task {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
-            // TODO: e.g. auto-dismiss success banner or reload comments
-            // await viewModel.reloadComments()
+            await MainActor.run { body() }
         }
     }
 }
@@ -407,6 +407,7 @@ fileprivate struct CommentRow: View {
         .sheet(isPresented: $showReportSheet) { reportSheet }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("\(comment.displayName). \(relative(comment.createdAt)). \(comment.text)"))
+        .accessibilityIdentifier("comment_row_\(comment.id)")
     }
 
     private func avatar(url: URL?) -> some View {

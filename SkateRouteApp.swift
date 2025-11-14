@@ -16,10 +16,17 @@ struct SkateRouteApp: App {
     // MARK: - Environment
     @Environment(\.scenePhase) private var scenePhase
 
+#if DEBUG
+    private let uiTestScenario: UITestScenario?
+#endif
+
     // MARK: - Logging
     private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "app")
 
     init() {
+#if DEBUG
+        uiTestScenario = UITestScenario.current()
+#endif
         let container = LiveAppDI()
         _dependencies = StateObject(wrappedValue: container)
         _coordinator  = StateObject(wrappedValue: AppCoordinator(dependencies: container))
@@ -33,32 +40,16 @@ struct SkateRouteApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                coordinator.makeRootView()
+#if DEBUG
+            if let scenario = uiTestScenario {
+                UITestHarnessView(scenario: scenario)
+                    .tint(.accentColor)
+            } else {
+                applicationRoot
             }
-            .environmentObject(coordinator)
-            .environmentObject(dependencies)
-            .tint(.accentColor)
-            .onOpenURL(perform: handle(url:))
-            .onContinueUserActivity(NSUserActivityTypeBrowsingWeb, perform: handle(userActivity:))
-            .task(priority: .utility) {
-                // Housekeeping on cold start
-                await dependencies.locationManager.applyPowerBudgetForMonitoring()
-            }
-            .onChange(of: scenePhase) { _, phase in
-                // Power budgets aligned with lifecycle
-                switch phase {
-                case .active:
-                    dependencies.locationManager.applyAccuracy(.balanced)
-                case .inactive:
-                    // Keep it light; keep geofences alive for drift signals
-                    dependencies.locationManager.applyAccuracy(.monitoring)
-                case .background:
-                    dependencies.locationManager.applyAccuracy(.background)
-                @unknown default:
-                    dependencies.locationManager.applyAccuracy(.monitoring)
-                }
-            }
+#else
+            applicationRoot
+#endif
         }
         // SwiftData model container (local community content)
         .modelContainer(for: [SurfaceRating.self])
@@ -68,6 +59,35 @@ struct SkateRouteApp: App {
 // MARK: - Deep Link Routing
 
 private extension SkateRouteApp {
+    var applicationRoot: some View {
+        NavigationStack {
+            coordinator.makeRootView()
+        }
+        .environmentObject(coordinator)
+        .environmentObject(dependencies)
+        .tint(.accentColor)
+        .onOpenURL(perform: handle(url:))
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb, perform: handle(userActivity:))
+        .task(priority: .utility) {
+            // Housekeeping on cold start
+            await dependencies.locationManager.applyPowerBudgetForMonitoring()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Power budgets aligned with lifecycle
+            switch phase {
+            case .active:
+                dependencies.locationManager.applyAccuracy(.balanced)
+            case .inactive:
+                // Keep it light; keep geofences alive for drift signals
+                dependencies.locationManager.applyAccuracy(.monitoring)
+            case .background:
+                dependencies.locationManager.applyAccuracy(.background)
+            @unknown default:
+                dependencies.locationManager.applyAccuracy(.monitoring)
+            }
+        }
+    }
+
     func handle(url: URL) {
         // Accepts:
         //  skateroute://navigate?src=lat,lon&dst=lat,lon&mode=smoothest

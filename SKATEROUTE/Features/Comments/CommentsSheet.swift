@@ -352,6 +352,7 @@ public struct CommentsSheet: View {
         .background(bg.opacity(0.92), in: RoundedRectangle(cornerRadius: 14))
         .foregroundColor(.white)
         .accessibilityLabel(Text(text))
+        .accessibilityIdentifier("comments_toast")
     }
 
     private func autoDismiss(_ body: @escaping () -> Void) {
@@ -406,6 +407,7 @@ fileprivate struct CommentRow: View {
         .sheet(isPresented: $showReportSheet) { reportSheet }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("\(comment.displayName). \(relative(comment.createdAt)). \(comment.text)"))
+        .accessibilityIdentifier("comment_row_\(comment.id)")
     }
 
     private func avatar(url: URL?) -> some View {
