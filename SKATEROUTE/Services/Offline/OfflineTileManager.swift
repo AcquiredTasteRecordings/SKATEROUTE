@@ -30,7 +30,7 @@ public final class OfflineTileManager: ObservableObject {
 
     // MARK: Dependencies
     private let cache = CacheManager.shared
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "OfflineTiles")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "OfflineTiles")
 
     // Background planning task for cancellation/debounce
     private var planningTask: Task<Void, Never>?
@@ -317,5 +317,4 @@ private extension JSONDecoder {
 private extension Double {
     func clamped(_ lo: Double, _ hi: Double) -> Double { max(lo, min(hi, self)) }
 }
-
 

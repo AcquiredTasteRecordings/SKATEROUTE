@@ -43,7 +43,7 @@ enum Env {
             return url
         }
 
-        // Application Support/com.yourcompany.skateroute/SKATEROUTE
+        // Application Support/com.skateroute.app/SKATEROUTE
         let root = (try? FileManager.default.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,

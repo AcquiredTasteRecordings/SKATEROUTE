@@ -6,6 +6,7 @@ import Support
 #endif
 import Foundation
 import MapKit
+import StepTags
 
 // MARK: - Models
 
@@ -90,7 +91,7 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)
 
-            let tags = idx < stepTags.count ? stepTags[idx] : StepTags()
+            let tags = idx < stepTags.count ? stepTags[idx] : .neutral
             let instruction = Self.makeInstruction(for: step, tags: tags)
 
             // Surface/roughness hints: placeholder.
@@ -174,6 +175,21 @@ private func headingDegrees(from: CLLocationCoordinate2D, to: CLLocationCoordina
     let θ = atan2(y, x) * 180 / .pi
     let deg = fmod(θ + 360, 360)
     return deg.isNaN ? 0 : deg
+}
+
+private extension MKPolyline {
+    /// In case step.distance is 0 (rare but happens), compute from geometry.
+    func distanceMetersFallback() -> CLLocationDistance {
+        let pts = coordinates()
+        guard pts.count > 1 else { return 0 }
+        var d: CLLocationDistance = 0
+        for i in 0..<(pts.count - 1) {
+            let a = MKMapPoint(pts[i])
+            let b = MKMapPoint(pts[i + 1])
+            d += MKMetersBetweenMapPoints(a, b)
+        }
+        return d
+    }
 }
 
 
