@@ -1,8 +1,12 @@
 // Services/RouteContextBuilder.swift
 // Builds per-step contexts for scoring and overlay paint.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import MapKit
+import StepTags
 
 // MARK: - Models
 
@@ -177,4 +181,20 @@ private func headingDegrees(from: CLLocationCoordinate2D, to: CLLocationCoordina
     let deg = fmod(θ + 360, 360)
     return deg.isNaN ? 0 : deg
 }
+
+private extension MKPolyline {
+    /// In case step.distance is 0 (rare but happens), compute from geometry.
+    func distanceMetersFallback() -> CLLocationDistance {
+        let pts = coordinates()
+        guard pts.count > 1 else { return 0 }
+        var d: CLLocationDistance = 0
+        for i in 0..<(pts.count - 1) {
+            let a = MKMapPoint(pts[i])
+            let b = MKMapPoint(pts[i + 1])
+            d += MKMetersBetweenMapPoints(a, b)
+        }
+        return d
+    }
+}
+
 

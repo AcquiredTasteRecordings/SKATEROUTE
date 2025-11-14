@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import StoreKit
+import ServicesAnalytics
 import UIKit
 
 // MARK: - DI seams (narrow & testable)
@@ -330,16 +331,14 @@ private final class StoreManageFake: PurchaseHistoryProviding, ManageSubscriptio
         ]
     }
 }
-private struct AnalyticsNoop: AnalyticsLogging { func log(_ event: AnalyticsEvent) {} }
-
 struct ManageSubscriptionView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            ManageSubscriptionView.make(store: StoreManageFake(), analytics: AnalyticsNoop())
+            ManageSubscriptionView.make(store: StoreManageFake(), analytics: AnalyticsLoggerSpy())
         }
         .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
         NavigationView {
-            ManageSubscriptionView.make(store: StoreManageFake(), analytics: AnalyticsNoop())
+            ManageSubscriptionView.make(store: StoreManageFake(), analytics: AnalyticsLoggerSpy())
         }
         .preferredColorScheme(.dark)
     }

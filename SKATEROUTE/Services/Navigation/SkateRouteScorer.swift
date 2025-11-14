@@ -7,6 +7,7 @@ import Foundation
 import MapKit
 import UIKit
 import OSLog
+import StepTags
 
 public final class SkateRouteScorer {
 
@@ -86,7 +87,7 @@ public final class SkateRouteScorer {
 
     // MARK: - Config
 
-    private let logger = Logger(subsystem: "com.yourcompany.skateroute", category: "Scorer")
+    private let logger = Logger(subsystem: "com.skateroute.app", category: "Scorer")
 
     private let skill: SkillLevel
 
@@ -282,8 +283,8 @@ public final class SkateRouteScorer {
 // MARK: - StepContext adapter from StepTags (if available)
 
 #if canImport(MapKit)
-/// If your project defines `StepTags` (as used by AttributionService), bridge it here.
-/// Expected shape: hasProtectedLane, hasPaintedLane, surfaceRough, hazardCount.
+/// Bridge from the canonical `StepTags` model into the scorer's lightweight context.
+/// See `Services/Navigation/StepTags.swift` for the shared shape (lanes, hazards, surface hints).
 public extension SkateRouteScorer.StepContext {
     init(tags: StepTags, turnRadians: Double) {
         self.init(

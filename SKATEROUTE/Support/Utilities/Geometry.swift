@@ -145,13 +145,20 @@ public enum Geometry {
 // MARK: - MKPolyline utilities
 
 public extension MKPolyline {
-    /// Extracts coordinates (CLLocationCoordinate2D array). Allocate once where possible.
+    /// Canonical helper to extract the polyline coordinates (CLLocationCoordinate2D array).
+    /// Allocate once where possible and reuse to avoid repeated heap churn during navigation flows.
     func coordinates() -> [CLLocationCoordinate2D] {
         let n = pointCount
         guard n > 0 else { return [] }
         var coords = [CLLocationCoordinate2D](repeating: .init(), count: n)
         getCoordinates(&coords, range: NSRange(location: 0, length: n))
         return coords
+    }
+
+    /// Async convenience wrapper around the canonical coordinates extractor to make it
+    /// ergonomic inside concurrent workflows (e.g., Task contexts) without reimplementing helpers.
+    func coordinates() async -> [CLLocationCoordinate2D] {
+        coordinates()
     }
 
     /// Nearest *vertex index* to a CLLocation (kept for compatibility).
