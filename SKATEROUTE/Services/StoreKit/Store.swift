@@ -194,7 +194,7 @@ public final class Store: ObservableObject {
     public func purchase(_ id: ProductID) {
         guard purchaseTask == nil else { return }
         guard let item = products.first(where: { $0.id == id }) else {
-            lastError = UXError.from(.unknown)
+            lastError = UXError.from(.productUnavailable)
             return
         }
 
