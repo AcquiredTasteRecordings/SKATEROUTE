@@ -106,6 +106,7 @@ extension AppError: LocalizedError {
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That item isn’t available right now.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
         case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .notEntitled(let feature):
@@ -142,6 +143,7 @@ extension AppError: LocalizedError {
         case .network(let code):
             if let code { return String(format: NSLocalizedString("Network error: %@.", comment: "reason"), code.debugName) }
             return NSLocalizedString("A network error occurred.", comment: "reason")
+        case .productUnavailable:            return NSLocalizedString("The item is temporarily unavailable.", comment: "reason")
         case .notEntitled(let feature):      return String(format: NSLocalizedString("%@ is a Pro feature.", comment: "reason"), feature.displayName)
         case .productUnavailable:            return NSLocalizedString("The App Store isn’t currently listing this item.", comment: "reason")
         default: return nil
@@ -163,7 +165,7 @@ extension AppError: LocalizedError {
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
         case .productUnavailable:
-            return NSLocalizedString("Try again later or choose a different product.", comment: "suggestion")
+            return NSLocalizedString("Pick another product for now or try again later.", comment: "suggestion")
         case .notEntitled:
             return NSLocalizedString("Unlock on the paywall to use this feature.", comment: "suggestion")
         case .tilepackMissing:
@@ -181,7 +183,7 @@ extension AppError: LocalizedError {
 // MARK: - CustomNSError (stable domain/codes)
 
 extension AppError: CustomNSError {
-    public static var errorDomain: String { "com.yourcompany.skateroute" }
+    public static var errorDomain: String { "com.skateroute.app" }
 
     public var errorCode: Int {
         switch self {

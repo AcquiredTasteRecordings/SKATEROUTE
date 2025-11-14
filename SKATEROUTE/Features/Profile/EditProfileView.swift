@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import PhotosUI
+import ServicesAnalytics
 import UIKit
 
 // MARK: - DI seams (narrow & testable)
@@ -469,17 +470,15 @@ private final class RemoteFake: RemoteHandleValidating {
         return normalized.lowercased() != "river"
     }
 }
-private struct AnalyticsNoop: AnalyticsLogging { func log(_ event: AnalyticsEvent) {} }
-
 struct EditProfileView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            EditProfileView.make(store: StoreFake(), index: IndexFake(), remoteCheck: RemoteFake(), analytics: AnalyticsNoop())
+            EditProfileView.make(store: StoreFake(), index: IndexFake(), remoteCheck: RemoteFake(), analytics: AnalyticsLoggerSpy())
         }
         .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
 
         NavigationView {
-            EditProfileView.make(store: StoreFake(), index: IndexFake(), remoteCheck: RemoteFake(), analytics: AnalyticsNoop())
+            EditProfileView.make(store: StoreFake(), index: IndexFake(), remoteCheck: RemoteFake(), analytics: AnalyticsLoggerSpy())
         }
         .preferredColorScheme(.dark)
     }

@@ -164,7 +164,7 @@ public enum DeepLinkRoutes {
 
     // MARK: - NSUserActivity helpers (universal link handoff)
 
-    public static let userActivityType = "com.yourcompany.skateroute.browsing"
+    public static let userActivityType = "com.skateroute.app.browsing"
 
     /// Create an activity that mirrors a deep link; use in handoffs to SceneDelegate/App.
     public static func makeUserActivity(for route: Route) -> NSUserActivity {

@@ -159,9 +159,13 @@ public enum AccuracyProfile: String, CaseIterable, Sendable {
 public extension CLLocationManager {
     /// Safe, explicit reset of deferral (wrapped for clarity).
     func disallowDeferredLocationUpdates() {
-        // No-op on simulators/hardware that doesn’t support.
-        self.disallowDeferredLocationUpdates()
+        guard responds(to: Self._disallowDeferredLocationUpdatesSelector) else { return }
+        if #available(iOS 6.0, *) {
+            _ = perform(Self._disallowDeferredLocationUpdatesSelector)
+        }
     }
+
+    private static let _disallowDeferredLocationUpdatesSelector = #selector(CLLocationManager.disallowDeferredLocationUpdates)
 }
 
 
