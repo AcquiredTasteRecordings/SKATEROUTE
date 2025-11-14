@@ -4,6 +4,7 @@ import CoreLocation
 import Foundation
 import MapKit
 import UIKit
+import StepTags
 
 // MARK: - Service Protocols
 

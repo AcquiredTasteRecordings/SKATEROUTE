@@ -87,38 +87,15 @@ public struct QuickReportView: View {
     // MARK: - Save Logic (SwiftData + local de-dupe)
 
     /// Saves or updates a SurfaceRating near the given coordinate using a small quantized bin.
-    private func save(value: SurfaceValue) async {
+    @MainActor
+    private func save(value: SurfaceValue) {
         guard !isSaving else { return }
         isSaving = true
         errorMessage = nil
 
         do {
-            // Merge strategy: look for an existing rating within the same quantized bin (≈11m @ precision=4).
-            let precision = 4
-            let (qlat, qlon) = quantize(coordinate, precision: precision)
-            let eps = pow(10.0, Double(-precision)) / 2.0 // half-step window
-
-            let predicate = #Predicate<SurfaceRating> {
-                ($0.latitude >= qlat - eps) && ($0.latitude <= qlat + eps) &&
-                ($0.longitude >= qlon - eps) && ($0.longitude <= qlon + eps)
-            }
-            var found: SurfaceRating? = nil
-            do {
-                let desc = FetchDescriptor<SurfaceRating>(predicate: predicate, sortBy: [.init(\.updatedAt, order: .reverse)])
-                let hits = try modelContext.fetch(desc)
-                found = hits.first
-            } catch {
-                // Non-fatal; proceed with insert
-            }
-
-            if let existing = found {
-                existing.updateValue(value)
-            } else {
-                let r = SurfaceRating(coordinate: coordinate, value: value)
-                modelContext.insert(r)
-            }
-
-            try modelContext.save()
+            let viewModel = QuickReportViewModel(modelContext: modelContext)
+            try viewModel.upsertRating(at: coordinate, value: value)
 
             // UX: haptics + confirmation + optional callback
             HapticCue.play(.success)
@@ -144,12 +121,6 @@ public struct QuickReportView: View {
 
     // MARK: - Helpers
 
-    private func quantize(_ c: CLLocationCoordinate2D, precision: Int) -> (Double, Double) {
-        let p = pow(10.0, Double(precision))
-        let lat = (c.latitude * p).rounded() / p
-        let lon = (c.longitude * p).rounded() / p
-        return (lat, lon)
-    }
 }
 
 // MARK: - Preview

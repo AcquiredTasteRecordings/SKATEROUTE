@@ -71,10 +71,9 @@ public enum Policy {
     public enum UGC {
         /// Words/phrases we will block at submission time (quick client heuristic;
         /// server-side lists can be stricter).
-        public static let bannedTerms: [String] = [
-            // Keep this list short on-device; enforce stricter server-side.
-            "hate", "slur1", "slur2" // placeholders – replace with a curated, localized list
-        ]
+        /// Source: curated subset of LDNOOBW and allied moderation corpora. See docs/ModerationBannedTerms.md
+        /// for provenance and localization process details.
+        public static let bannedTerms: [String] = BannedTermsCatalog.terms()
 
         /// Max video length for uploads (seconds) to keep moderation feasible on free tier.
         public static let maxUploadVideoSeconds: Int = 90
@@ -198,6 +197,7 @@ public enum PolicyAsserts {
         // Guardrails for tracking/ads posture.
         assert(Policy.Tracking.allowsCrossAppTracking == false, "Policy violation: cross-app tracking must remain disabled.")
         assert(Policy.Ads.allowsThirdPartyAds == false, "Policy violation: third-party ad SDKs are not allowed.")
+        assert(Policy.UGC.bannedTerms.isEmpty == false, "Policy violation: banned term list must be populated.")
     }
 }
 #endif

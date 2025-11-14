@@ -27,7 +27,7 @@ public final class OfflineTileManager: ObservableObject {
 
     // MARK: Dependencies
     private let cache = CacheManager.shared
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "OfflineTiles")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "OfflineTiles")
 
     // Background planning task for cancellation/debounce
     private var planningTask: Task<Void, Never>?
@@ -189,7 +189,7 @@ extension OfflineTileManager {
         try Task.checkCancellation()
 
         // 1) Sample the polyline into geodesic points ~ every 120 m (cheap and adequate).
-        let coords = await polyline.coordinates()
+        let coords = polyline.coordinates()
         let sampled = sampleCoordinates(coords, strideMeters: 120)
 
         // 2) For each zoom, add the central tile and neighbors that cover the corridor radius.
@@ -314,18 +314,4 @@ private extension JSONDecoder {
 private extension Double {
     func clamped(_ lo: Double, _ hi: Double) -> Double { max(lo, min(hi, self)) }
 }
-
-// MARK: - MKPolyline convenience
-
-private extension MKPolyline {
-    /// Extract coordinates as an array without leaking mutable buffers across threads.
-    func coordinates() async -> [CLLocationCoordinate2D] {
-        let n = pointCount
-        guard n > 0 else { return [] }
-        var coords = [CLLocationCoordinate2D](repeating: .init(), count: n)
-        getCoordinates(&coords, range: NSRange(location: 0, length: n))
-        return coords
-    }
-}
-
 

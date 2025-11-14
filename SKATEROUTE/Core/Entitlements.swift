@@ -52,9 +52,9 @@ public extension ProFeature {
 /// Canonical format matches App Store Connect SKUs: `com.skateroute.app.pro.<feature>`.
 public enum ProductID: String, CaseIterable, Sendable {
     // Non-consumables (one-time unlocks)
-    case offlinePacks = "com.skateroute.app.pro.offline"
-    case advancedAnalytics = "com.skateroute.app.pro.analytics"
-    case proEditor = "com.skateroute.app.pro.editor"
+    case offlinePacks = "com.skateroute.pro.offline"
+    case advancedAnalytics = "com.skateroute.pro.analytics"
+    case proEditor = "com.skateroute.pro.editor"
 
     // If you add subscriptions later, create a separate enum to avoid mixing types.
 }
