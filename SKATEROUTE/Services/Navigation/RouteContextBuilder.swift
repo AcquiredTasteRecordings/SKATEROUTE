@@ -1,6 +1,9 @@
 // Services/RouteContextBuilder.swift
 // Builds per-step contexts for scoring and overlay paint.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import MapKit
 import StepTags
@@ -83,7 +86,7 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
         for (idx, step) in route.steps.enumerated() {
             let poly = step.polyline
-            let distance = step.distance > 0 ? step.distance : poly.distanceMetersFallback()
+            let distance = step.distance > 0 ? step.distance : poly.totalLengthMeters()
             let eta = step.expectedTravelTime > 0 ? step.expectedTravelTime : Self.estimateETA(distance)
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)

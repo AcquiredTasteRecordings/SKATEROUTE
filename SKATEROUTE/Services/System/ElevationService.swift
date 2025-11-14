@@ -5,6 +5,9 @@
 // - Computes ascent/descent and grade stats with smoothing
 // - Falls back to neutral metrics if elevation is unavailable
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import CoreLocation
 import MapKit

@@ -5,6 +5,9 @@
 // NOTE: This does NOT fetch Apple Map tiles (ToS). It only plans/stores manifests
 // so your UI can reflect offline readiness and your own tile source (if any) can plug in.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import MapKit
 import OSLog

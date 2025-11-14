@@ -2,6 +2,9 @@
 // MapKit-first routing with grade summaries + step contexts.
 // Async/await, memory-cached, privacy-safe, no secrets.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import CoreLocation
 import MapKit
