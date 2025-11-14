@@ -7,6 +7,7 @@ import Foundation
 import CoreLocation
 import MapKit
 import OSLog
+import StepTags
 
 // MARK: - StepTags dependency
 // NOTE: This file assumes `StepTags` exists in your project with at least:
