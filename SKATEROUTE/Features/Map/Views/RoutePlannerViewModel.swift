@@ -112,12 +112,13 @@ public final class RoutePlannerViewModel: ObservableObject {
 
                 // Order: Fastest ETA first, stable fallback by id
                 let ordered = candidates
-                    .map(\.id)
                     .sorted { lhs, rhs in
-                        let lETA = candidates.first(where: { $0.id == lhs })!.route.expectedTravelTime
-                        let rETA = candidates.first(where: { $0.id == rhs })!.route.expectedTravelTime
-                        return lETA < rETA || (lETA == rETA && lhs < rhs)
+                        let lETA = lhs.metadata.expectedTravelTimeSeconds
+                        let rETA = rhs.metadata.expectedTravelTimeSeconds
+                        if lETA == rETA { return lhs.id < rhs.id }
+                        return lETA < rETA
                     }
+                    .map(\.id)
 
                 // Choose the initial selection: best score if present, else fastest (ordered[0])
                 let bestId = RoutePlannerViewModel.bestCandidateID(candidates: candidates, presentations: map) ?? ordered.first
@@ -219,7 +220,7 @@ public final class RoutePlannerViewModel: ObservableObject {
         // Pick highest score, break ties by shortest ETA.
         let scored: [(id: String, score: Double, eta: TimeInterval)] = candidates.compactMap { cand in
             guard let p = presentations[cand.id] else { return nil }
-            return (id: cand.id, score: p.score, eta: cand.route.expectedTravelTime)
+            return (id: cand.id, score: p.score, eta: cand.metadata.expectedTravelTimeSeconds)
         }
         return scored.max { lhs, rhs in
             if lhs.score == rhs.score { return lhs.eta > rhs.eta }

@@ -15,7 +15,7 @@ public struct MapScreen: View {
     private let destination: CLLocationCoordinate2D
 
     @StateObject private var vm: RoutePlannerViewModel
-    @StateObject private var rerouteController: RerouteControlling
+    @StateObject private var rerouteControllerBox: RerouteControllerBox
 
     @State private var showOptions = false
     @State private var mapInsets = EdgeInsets(top: 0, leading: 0, bottom: 160, trailing: 0)
@@ -26,7 +26,7 @@ public struct MapScreen: View {
         // DI wiring at init time keeps this view self-contained.
         let di = AppDI.shared
         _vm = StateObject(wrappedValue: di.makeRoutePlannerViewModel())
-        _rerouteController = StateObject(wrappedValue: di.makeRerouteController())
+        _rerouteControllerBox = StateObject(wrappedValue: RerouteControllerBox(controller: di.makeRerouteController()))
     }
 
     public var body: some View {
@@ -104,21 +104,13 @@ public struct MapScreen: View {
             vm.plan(from: source, to: destination, userInitiated: true)
         }
         .onAppear {
-            // Start divergence monitoring; on divergence, replan from current to original destination.
-            if let route = vm.selectedRoute {
-                rerouteController.startMonitoring(route: route) { offCoord in
-                    // Fire-and-forget; RoutePlannerVM is cancel-safe.
-                    vm.plan(from: offCoord, to: destination, userInitiated: false)
-                }
-            }
+            syncRerouteMonitoring(with: vm.selectedRoute)
         }
         .onChange(of: vm.selectedRoute) { _, newRoute in
-            guard let newRoute else { return }
-            rerouteController.updateRoute(newRoute)
-            rerouteController.markRouteStabilized()
+            syncRerouteMonitoring(with: newRoute)
         }
         .onDisappear {
-            rerouteController.stopMonitoring()
+            stopRerouteMonitoring()
         }
         .sheet(isPresented: $showOptions) {
             PlannerOptionsSheet(
@@ -149,6 +141,42 @@ public struct MapScreen: View {
         guard let id = vm.selectedCandidateID,
               let pres = vm.presentations[id] else { return [] }
         return pres.stepPaints.map { StepPaint(stepIndex: $0.stepIndex, color: $0.color) }
+    }
+
+    private func syncRerouteMonitoring(with route: MKRoute?) {
+        guard let route else {
+            stopRerouteMonitoring()
+            return
+        }
+
+        if rerouteControllerBox.hasStartedMonitoring {
+            rerouteControllerBox.controller.updateRoute(route)
+        } else {
+            rerouteControllerBox.controller.startMonitoring(route: route) { offCoord in
+                vm.plan(from: offCoord, to: destination, userInitiated: false)
+            }
+            rerouteControllerBox.hasStartedMonitoring = true
+        }
+
+        rerouteControllerBox.controller.markRouteStabilized()
+    }
+
+    private func stopRerouteMonitoring() {
+        guard rerouteControllerBox.hasStartedMonitoring else { return }
+        rerouteControllerBox.controller.stopMonitoring()
+        rerouteControllerBox.hasStartedMonitoring = false
+    }
+}
+
+// MARK: - Reroute Controller Wrapper
+
+@MainActor
+private final class RerouteControllerBox: ObservableObject {
+    let controller: RerouteControlling
+    @Published var hasStartedMonitoring = false
+
+    init(controller: RerouteControlling) {
+        self.controller = controller
     }
 }
 
