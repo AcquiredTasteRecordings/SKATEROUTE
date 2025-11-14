@@ -10,16 +10,46 @@ public final class RouteService: RoutingService {
 
     // MARK: Types
 
+    public struct RouteCandidateMetadata: Codable, Sendable, Equatable {
+        public let distanceMeters: CLLocationDistance
+        public let expectedTravelTimeSeconds: TimeInterval
+        public let gradeSummary: GradeSummary
+
+        public init(distanceMeters: CLLocationDistance,
+                    expectedTravelTimeSeconds: TimeInterval,
+                    gradeSummary: GradeSummary) {
+            self.distanceMeters = distanceMeters
+            self.expectedTravelTimeSeconds = expectedTravelTimeSeconds
+            self.gradeSummary = gradeSummary
+        }
+
+        public init(route: MKRoute, gradeSummary: GradeSummary) {
+            self.init(distanceMeters: route.distance,
+                      expectedTravelTimeSeconds: route.expectedTravelTime,
+                      gradeSummary: gradeSummary)
+        }
+
+        public func makeGradeSummary() -> GradeSummary {
+            gradeSummary
+        }
+    }
+
     public struct RouteCandidate: Sendable {
         public let id: String
         public let route: MKRoute
         public let gradeSummary: GradeSummary
+        public let metadata: RouteCandidateMetadata
         public let stepContexts: [StepContext]
         // Room for future attributes (surface mix, hazard density, etc.)
-        public init(id: String, route: MKRoute, gradeSummary: GradeSummary, stepContexts: [StepContext]) {
+        public init(id: String,
+                    route: MKRoute,
+                    gradeSummary: GradeSummary,
+                    metadata: RouteCandidateMetadata,
+                    stepContexts: [StepContext]) {
             self.id = id
             self.route = route
             self.gradeSummary = gradeSummary
+            self.metadata = metadata
             self.stepContexts = stepContexts
         }
     }
@@ -115,7 +145,12 @@ public final class RouteService: RoutingService {
                     let summary = await elevation.summarizeGrades(on: route, sampleMeters: 75)
                     let contexts = await contextBuilder.context(for: route, gradeSummary: summary)
                     let id = Self.candidateId(route: route, index: idx)
-                    return RouteCandidate(id: id, route: route, gradeSummary: summary, stepContexts: contexts)
+                    let metadata = RouteCandidateMetadata(route: route, gradeSummary: summary)
+                    return RouteCandidate(id: id,
+                                          route: route,
+                                          gradeSummary: summary,
+                                          metadata: metadata,
+                                          stepContexts: contexts)
                 }
             }
 
