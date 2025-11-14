@@ -8,11 +8,74 @@ import CoreLocation
 import MapKit
 import OSLog
 
+// MARK: - Shared StepTags model
+
+/// Lightweight per-step attribution used across navigation services.
+///
+/// The struct keeps lane, surface, hazard, and optional metadata that can be
+/// enriched by multiple providers (local tiles, remote API, user reports).
+public struct StepTags: Sendable, Hashable {
+
+    /// Lighting quality buckets aligned with local attribution datasets.
+    public enum LightingLevel: String, Sendable, Codable, CaseIterable {
+        case good
+        case moderate
+        case poor
+    }
+
+    public var hasProtectedLane: Bool
+    public var hasPaintedLane: Bool
+    public var surfaceRough: Bool
+    public var hazardCount: Int
+    public var highwayClass: String?
+    public var surface: String?
+    public var lighting: LightingLevel?
+    public var freshnessDays: Int?
+    public var confidence: Double?
+    public var source: String?
+
+    /// Neutral baseline used when attribution is missing.
+    public init() {
+        self.init(hasProtectedLane: false,
+                  hasPaintedLane: false,
+                  surfaceRough: false,
+                  hazardCount: 0,
+                  highwayClass: nil,
+                  surface: nil,
+                  lighting: nil,
+                  freshnessDays: nil,
+                  confidence: nil,
+                  source: nil)
+    }
+
+    public init(
+        hasProtectedLane: Bool,
+        hasPaintedLane: Bool,
+        surfaceRough: Bool,
+        hazardCount: Int,
+        highwayClass: String?,
+        surface: String?,
+        lighting: LightingLevel?,
+        freshnessDays: Int?,
+        confidence: Double?,
+        source: String?
+    ) {
+        self.hasProtectedLane = hasProtectedLane
+        self.hasPaintedLane = hasPaintedLane
+        self.surfaceRough = surfaceRough
+        self.hazardCount = max(0, hazardCount)
+        self.highwayClass = highwayClass
+        self.surface = surface
+        self.lighting = lighting
+        self.freshnessDays = freshnessDays
+        self.confidence = confidence
+        self.source = source
+    }
+}
+
 // MARK: - StepTags dependency
-// NOTE: This file assumes `StepTags` exists in your project with at least:
-//   init()
-//   init(hasProtectedLane: Bool, hasPaintedLane: Bool, surfaceRough: Bool, hazardCount: Int, highwayClass: String?, surface: String?)
-// If your StepTags differs, adjust the merge/composition logic below accordingly.
+// If your app already defines `StepTags` differently, update the struct above or adjust
+// the merge/composition logic below accordingly.
 
 // MARK: - Hashable coordinate key (quantized to 1e-6 deg to keep cache sparse)
 private struct CoordinateKey: Hashable, Sendable {
@@ -67,6 +130,8 @@ public actor LocalAttributionProvider: StepAttributesProvider {
         // Optional extra metadata for future use
         let lightingLevel: String?
         let freshnessDays: Int?
+        let confidence: Double?
+        let source: String?
     }
 
     private struct AttrFile: Decodable, Sendable {
@@ -151,7 +216,11 @@ public actor LocalAttributionProvider: StepAttributesProvider {
                 surfaceRough:     candidate.surfaceRough ?? false,
                 hazardCount:      candidate.hazardCount ?? 0,
                 highwayClass:     nil,
-                surface:          candidate.surface
+                surface:          candidate.surface,
+                lighting:         normalizedLightingLevel(from: candidate.lightingLevel),
+                freshnessDays:    sanitizedFreshnessDays(candidate.freshnessDays),
+                confidence:       clampedConfidence(candidate.confidence),
+                source:           sanitizedSource(candidate.source)
             )
         } else {
             tags = StepTags()
@@ -183,6 +252,40 @@ public actor LocalAttributionProvider: StepAttributesProvider {
     private func isExpired(_ entry: CacheEntry) -> Bool {
         guard cfg.cacheTTL > 0 else { return false }
         return Date().timeIntervalSince(entry.stamp) > cfg.cacheTTL
+    }
+
+    private func normalizedLightingLevel(from raw: String?) -> StepTags.LightingLevel? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let lowered = trimmed.lowercased()
+        if let direct = StepTags.LightingLevel(rawValue: lowered) {
+            return direct
+        }
+        switch lowered {
+        case "high": return .good
+        case "medium": return .moderate
+        case "low": return .poor
+        default:
+            log.debug("Unknown lighting level '\(trimmed, privacy: .public)' in local attribution dataset")
+            return nil
+        }
+    }
+
+    private func clampedConfidence(_ value: Double?) -> Double? {
+        guard let value else { return nil }
+        return max(0, min(1, value))
+    }
+
+    private func sanitizedFreshnessDays(_ value: Int?) -> Int? {
+        guard let value else { return nil }
+        return max(0, value)
+    }
+
+    private func sanitizedSource(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func insertCache(key: CoordinateKey, value: StepTags) {
@@ -254,8 +357,30 @@ public actor CompositeAttributionProvider: StepAttributesProvider {
             surfaceRough:     a.surfaceRough     || b.surfaceRough,
             hazardCount:      max(a.hazardCount, b.hazardCount),
             highwayClass:     a.highwayClass ?? b.highwayClass,
-            surface:          a.surface ?? b.surface
+            surface:          a.surface ?? b.surface,
+            lighting:         a.lighting ?? b.lighting,
+            freshnessDays:    mergedFreshness(a.freshnessDays, b.freshnessDays),
+            confidence:       mergedConfidence(a.confidence, b.confidence),
+            source:           a.source ?? b.source
         )
+    }
+
+    private func mergedFreshness(_ lhs: Int?, _ rhs: Int?) -> Int? {
+        switch (lhs, rhs) {
+        case let (l?, r?): return min(l, r)
+        case (let l?, nil): return l
+        case (nil, let r?): return r
+        default: return nil
+        }
+    }
+
+    private func mergedConfidence(_ lhs: Double?, _ rhs: Double?) -> Double? {
+        switch (lhs, rhs) {
+        case let (l?, r?): return max(l, r)
+        case (let l?, nil): return l
+        case (nil, let r?): return r
+        default: return nil
+        }
     }
 }
 
