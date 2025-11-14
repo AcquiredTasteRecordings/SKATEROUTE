@@ -360,22 +360,39 @@ extension OfflineRouteStore.Snapshot {
                                roughnessEstimate: Double = 0.18,
                                distance: Double = 3200,
                                travelTime: Double = 780,
-                               metadata: RouteService.RouteCandidateMetadata,
+                               metadata: RouteService.RouteCandidateMetadata? = nil,
                                coords: [CLLocationCoordinate2D],
                                date: Date = Date()) -> OfflineRouteStore.Snapshot {
-        .init(id: id,
-              candidateID: candidateID,
-              title: title,
-              detail: detail,
-              score: score,
-              scoreLabel: scoreLabel,
-              roughnessEstimate: roughnessEstimate,
-              distance: distance,
-              travelTime: travelTime,
-              metadata: metadata,
-              polyline: coords.map { .init(coordinate: $0) },
-              cachedAt: date,
-              schemaVersion: OfflineRouteStore.schemaVersion)
+        let resolvedMetadata = metadata ?? RouteService.RouteCandidateMetadata(
+            distanceMeters: distance,
+            expectedTravelTimeSeconds: travelTime,
+            gradeSummary: GradeSummary(
+                totalDistanceMeters: distance,
+                samples: 1,
+                avgGradePercent: 0,
+                maxUphillPercent: 0,
+                maxDownhillPercent: 0,
+                totalAscentMeters: 0,
+                totalDescentMeters: 0,
+                sampleDistanceMeters: distance,
+                sampleGradesPercent: [],
+                smoothedGradesPercent: []
+            )
+        )
+
+        return .init(id: id,
+                     candidateID: candidateID,
+                     title: title,
+                     detail: detail,
+                     score: score,
+                     scoreLabel: scoreLabel,
+                     roughnessEstimate: roughnessEstimate,
+                     distance: distance,
+                     travelTime: travelTime,
+                     metadata: resolvedMetadata,
+                     polyline: coords.map { .init(coordinate: $0) },
+                     cachedAt: date,
+                     schemaVersion: OfflineRouteStore.schemaVersion)
     }
 }
 #endif

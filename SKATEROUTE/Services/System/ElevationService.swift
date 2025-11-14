@@ -13,7 +13,7 @@ import MapKit
 
 /// Aggregate grade/elevation summary for a route.
 /// Fields used by downstream code are preserved; extras are additive and optional.
-public struct GradeSummary: Sendable {
+public struct GradeSummary: Sendable, Codable {
     public let totalDistanceMeters: CLLocationDistance
     public let samples: Int
 
