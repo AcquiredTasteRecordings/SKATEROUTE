@@ -189,7 +189,7 @@ extension OfflineTileManager {
         try Task.checkCancellation()
 
         // 1) Sample the polyline into geodesic points ~ every 120 m (cheap and adequate).
-        let coords = await polyline.coordinates()
+        let coords = polyline.coordinates()
         let sampled = sampleCoordinates(coords, strideMeters: 120)
 
         // 2) For each zoom, add the central tile and neighbors that cover the corridor radius.
