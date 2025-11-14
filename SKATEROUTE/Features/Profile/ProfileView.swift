@@ -12,6 +12,7 @@
 import SwiftUI
 import Combine
 import AVKit
+import ServicesAnalytics
 
 // MARK: - DI seams (narrow & testable)
 
@@ -471,8 +472,6 @@ private final class FeedReaderFake: FeedReading {
         return out.sorted { $0.createdAt > $1.createdAt }
     }
 }
-private struct AnalyticsNoop: AnalyticsLogging { func log(_ event: AnalyticsEvent) {} }
-
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -480,7 +479,7 @@ struct ProfileView_Previews: PreviewProvider {
                              profileReader: ProfileReaderFake(),
                              wallet: WalletReaderFake(),
                              feed: FeedReaderFake(),
-                             analytics: AnalyticsNoop())
+                             analytics: AnalyticsLoggerSpy())
         }
         .environment(\.sizeCategory, .accessibilityExtraExtraExtraLarge)
 
@@ -489,7 +488,7 @@ struct ProfileView_Previews: PreviewProvider {
                              profileReader: ProfileReaderFake(),
                              wallet: WalletReaderFake(),
                              feed: FeedReaderFake(),
-                             analytics: AnalyticsNoop())
+                             analytics: AnalyticsLoggerSpy())
         }
         .preferredColorScheme(.dark)
     }
