@@ -1,11 +1,12 @@
 // Services/System/StepTags.swift
-// Canonical attribute bag shared across attribution, routing context, and scoring.
+// Canonical representation of per-step attribution hints.
+// Shared across navigation, overlays, and scoring.
 
 import Foundation
 
-/// Lightweight metadata describing per-step attributes surfaced by attribution providers.
-/// Matches the contract documented in `AttributionService` and consumed by
-/// `RouteContextBuilder` / `SkateRouteScorer`.
+/// Metadata describing infrastructure, hazards, and surface hints for a route step.
+/// Values default to neutral so callers can opt-in to specifics without worrying about
+/// partial data availability.
 public struct StepTags: Sendable, Equatable {
     public var hasProtectedLane: Bool
     public var hasPaintedLane: Bool
@@ -29,3 +30,8 @@ public struct StepTags: Sendable, Equatable {
     }
 }
 
+public extension StepTags {
+    /// Baseline, no-data set of tags. Prefer this over `StepTags()` to keep behaviour consistent
+    /// across call sites and simplify future migrations (e.g. adding defaults).
+    static let neutral = StepTags()
+}

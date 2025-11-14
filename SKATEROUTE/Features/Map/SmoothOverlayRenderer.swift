@@ -141,10 +141,9 @@ public final class SmoothOverlayRenderer: MKOverlayPathRenderer {
     // MARK: - Utilities (path building)
 
     private func screenPoints(for polyline: MKPolyline) -> [CGPoint]? {
-        var buffer = [MKMapPoint](repeating: .init(), count: polyline.pointCount)
         guard polyline.pointCount >= 2 else { return nil }
-        polyline.getPoints(&buffer, range: NSRange(location: 0, length: polyline.pointCount))
-        return buffer.map { point(for: $0) }
+        let mapPoints = polyline.mapPoints()
+        return mapPoints.map { point(for: $0) }
     }
 
     private func polylinePath(points: [CGPoint]) -> CGPath {

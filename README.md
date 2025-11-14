@@ -76,16 +76,16 @@ SkateRoute is a **skateboard‑first navigation + social** app. It delivers grad
 ---
 
 ## UX Surfaces
-- **Home:** search, recents, challenges widget, referral card.
-- **Map:** destination card, multi‑route options, color‑banded polyline, hazard/spot toggles.
-- **Ride HUD:** big next‑turn, distance, ETA, speed, braking indicator; voice + haptic cues.
-- **Spots:** map/list, filters, detail with media, add‑a‑spot with privacy.
-- **Capture/Edit:** filters, trim, speed overlay; background upload state.
-- **Feed:** clips + route cards; moderation actions; system share.
-- **Profile:** stats, badges, routes, videos; privacy controls; data export/delete.
-- **Commerce:** paywall, manage subscriptions, Apple Pay/Stripe checkout.
-- **Offline Packs:** city selector, size, update cadence, delete.
-- **Settings:** permissions, units, voice/haptics, analytics opt‑in, legal.
+- **Home (Features/Home):** search, recents, challenges widget, referral card.
+- **Map (Features/Map):** destination card, multi-route options, color-banded polyline, hazard/spot toggles.
+- **Ride HUD (Features/UX):** next-turn emphasis, braking indicator, live speed; voice + haptic cues.
+- **Spots (Features/Spots):** map/list, filters, detail with media, add-a-spot with privacy.
+- **Capture/Edit (Features/Media):** filters, trim, speed overlay; background upload state.
+- **Feed (Features/Feed):** clips + route cards; moderation actions; system share.
+- **Profile (Features/Profile):** stats, badges, routes, videos; privacy controls; data export/delete.
+- **Monetization (Features/Monetization):** paywall, manage subscriptions; Apple Pay/Stripe checkout hooks.
+- **Offline Packs (Services/Offline, UI pending):** route pack lifecycle wired through services; dedicated feature shell to be scheduled.
+- **Settings (Features/Settings):** permissions, units, voice/haptics, analytics opt-in, legal.
 
 ---
 
@@ -101,18 +101,19 @@ SkateRoute is a **skateboard‑first navigation + social** app. It delivers grad
 
 ## Module Map
 ```
-Core/            Domain logic (routing, scoring, hazard models, analytics schemas)
-Services/        RouteService, RouteContextBuilder, ElevationService, GeocoderService,
-                 MotionRoughnessService, Matcher, CacheManager, SessionLogger, SkateRouteScorer
+Core/            Domain orchestration (AppDI, AppCoordinator, policy, entitlements)
+Services/        Navigation, Offline, StoreKit, Media, Hazards, Rewards, Referrals, Logging, System
 Features/
   Home/          Entry, search, recents, challenges widget
-  Map/           MapScreen, MapViewContainer (UIKit bridge), SmoothOverlayRenderer, TurnCueEngine
-  Navigate/      Ride HUD, cues, reroute, alerts
+  Map/           Route planning, overlays, planner view model
+  UX/            Ride HUD, turn cues, ride telemetry surfaces
+  Search/        Place search view + debounced MKLocalSearch view model
   Spots/         Discovery list, detail, add-a-spot flows
-  Social/        Capture, Edit, Upload Queue, Feed, Profile
-  Commerce/      Paywall, IAP, Apple Pay/Stripe flows
+  Media/         Capture, editor, background upload bridges
+  Feed/          Clip feed, moderation actions
+  Community/     Quick hazard reporting, surface ratings
+  Monetization/  Paywall + subscription management (commerce UI)
   Settings/      Permissions, privacy, data export/delete
-DesignSystem/    Typography, color, iconography, haptics, motion
 Support/         Utilities, previews, test fixtures, GPX
 Docs/            Specs, ADRs, telemetry schemas, checklists
 ```
@@ -172,10 +173,17 @@ swift-format --configuration .swift-format.json --in-place --recursive .
 ---
 
 ## Monetization
-**StoreKit 2 (placeholders)**
-- `com.skateroute.pro.monthly`
-- `com.skateroute.pro.yearly`
-- `com.skateroute.event.pass.<slug>`
+**StoreKit 2 SKUs**
+
+| SKU | Purpose |
+| --- | --- |
+| `com.skateroute.app.pro.offline` | Offline packs entitlement |
+| `com.skateroute.app.pro.analytics` | Advanced analytics entitlement |
+| `com.skateroute.app.pro.editor` | Pro editor entitlement |
+| `com.skateroute.app.pro.monthly` | SkateRoute Pro monthly subscription |
+| `com.skateroute.app.pro.yearly` | SkateRoute Pro yearly subscription |
+| `com.skateroute.app.pro.lifetime` | Lifetime unlock (non-renewing) |
+| `com.skateroute.event.pass.<slug>` | Event-specific consumables |
 
 **Entitlements**
 - Pro unlocks offline packs, advanced overlays, premium spots. Event passes are time‑bound.

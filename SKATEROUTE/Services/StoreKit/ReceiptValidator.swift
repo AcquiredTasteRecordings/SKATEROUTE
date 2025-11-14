@@ -57,8 +57,11 @@ public final class ReceiptValidator: ObservableObject {
     // MARK: - Config
 
     /// Product identifiers considered “premium” for entitlement evaluation.
-    /// Keep this in sync with App Store Connect and your Paywall wiring.
+    /// Keep this in sync with App Store Connect and your Paywall wiring (`com.skateroute.app.pro.<plan>`).
     private let premiumProductIDs: Set<String>
+
+    /// Provides the current set of StoreKit entitlements to evaluate.
+    private let entitlementsProvider: @Sendable () async throws -> [EntitlementSnapshot]
 
     /// Where to persist last-known status (for offline UI).
     private let cacheKey: String
@@ -68,22 +71,25 @@ public final class ReceiptValidator: ObservableObject {
 
     public init(
         premiumProductIDs: Set<String> = [
-            "skateroute.premium.monthly",
-            "skateroute.premium.yearly",
-            "skateroute.premium.lifetime"
+            "com.skateroute.pro.monthly",
+            "com.skateroute.pro.yearly",
+            "com.skateroute.pro.lifetime"
         ],
-        cacheKey: String = "premium.status.cache",
+        cacheKey: String = "premium.status.cache.v2",
         userDefaults: UserDefaults = .standard
     ) {
         self.premiumProductIDs = premiumProductIDs
         self.cacheKey = cacheKey
         self.userDefaults = userDefaults
+        self.entitlementsProvider = entitlementsProvider
 
         // Load cached snapshot for instant UI, then refresh from StoreKit.
         if let cached = Self.loadCachedStatus(from: userDefaults, key: cacheKey) {
             self.status = cached
         }
-        Task { await self.refreshEntitlements() }
+        if autoRefreshOnInit {
+            Task { await self.refreshEntitlements() }
+        }
     }
 
     // MARK: - Public API
@@ -93,18 +99,19 @@ public final class ReceiptValidator: ObservableObject {
     public func refreshEntitlements() async {
         let now = Date()
         do {
-            var best: Transaction?
-            for await result in Transaction.currentEntitlements {
-                guard case .verified(let transaction) = result else { continue }
-                guard premiumProductIDs.contains(transaction.productID) else { continue }
-                guard !isExpiredOrRevoked(transaction, at: now) else { continue }
+            let entitlements = try await entitlementsProvider()
+
+            var best: EntitlementSnapshot?
+            for snapshot in entitlements {
+                guard premiumProductIDs.contains(snapshot.productID) else { continue }
+                guard !isExpiredOrRevoked(snapshot, at: now) else { continue }
 
                 if let currentBest = best {
-                    if isMoreRecent(transaction, than: currentBest) {
-                        best = transaction
+                    if isMoreRecent(snapshot, than: currentBest) {
+                        best = snapshot
                     }
                 } else {
-                    best = transaction
+                    best = snapshot
                 }
             }
 
@@ -169,52 +176,52 @@ public final class ReceiptValidator: ObservableObject {
         Self.cache(status: newStatus, to: userDefaults, key: cacheKey)
     }
 
-    private func isExpiredOrRevoked(_ transaction: Transaction, at date: Date) -> Bool {
-        if let revocation = transaction.revocationDate, revocation <= date {
+    private func isExpiredOrRevoked(_ snapshot: EntitlementSnapshot, at date: Date) -> Bool {
+        if let revocation = snapshot.revocationDate, revocation <= date {
             return true
         }
-        if let exp = transaction.expirationDate, exp <= date {
+        if let exp = snapshot.expirationDate, exp <= date {
             return true
         }
         return false
     }
 
-    private func isMoreRecent(_ a: Transaction, than b: Transaction) -> Bool {
+    private func isMoreRecent(_ a: EntitlementSnapshot, than b: EntitlementSnapshot) -> Bool {
         let aDate = a.expirationDate ?? a.purchaseDate
         let bDate = b.expirationDate ?? b.purchaseDate
         return aDate > bDate
     }
 
-    private static func buildStatus(from transaction: Transaction?, at now: Date) -> PremiumStatus {
-        guard let tx = transaction else {
+    private static func buildStatus(from snapshot: EntitlementSnapshot?, at now: Date) -> PremiumStatus {
+        guard let snapshot else {
             return .notPremium
         }
 
-        let exp = tx.expirationDate
+        let exp = snapshot.expirationDate
         let isLifetime = exp == nil
 
         let plan: PremiumPlanKind = {
             if isLifetime { return .lifetime }
             // Heuristic: map by duration; you can also map by productID if you want it explicit.
-            if let period = tx.subscription?.subscriptionPeriod {
-                switch period.unit {
+            if let unit = snapshot.subscriptionPeriodUnit {
+                switch unit {
                 case .month, .week: return .subscriptionMonthly
                 case .year: return .subscriptionYearly
                 @unknown default: return .subscriptionMonthly
                 }
             }
             // Fallback: productID-based mapping
-            if tx.productID.contains("lifetime") { return .lifetime }
-            if tx.productID.contains("year") { return .subscriptionYearly }
+            if snapshot.productID.contains("lifetime") { return .lifetime }
+            if snapshot.productID.contains("year") { return .subscriptionYearly }
             return .subscriptionMonthly
         }()
 
-        let willAutoRenew: Bool = tx.revocationDate == nil && tx.isUpgraded == false
+        let willAutoRenew: Bool = snapshot.revocationDate == nil && snapshot.isUpgraded == false
 
         return PremiumStatus(
             isPremiumActive: true,
             activePlan: plan,
-            activeProductID: tx.productID,
+            activeProductID: snapshot.productID,
             expirationDate: exp,
             willAutoRenew: willAutoRenew,
             lastChecked: now
@@ -224,13 +231,19 @@ public final class ReceiptValidator: ObservableObject {
     // MARK: - Caching
 
     private static func loadCachedStatus(from defaults: UserDefaults, key: String) -> PremiumStatus? {
-        guard let data = defaults.data(forKey: key) else { return nil }
-        do {
-            let decoded = try JSONDecoder().decode(PremiumStatus.self, from: data)
-            return decoded
-        } catch {
-            return nil
+        if let data = defaults.data(forKey: key) {
+            do {
+                let decoded = try JSONDecoder().decode(PremiumStatus.self, from: data)
+                if let migrated = migrateStatusIfNeeded(decoded, defaults: defaults, key: key) {
+                    return migrated
+                }
+                return decoded
+            } catch {
+                // Fall through to legacy migration.
+            }
         }
+
+        return migrateLegacyStatus(from: defaults, key: key)
     }
 
     private static func cache(status: PremiumStatus, to defaults: UserDefaults, key: String) {
@@ -241,6 +254,113 @@ public final class ReceiptValidator: ObservableObject {
             // Don’t crash on cache failure.
         }
     }
+
+    // MARK: - Legacy support
+
+    public struct EntitlementSnapshot: Sendable, Equatable {
+        public let productID: String
+        public let purchaseDate: Date
+        public let expirationDate: Date?
+        public let revocationDate: Date?
+        public let isUpgraded: Bool
+        public let subscriptionPeriodUnit: Product.SubscriptionPeriod.Unit?
+
+        init(transaction: Transaction) {
+            self.productID = transaction.productID
+            self.purchaseDate = transaction.purchaseDate
+            self.expirationDate = transaction.expirationDate
+            self.revocationDate = transaction.revocationDate
+            self.isUpgraded = transaction.isUpgraded
+            self.subscriptionPeriodUnit = transaction.subscription?.subscriptionPeriod?.unit
+        }
+
+        public init(
+            productID: String,
+            purchaseDate: Date,
+            expirationDate: Date?,
+            revocationDate: Date?,
+            isUpgraded: Bool,
+            subscriptionPeriodUnit: Product.SubscriptionPeriod.Unit?
+        ) {
+            self.productID = productID
+            self.purchaseDate = purchaseDate
+            self.expirationDate = expirationDate
+            self.revocationDate = revocationDate
+            self.isUpgraded = isUpgraded
+            self.subscriptionPeriodUnit = subscriptionPeriodUnit
+        }
+    }
+
+    private static func migrateStatusIfNeeded(
+        _ status: PremiumStatus,
+        defaults: UserDefaults,
+        key: String
+    ) -> PremiumStatus? {
+        guard let productID = status.activeProductID else { return nil }
+        guard let replacement = legacyProductIDMapping[productID] else { return nil }
+
+        let migrated = PremiumStatus(
+            isPremiumActive: status.isPremiumActive,
+            activePlan: status.activePlan,
+            activeProductID: replacement,
+            expirationDate: status.expirationDate,
+            willAutoRenew: status.willAutoRenew,
+            lastChecked: status.lastChecked
+        )
+        cache(status: migrated, to: defaults, key: key)
+        return migrated
+    }
+
+    private static func migrateLegacyStatus(from defaults: UserDefaults, key: String) -> PremiumStatus? {
+        for (legacyID, replacement) in legacyProductIDMapping {
+            let candidateKeys = [
+                "\(key).\(legacyID)",
+                "premium.status.\(legacyID)",
+                "premium.status.cache.\(legacyID)"
+            ]
+
+            for legacyKey in candidateKeys {
+                guard let data = defaults.data(forKey: legacyKey) else { continue }
+                guard let decoded = try? JSONDecoder().decode(PremiumStatus.self, from: data) else { continue }
+
+                let migrated = PremiumStatus(
+                    isPremiumActive: decoded.isPremiumActive,
+                    activePlan: decoded.activePlan,
+                    activeProductID: decoded.activeProductID == legacyID ? replacement : decoded.activeProductID,
+                    expirationDate: decoded.expirationDate,
+                    willAutoRenew: decoded.willAutoRenew,
+                    lastChecked: decoded.lastChecked
+                )
+
+                cache(status: migrated, to: defaults, key: key)
+                defaults.removeObject(forKey: legacyKey)
+                return migrated
+            }
+        }
+
+        return nil
+    }
+
+    private static func makeDefaultEntitlementsProvider() -> @Sendable () async throws -> [EntitlementSnapshot] {
+        {
+            var snapshots: [EntitlementSnapshot] = []
+            do {
+                for try await result in Transaction.currentEntitlements {
+                    guard case .verified(let transaction) = result else { continue }
+                    snapshots.append(EntitlementSnapshot(transaction: transaction))
+                }
+                return snapshots
+            } catch {
+                throw error
+            }
+        }
+    }
+
+    private static let legacyProductIDMapping: [String: String] = [
+        "skateroute.premium.monthly": "com.skateroute.pro.monthly",
+        "skateroute.premium.yearly": "com.skateroute.pro.yearly",
+        "skateroute.premium.lifetime": "com.skateroute.pro.lifetime"
+    ]
 }
 
 

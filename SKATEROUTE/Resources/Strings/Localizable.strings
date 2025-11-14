@@ -2,6 +2,22 @@
 // Base (en)
 
 ////////////////////////
+// Info.plist Usage Descriptions
+////////////////////////
+"SkateRoute uses your location to find smooth, safe skate routes while you’re using the app." = "SkateRoute uses your location to find smooth, safe skate routes while you’re using the app.";
+"Allows accurate ETAs and continuous guidance with the screen off." = "Allows accurate ETAs and continuous guidance with the screen off.";
+"Used briefly to improve route accuracy during active navigation." = "Used briefly to improve route accuracy during active navigation.";
+"Uses motion sensors to estimate surface roughness and improve route quality." = "Uses motion sensors to estimate surface roughness and improve route quality.";
+
+////////////////////////
+// Policy Messages
+////////////////////////
+"Cross-app tracking is disabled for privacy." = "Cross-app tracking is disabled for privacy.";
+"Third-party ads are not supported." = "Third-party ads are not supported.";
+"Content violates community rules." = "Content violates community rules.";
+"Feature unavailable due to age restrictions." = "Feature unavailable due to age restrictions.";
+
+////////////////////////
 // Home / Entry Points
 ////////////////////////
 "home.cta.plan" = "Plan a route";
@@ -34,8 +50,10 @@
 ////////////////////////
 // Paywall
 ////////////////////////
-"paywall.title"               = "SkateRoute Plus";
-"paywall.offlinepacks.body"   = "Download offline packs, advanced editor exports, and premium badges. Safety features remain free.";
+"paywall.title"               = "SkateRoute Pro";
+"paywall.offlinepacks.body"   = "Unlock offline packs, safety overlays, and pro editor presets. Core safety remains free.";
+"Upgrade to SkateRoute Pro"   = "Upgrade to SkateRoute Pro";
+"Core safety remains free"    = "Core safety remains free.";
 "paywall.button.buy"          = "Upgrade";
 "paywall.button.restore"      = "Restore purchases";
 

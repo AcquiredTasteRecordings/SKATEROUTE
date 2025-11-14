@@ -182,7 +182,7 @@ This checklist is the single source of truth used by engineering, QA, and produc
 ## 12) Appendix — Config Keys Quick Reference
 **`App-Shared.xcconfig`** (examples):
 ```ini
-PRODUCT_BUNDLE_IDENTIFIER = com.yourco.skateroute
+PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.app
 INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Downhill Navigator uses your location to find smooth, safe skate routes while you’re using the app.
 INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = Allows accurate ETAs and continuous guidance with the screen off.
 INFOPLIST_KEY_NSLocationTemporaryUsageDescriptionDictionary_NavigationPrecision = Used briefly to improve route accuracy during active navigation.
@@ -337,7 +337,14 @@ This checklist is the single source of truth used by engineering, QA, product, a
 ---
 
 ## 8) Monetization & Commerce
-- [ ] **StoreKit 2** products configured: `com.skateroute.pro.monthly`, `com.skateroute.pro.yearly`, `com.skateroute.event.pass.<slug>`.
+- [ ] **StoreKit 2** products configured:
+    - `com.skateroute.app.pro.offline`
+    - `com.skateroute.app.pro.analytics`
+    - `com.skateroute.app.pro.editor`
+    - `com.skateroute.app.pro.monthly`
+    - `com.skateroute.app.pro.yearly`
+    - `com.skateroute.app.pro.lifetime`
+    - `com.skateroute.event.pass.<slug>`
 - [ ] **Paywall** copy accurate; **Restore Purchases** path works.
 - [ ] **Entitlements** unlock Pro features (offline packs, advanced overlays, premium spots).
 - [ ] **Apple Pay/Stripe** limited to **physical goods/services** (merch, tickets); no digital paywalls outside IAP.

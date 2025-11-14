@@ -145,13 +145,20 @@ public enum Geometry {
 // MARK: - MKPolyline utilities
 
 public extension MKPolyline {
-    /// Extracts coordinates (CLLocationCoordinate2D array). Allocate once where possible.
+    /// Canonical helper to extract the polyline coordinates (CLLocationCoordinate2D array).
+    /// Allocate once where possible and reuse to avoid repeated heap churn during navigation flows.
     func coordinates() -> [CLLocationCoordinate2D] {
         let n = pointCount
         guard n > 0 else { return [] }
         var coords = [CLLocationCoordinate2D](repeating: .init(), count: n)
         getCoordinates(&coords, range: NSRange(location: 0, length: n))
         return coords
+    }
+
+    /// Async convenience wrapper around the canonical coordinates extractor to make it
+    /// ergonomic inside concurrent workflows (e.g., Task contexts) without reimplementing helpers.
+    func coordinates() async -> [CLLocationCoordinate2D] {
+        coordinates()
     }
 
     /// Nearest *vertex index* to a CLLocation (kept for compatibility).
@@ -186,6 +193,14 @@ public extension MKPolyline {
         }
         return sum
     }
+
+    /// Extracts MKMapPoint array from the polyline.
+    func mapPoints() -> [MKMapPoint] {
+        let n = pointCount
+        guard n > 0 else { return [] }
+        let pointer = points()
+        return Array(UnsafeBufferPointer(start: pointer, count: n))
+    }
 }
 
 // MARK: - MKPolyline (MapPoint extraction with defensive cap)
@@ -196,8 +211,7 @@ private extension MKPolyline {
     func mkMapPointsCapped(_ maxVertices: Int = 5_000) -> [MKMapPoint] {
         let n = pointCount
         guard n > 0 else { return [] }
-        var pts = [MKMapPoint](repeating: .init(), count: n)
-        getPoints(UnsafeMutablePointer(mutating: &pts), range: NSRange(location: 0, length: n))
+        var pts = mapPoints()
 
         guard n > maxVertices, maxVertices > 2 else { return pts }
 
@@ -211,10 +225,6 @@ private extension MKPolyline {
         }
         if out.last != pts.last { out.append(pts.last!) }
         return out
-    }
-
-    func getPoints(_ buffer: UnsafeMutablePointer<MKMapPoint>, range: NSRange) {
-        self.getPoints(buffer, range: range)
     }
 }
 

@@ -2,8 +2,8 @@
 // Global build settings shared by all configurations.
 
 // ───────────── App & Signing (override per-target as needed)
-PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.skateroute
-DEVELOPMENT_TEAM = YOURTEAMID
+PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.app
+DEVELOPMENT_TEAM = AWY366A8S4
 CODE_SIGN_STYLE = Automatic
 DEVELOPMENT_LANGUAGE = en
 INFOPLIST_FILE = Info/Info.plist

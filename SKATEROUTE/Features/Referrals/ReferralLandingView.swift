@@ -170,19 +170,37 @@ public final class ReferralLandingViewModel: ObservableObject {
                 }
             case .joinChallenge:
                 if let campaign = confirmed.campaign {
+                    logChallengeEvent(name: "challenge_join_attempt", campaign: campaign, extra: ["source": .string("referral")])
                     let joined = try await challenges.joinChallenge(campaignId: campaign)
                     if joined {
                         infoMessage = String(format: NSLocalizedString("You joined %@. Let’s roll!", comment: "joined"), campaign)
+                        logChallengeEvent(name: "challenge_join_result", campaign: campaign,
+                                          extra: ["source": .string("referral"), "result": .string("joined")])
                     } else {
                         infoMessage = NSLocalizedString("You’re already in. Keep skating!", comment: "already in")
+                        logChallengeEvent(name: "challenge_join_result", campaign: campaign,
+                                          extra: ["source": .string("referral"), "result": .string("already_joined")])
                     }
                 }
             case .done, .none:
                 infoMessage = NSLocalizedString("You’re good to go.", comment: "done")
             }
         } catch {
+            if ctaKind == .joinChallenge, let campaign = attribution?.campaign {
+                logChallengeEvent(name: "challenge_join_result", campaign: campaign,
+                                  extra: ["source": .string("referral"), "result": .string("failed")])
+            }
             errorMessage = NSLocalizedString("Couldn’t complete this action. Check your connection.", comment: "cta fail")
         }
+    }
+
+    private func logChallengeEvent(name: String, campaign: String, extra: [String: AnalyticsValue] = [:]) {
+        guard let analytics else { return }
+        var params: [String: AnalyticsValue] = [
+            "challenge_id": .string(campaign)
+        ]
+        for (key, value) in extra { params[key] = value }
+        analytics.log(.init(name: name, category: .challenges, params: params))
     }
 }
 
