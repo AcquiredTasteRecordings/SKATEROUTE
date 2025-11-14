@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 import StoreKit
 import UIKit
+import ServicesAnalytics
 
 // MARK: - DI seams (keep narrow and testable)
 
@@ -442,8 +443,6 @@ private struct RulesFake: PaywallRuling {
     func placement(for context: PaywallContext) -> PaywallPlacement { .sheet }
 }
 
-private struct AnalyticsNoop: AnalyticsLogging { func log(_ event: AnalyticsEvent) {} }
-
 // Lightweight product shim for previews (we cannot construct StoreKit.Product directly; build a struct wrapper if needed).
 // Here we provide a tiny proxy that mimics the properties we use via an extension.
 extension Product {
@@ -457,7 +456,7 @@ struct PaywallView_Previews: PreviewProvider {
         // or showing the redacted price row.
         let store = StoreFake()
         let ctx = PaywallContext(location: .onboarding, sessionCount: 1, isNavigating: false)
-        let vm = PaywallViewModel(store: store, rules: RulesFake(), analytics: AnalyticsNoop(), context: ctx)
+        let vm = PaywallViewModel(store: store, rules: RulesFake(), analytics: AnalyticsLoggerSpy(), context: ctx)
         return Group {
             PaywallView(viewModel: vm)
                 .environment(\.colorScheme, .light)
