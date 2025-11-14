@@ -219,4 +219,9 @@ public struct RoutePlannerView: View {
     }
 }
 
+private struct RouteOption: Identifiable {
+    let id: String
+    let presentation: RouteOptionsReducer.Presentation
+}
+
 

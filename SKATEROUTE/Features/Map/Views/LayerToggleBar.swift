@@ -6,8 +6,28 @@ import SwiftUI
 import UIKit
 
 public struct LayerToggleBar: View {
-    public let layers: [RoutePlannerViewModel.PlannerLayer]
-    @Binding public var selection: Set<RoutePlannerViewModel.PlannerLayer>
+    public struct Option: Identifiable, Hashable {
+        public let id: String
+        public let title: String
+        public let icon: String
+        public let accessibilityLabel: String?
+        public let accessibilityHint: String?
+
+        public init(id: String,
+                    title: String,
+                    icon: String,
+                    accessibilityLabel: String? = nil,
+                    accessibilityHint: String? = nil) {
+            self.id = id
+            self.title = title
+            self.icon = icon
+            self.accessibilityLabel = accessibilityLabel
+            self.accessibilityHint = accessibilityHint
+        }
+    }
+
+    public let options: [Option]
+    @Binding public var selection: Set<Option>
 
     // Optional polish
     private let enableHaptics: Bool
@@ -19,13 +39,13 @@ public struct LayerToggleBar: View {
 
     /// Primary initializer (kept source-compatible with existing call sites).
     public init(
-        layers: [RoutePlannerViewModel.PlannerLayer],
-        selection: Binding<Set<RoutePlannerViewModel.PlannerLayer>>,
+        options: [Option],
+        selection: Binding<Set<Option>>,
         enableHaptics: Bool = true,
         showsOutlineWhenActive: Bool = true,
         compressesTextInCompact: Bool = true
     ) {
-        self.layers = layers
+        self.options = options
         self._selection = selection
         self.enableHaptics = enableHaptics
         self.showsOutlineWhenActive = showsOutlineWhenActive
@@ -36,12 +56,12 @@ public struct LayerToggleBar: View {
         // Horizontal scroller so chips don’t get squished; wraps nicely on iPad with .regular width.
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
-                ForEach(layers) { layer in
-                    let isActive = selection.contains(layer)
-                    chip(for: layer, isActive: isActive)
+                ForEach(options) { option in
+                    let isActive = selection.contains(option)
+                    chip(for: option, isActive: isActive)
                         .accessibilityElement(children: .combine)
-                        .accessibilityLabel(layer.accessibilityLabel ?? layer.title)
-                        .accessibilityHint(layer.accessibilityHint ?? "Toggle layer")
+                        .accessibilityLabel(option.accessibilityLabel ?? option.title)
+                        .accessibilityHint(option.accessibilityHint ?? "Toggle layer")
                         .accessibilityAddTraits(isActive ? [.isSelected, .updatesFrequently] : [])
                         .accessibilityValue(isActive ? "On" : "Off")
                 }
@@ -55,18 +75,18 @@ public struct LayerToggleBar: View {
     // MARK: - Chip
 
     @ViewBuilder
-    private func chip(for layer: RoutePlannerViewModel.PlannerLayer, isActive: Bool) -> some View {
+    private func chip(for option: Option, isActive: Bool) -> some View {
         Button {
             withAppropriateAnimation {
-                toggle(layer)
+                toggle(option)
             }
             if enableHaptics { HapticCue.selection() }
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: layer.icon)
+                Image(systemName: option.icon)
                     .font(.system(size: 14, weight: .semibold))
                 if !shouldHideText {
-                    Text(layer.title)
+                    Text(option.title)
                         .font(.footnote.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)
@@ -90,13 +110,13 @@ public struct LayerToggleBar: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityIdentifier("LayerToggleBar.Chip.\(layer.id)")
+        .accessibilityIdentifier("LayerToggleBar.Chip.\(option.id)")
         .contextMenu {
             // Quick actions (idempotent)
-            Button(isActive ? "Turn Off" : "Turn On") { toggle(layer) }
+            Button(isActive ? "Turn Off" : "Turn On") { toggle(option) }
             Button("Only This") {
                 withAppropriateAnimation {
-                    selection = [layer]
+                    selection = [option]
                 }
                 if enableHaptics { HapticCue.firm() }
             }
@@ -109,11 +129,11 @@ public struct LayerToggleBar: View {
 
     // MARK: - Logic
 
-    private func toggle(_ layer: RoutePlannerViewModel.PlannerLayer) {
-        if selection.contains(layer) {
-            selection.remove(layer)
+    private func toggle(_ option: Option) {
+        if selection.contains(option) {
+            selection.remove(option)
         } else {
-            selection.insert(layer)
+            selection.insert(option)
         }
     }
 
@@ -136,13 +156,17 @@ public struct LayerToggleBar: View {
 #if DEBUG
 private struct _LayerToggleBar_Previews: PreviewProvider {
     struct Host: View {
-        @State var selection: Set<RoutePlannerViewModel.PlannerLayer> = []
-        let layers: [RoutePlannerViewModel.PlannerLayer] = [
-            .grade, .surface, .hazards, .offline, .satellite
+        @State var selection: Set<LayerToggleBar.Option> = []
+        let layers: [LayerToggleBar.Option] = [
+            .init(id: "grade", title: "Grade", icon: "chart.xyaxis.line"),
+            .init(id: "surface", title: "Surface", icon: "square.grid.3x3.fill"),
+            .init(id: "hazards", title: "Hazards", icon: "exclamationmark.triangle"),
+            .init(id: "offline", title: "Offline", icon: "tray.and.arrow.down"),
+            .init(id: "satellite", title: "Satellite", icon: "globe")
         ]
         var body: some View {
             VStack(alignment: .leading, spacing: 12) {
-                LayerToggleBar(layers: layers, selection: $selection)
+                LayerToggleBar(options: layers, selection: $selection)
                 Text("Active: \(selection.map { $0.title }.joined(separator: ", "))")                    .font(.caption)
                     .foregroundStyle(.secondary)
             }

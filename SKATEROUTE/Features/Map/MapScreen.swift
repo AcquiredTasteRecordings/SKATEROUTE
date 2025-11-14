@@ -353,11 +353,16 @@ fileprivate struct OfflineStatusPill: View {
     var body: some View {
         let label: String
         switch state {
-        case .idle:        label = "Tiles: Idle"
-        case .checking:    label = "Tiles: Checking"
-        case .downloading: label = "Tiles: Downloading"
-        case .ready:       label = "Tiles: Ready"
-        case .error:       label = "Tiles: Error"
+        case .idle:
+            label = "Tiles: Idle"
+        case .preparing:
+            label = "Tiles: Preparing"
+        case .downloading(let progress):
+            label = "Tiles: Downloading \(Int(progress * 100))%"
+        case .cached(let count):
+            label = count > 0 ? "Tiles: Ready (\(count))" : "Tiles: Ready"
+        case .failed:
+            label = "Tiles: Error"
         }
         Text(label)
             .font(.caption)

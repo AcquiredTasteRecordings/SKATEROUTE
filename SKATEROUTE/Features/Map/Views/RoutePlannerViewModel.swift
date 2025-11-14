@@ -45,6 +45,9 @@ public final class RoutePlannerViewModel: ObservableObject {
     // Offline tile state passthrough
     @Published public private(set) var offlineState: OfflineTileManager.DownloadState
 
+    // Grade summaries per candidate (for elevation UI)
+    @Published public private(set) var gradeSummaries: [String: GradeSummary] = [:]
+
     // Human-friendly banner copy
     @Published public private(set) var bannerText: String?
 
@@ -52,6 +55,7 @@ public final class RoutePlannerViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var planTask: Task<Void, Never>?
     private var ensureTilesTask: Task<Void, Never>?
+    private var latestCandidates: [RouteService.RouteCandidate] = []
 
     // MARK: - Init
 
@@ -123,6 +127,8 @@ public final class RoutePlannerViewModel: ObservableObject {
                 self.presentations = map
                 self.orderedCandidateIDs = ordered
                 self.selectedCandidateID = bestId
+                self.latestCandidates = candidates
+                self.gradeSummaries = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id, $0.gradeSummary) })
                 self.selectedRoute = if let id = bestId {
                     candidates.first(where: { $0.id == id })?.route
                 } else { nil }
@@ -143,6 +149,8 @@ public final class RoutePlannerViewModel: ObservableObject {
                 self.orderedCandidateIDs = []
                 self.selectedCandidateID = nil
                 self.selectedRoute = nil
+                self.latestCandidates = []
+                self.gradeSummaries = [:]
                 self.state = .error(Self.format(error))
                 self.bannerText = NSLocalizedString("Routing failed. Try again.", comment: "routing failed")
             }
@@ -151,25 +159,15 @@ public final class RoutePlannerViewModel: ObservableObject {
 
     /// User tapped a card — switch the active route and ensure tiles.
     public func selectCandidate(id: String) {
-        guard let currentIDs = orderedCandidateIDs.firstIndex(of: id) else { return }
+        guard orderedCandidateIDs.contains(id),
+              let route = latestCandidates.first(where: { $0.id == id })?.route else { return }
         selectedCandidateID = id
-        // Try to find a route by id from current presentations — we need the MKRoute again.
-        // We can re-request directions for precision but that would be wasteful;
-        // instead, we compute a light hash and ask RouteService again only if necessary.
-        Task { [weak self] in
-            guard let self, let src = self.source, let dst = self.destination else { return }
-            do {
-                let candidates = try await routeService.routeOptions(from: src, to: dst, mode: mode, preferSkateLegal: preferSkateLegal)
-                if let route = candidates.first(where: { $0.id == id })?.route {
-                    self.selectedRoute = route
-                    await self.ensureTiles(for: route, identifier: id)
-                    self.bannerText = self.makeBanner(for: id)
-                }
-            } catch {
-                // Soft fail: keep previous selection if present.
-            }
+        selectedRoute = route
+        bannerText = makeBanner(for: id)
+        ensureTilesTask?.cancel()
+        ensureTilesTask = Task { [weak self] in
+            await self?.ensureTiles(for: route, identifier: id)
         }
-        _ = currentIDs // silence unused if not needed in future
     }
 
     /// Clears current results (used when user resets planner UI).
@@ -179,11 +177,23 @@ public final class RoutePlannerViewModel: ObservableObject {
         orderedCandidateIDs = []
         selectedCandidateID = nil
         selectedRoute = nil
+        latestCandidates = []
+        gradeSummaries = [:]
         state = .idle
         bannerText = nil
     }
 
     // MARK: - Offline Tiles
+
+    /// Manually trigger offline tiles for the currently selected route (used by UI button).
+    public func downloadSelectedForOffline() {
+        guard let id = selectedCandidateID,
+              let route = latestCandidates.first(where: { $0.id == id })?.route else { return }
+        ensureTilesTask?.cancel()
+        ensureTilesTask = Task { [weak self] in
+            await self?.ensureTiles(for: route, identifier: id)
+        }
+    }
 
     private func ensureTiles(for route: MKRoute, identifier: String) async {
         // Dedup by id — if tiles already exist, skip download.
