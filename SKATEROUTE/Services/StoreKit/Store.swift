@@ -98,7 +98,7 @@ public final class Store: ObservableObject {
     // MARK: - Init
 
     public init(entitlements: Entitlements,
-                analytics: AnalyticsLogger? = nil,
+                analytics: AnalyticsLogging? = nil,
                 defaults: UserDefaults = .standard) {
         self.entitlements = entitlements
         self.analytics = analytics
@@ -504,7 +504,7 @@ private extension Store {
 #if DEBUG
 @MainActor
 public final class StoreFake: Store {
-    public init(entitlements: Entitlements, owned: Set<ProductID> = [], analytics: AnalyticsLogger? = nil) {
+    public init(entitlements: Entitlements, owned: Set<ProductID> = [], analytics: AnalyticsLogging? = nil) {
         super.init(entitlements: entitlements,
                    analytics: analytics,
                    defaults: UserDefaults(suiteName: "StoreFake-\(UUID().uuidString)")!)
