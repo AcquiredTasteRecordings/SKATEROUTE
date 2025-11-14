@@ -40,7 +40,7 @@
 			membershipExceptions = (
 				Features/Rewards/RewardsWalletView.swift,
 				Resources/Legal/TermsOfUse.md,
-				Resources/PrivacyInfo.json,
+				Resources/PrivacyInfo.xcprivacy,
 			);
 			target = 1C2D2A5A2EB20E7C00BCB90A /* SKATEROUTE */;
 		};
@@ -52,7 +52,7 @@
 			buildPhase = 1C2D2A572EB20E7C00BCB90A /* Sources */;
 			membershipExceptions = (
 				Resources/Legal/TermsOfUse.md,
-				Resources/PrivacyInfo.json,
+				Resources/PrivacyInfo.xcprivacy,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
