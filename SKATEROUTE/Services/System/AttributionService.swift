@@ -7,6 +7,7 @@ import Foundation
 import CoreLocation
 import MapKit
 import OSLog
+import StepTags
 
 // MARK: - Shared StepTags model
 
@@ -74,8 +75,8 @@ public struct StepTags: Sendable, Hashable {
 }
 
 // MARK: - StepTags dependency
-// If your app already defines `StepTags` differently, update the struct above or adjust
-// the merge/composition logic below accordingly.
+// Relies on the canonical model defined in Services/Navigation/StepTags.swift.
+// Adjust merge/composition logic here if you evolve that shared contract.
 
 // MARK: - Hashable coordinate key (quantized to 1e-6 deg to keep cache sparse)
 private struct CoordinateKey: Hashable, Sendable {
@@ -87,7 +88,7 @@ private struct CoordinateKey: Hashable, Sendable {
     }
 }
 
-private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Attribution")
+private let log = Logger(subsystem: "com.skateroute.app", category: "Attribution")
 
 // MARK: - Provider protocol
 
@@ -183,7 +184,7 @@ public actor LocalAttributionProvider: StepAttributesProvider {
     // MARK: Public
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
-        guard let mid = midpoint(of: step.polyline) else { return StepTags() }
+        guard let mid = midpoint(of: step.polyline) else { return .neutral }
         let key = CoordinateKey(mid)
 
         // Cache hit (respect TTL)
@@ -210,6 +211,10 @@ public actor LocalAttributionProvider: StepAttributesProvider {
             if let hazards = candidate.hazardCount, hazards > 0 {
                 log.debug("Local attr: \(hazards) hazard(s) ~\(Int(bestDist)) m from step midpoint.")
             }
+            var metadata: [String: String] = [:]
+            if let lighting = candidate.lightingLevel { metadata["lightingLevel"] = lighting }
+            if let freshness = candidate.freshnessDays { metadata["freshnessDays"] = String(freshness) }
+
             tags = StepTags(
                 hasProtectedLane: candidate.hasProtectedLane ?? false,
                 hasPaintedLane:   candidate.hasPaintedLane ?? false,
@@ -217,13 +222,10 @@ public actor LocalAttributionProvider: StepAttributesProvider {
                 hazardCount:      candidate.hazardCount ?? 0,
                 highwayClass:     nil,
                 surface:          candidate.surface,
-                lighting:         normalizedLightingLevel(from: candidate.lightingLevel),
-                freshnessDays:    sanitizedFreshnessDays(candidate.freshnessDays),
-                confidence:       clampedConfidence(candidate.confidence),
-                source:           sanitizedSource(candidate.source)
+                metadata:         metadata
             )
         } else {
-            tags = StepTags()
+            tags = .neutral
         }
 
         insertCache(key: key, value: tags)
@@ -326,21 +328,21 @@ public actor CompositeAttributionProvider: StepAttributesProvider {
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
         // Merge across providers with a deterministic strategy.
-        var merged = StepTags()
+        var merged = .neutral
         for p in providers {
             let t = await p.tags(for: step)
-            merged = merge(merged, t)
+            merged = Self.merge(merged, t)
         }
         return merged
     }
 
     public func tags(for steps: [MKRoute.Step]) async -> [StepTags] {
-        var out: [StepTags] = Array(repeating: StepTags(), count: steps.count)
+        var out: [StepTags] = Array(repeating: .neutral, count: steps.count)
         // For each provider, merge its batch result into the shared array
         for p in providers {
             let incoming = await p.tags(for: steps)
             for i in 0..<steps.count {
-                out[i] = merge(out[i], incoming[i])
+                out[i] = Self.merge(out[i], incoming[i])
             }
         }
         return out
@@ -350,18 +352,18 @@ public actor CompositeAttributionProvider: StepAttributesProvider {
     // - Booleans: OR (true if any provider says true)
     // - hazardCount: max
     // - surface/highwayClass: first non-nil wins (respecting provider order)
-    private func merge(_ a: StepTags, _ b: StepTags) -> StepTags {
-        StepTags(
+    // - metadata: keep existing keys from higher-priority provider, add new keys from fallback
+    static func merge(_ a: StepTags, _ b: StepTags) -> StepTags {
+        let metadata = a.metadata.merging(b.metadata) { existing, _ in existing }
+
+        return StepTags(
             hasProtectedLane: a.hasProtectedLane || b.hasProtectedLane,
             hasPaintedLane:   a.hasPaintedLane   || b.hasPaintedLane,
             surfaceRough:     a.surfaceRough     || b.surfaceRough,
             hazardCount:      max(a.hazardCount, b.hazardCount),
             highwayClass:     a.highwayClass ?? b.highwayClass,
             surface:          a.surface ?? b.surface,
-            lighting:         a.lighting ?? b.lighting,
-            freshnessDays:    mergedFreshness(a.freshnessDays, b.freshnessDays),
-            confidence:       mergedConfidence(a.confidence, b.confidence),
-            source:           a.source ?? b.source
+            metadata:         metadata
         )
     }
 
@@ -397,7 +399,7 @@ public struct StaticAttributionProvider: StepAttributesProvider {
     }
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
-        guard let mid = midpoint(of: step.polyline) else { return StepTags() }
+        guard let mid = midpoint(of: step.polyline) else { return .neutral }
         let key = CoordinateKey(mid)
         // If exact key not present, do a cheap linear scan (test scale only)
         if let t = map[key] { return t }
@@ -411,7 +413,7 @@ public struct StaticAttributionProvider: StepAttributesProvider {
             if d < bestDist { bestDist = d; best = (k, v) }
         }
         if bestDist <= radius, let hit = best { return hit.1 }
-        return StepTags()
+        return .neutral
     }
 
     public func tags(for steps: [MKRoute.Step]) async -> [StepTags] {

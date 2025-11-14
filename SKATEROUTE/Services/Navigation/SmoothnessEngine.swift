@@ -64,7 +64,7 @@ public final class SmoothnessEngine: ObservableObject {
     // MARK: Internals
 
     private let cfg: Config
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Smoothness")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "Smoothness")
     private let motion = CMMotionManager()
     private let queue = OperationQueue() // motion callbacks
     private var tickTimer: Timer?        // main-thread tick for EMA + notifications

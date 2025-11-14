@@ -9,6 +9,7 @@
 
 import SwiftUI
 import Combine
+import ServicesAnalytics
 
 // MARK: - Domain adapters (mirror Services/Challenges/LeaderboardService)
 
@@ -84,18 +85,6 @@ public protocol CityProviding {
     var currentCityCode: String? { get }
 }
 
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case leaderboard }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) { self.name = name; self.category = category; self.params = params }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
-
 // MARK: - ViewModel
 
 @MainActor
@@ -114,18 +103,21 @@ public final class LeaderboardViewModel: ObservableObject {
     private let reader: LeaderboardReading
     private let verifier: VerificationActing?
     private let city: CityProviding
+    private let analytics: AnalyticsLogging?
     private let pageSize = 30
 
     public init(
         reader: LeaderboardReading,
         verifier: VerificationActing?,
         city: CityProviding,
-        initialScope: BoardScope = .city
+        initialScope: BoardScope = .city,
+        analytics: AnalyticsLogging? = nil
     ) {
         self.reader = reader
         self.verifier = verifier
         self.city = city
         self.scope = initialScope
+        self.analytics = analytics
     }
 
     public var currentCityCode: String? {
@@ -134,6 +126,7 @@ public final class LeaderboardViewModel: ObservableObject {
 
     public func onAppear() {
         if items.isEmpty {
+            analytics?.log(.leaderboardViewed(scope: scope))
             Task { await load(reset: true) }
         }
     }
@@ -141,10 +134,12 @@ public final class LeaderboardViewModel: ObservableObject {
     public func setScope(_ s: BoardScope) {
         guard scope != s else { return }
         scope = s
+        analytics?.log(.leaderboardScopeChanged(newScope: s))
         Task { await load(reset: true) }
     }
 
     public func refresh() {
+        analytics?.log(.leaderboardRefreshed(scope: scope))
         Task { await load(reset: true, useRefresh: true) }
     }
 
@@ -173,6 +168,7 @@ public final class LeaderboardViewModel: ObservableObject {
     public func verifyMeTapped() {
         guard let verifier else { return }
         showVerifySheet = false   // dismiss sheet right away
+        analytics?.log(.leaderboardVerifyInitiated())
         Task {
             do {
                 let ok = try await verifier.verifyMe()
@@ -181,18 +177,21 @@ public final class LeaderboardViewModel: ObservableObject {
                         "Verification submitted. We’ll refresh your rank shortly.",
                         comment: "verify ok"
                     )
+                    analytics?.log(.leaderboardVerifyCompleted(result: "success"))
                     await load(reset: true)
                 } else {
                     infoMessage = NSLocalizedString(
                         "Verification cancelled.",
                         comment: "verify cancel"
                     )
+                    analytics?.log(.leaderboardVerifyCompleted(result: "cancelled"))
                 }
             } catch {
                 errorMessage = NSLocalizedString(
                     "Couldn’t complete verification.",
                     comment: "verify fail"
                 )
+                analytics?.log(.leaderboardVerifyCompleted(result: "error"))
             }
         }
     }
@@ -597,15 +596,60 @@ public extension LeaderboardView {
         reader: LeaderboardReading,
         verifier: VerificationActing? = nil,
         city: CityProviding,
-        initialScope: BoardScope = .city
+        initialScope: BoardScope = .city,
+        analytics: AnalyticsLogging? = nil
     ) -> LeaderboardView {
         LeaderboardView(
             viewModel: .init(
                 reader: reader,
                 verifier: verifier,
                 city: city,
-                initialScope: initialScope
+                initialScope: initialScope,
+                analytics: analytics
             )
+        )
+    }
+}
+
+// MARK: - Analytics helpers
+
+private extension AnalyticsEvent {
+    static func leaderboardViewed(scope: BoardScope) -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "leaderboard_view",
+            category: .leaderboard,
+            params: ["scope": .string(scope.rawValue)]
+        )
+    }
+
+    static func leaderboardScopeChanged(newScope: BoardScope) -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "leaderboard_scope_changed",
+            category: .leaderboard,
+            params: ["scope": .string(newScope.rawValue)]
+        )
+    }
+
+    static func leaderboardRefreshed(scope: BoardScope) -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "leaderboard_refresh",
+            category: .leaderboard,
+            params: ["scope": .string(scope.rawValue)]
+        )
+    }
+
+    static func leaderboardVerifyInitiated() -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "leaderboard_verify_start",
+            category: .leaderboard
+        )
+    }
+
+    static func leaderboardVerifyCompleted(result: String) -> AnalyticsEvent {
+        AnalyticsEvent(
+            name: "leaderboard_verify_result",
+            category: .leaderboard,
+            params: ["result": .string(result)]
         )
     }
 }
