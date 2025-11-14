@@ -42,6 +42,7 @@ public enum AppError: Error, Equatable, Sendable {
     case purchaseCancelled
     case purchaseFailed
     case restoreFailed
+    case productUnavailable
     case notEntitled(feature: ProFeature)
 
     // Media
@@ -105,6 +106,7 @@ extension AppError: LocalizedError {
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That item isn’t available right now.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
         case .notEntitled(let feature):
             return String(format: NSLocalizedString("This feature requires %@.", comment: "error"), feature.displayName)
@@ -140,6 +142,7 @@ extension AppError: LocalizedError {
         case .network(let code):
             if let code { return String(format: NSLocalizedString("Network error: %@.", comment: "reason"), code.debugName) }
             return NSLocalizedString("A network error occurred.", comment: "reason")
+        case .productUnavailable:            return NSLocalizedString("The item is temporarily unavailable.", comment: "reason")
         case .notEntitled(let feature):      return String(format: NSLocalizedString("%@ is a Pro feature.", comment: "reason"), feature.displayName)
         default: return nil
         }
@@ -159,6 +162,8 @@ extension AppError: LocalizedError {
             return NSLocalizedString("Purchases may be disabled by Screen Time or your profile.", comment: "suggestion")
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Pick another product for now or try again later.", comment: "suggestion")
         case .notEntitled:
             return NSLocalizedString("Unlock on the paywall to use this feature.", comment: "suggestion")
         case .tilepackMissing:
@@ -208,6 +213,7 @@ extension AppError: CustomNSError {
         case .purchaseFailed:                return 503
         case .restoreFailed:                 return 504
         case .notEntitled:                   return 505
+        case .productUnavailable:            return 506
 
         case .cameraUnavailable:             return 601
         case .microphonePermissionDenied:    return 602
