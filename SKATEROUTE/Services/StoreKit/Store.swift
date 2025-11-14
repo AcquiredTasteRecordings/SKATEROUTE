@@ -72,7 +72,7 @@ public final class Store: ObservableObject {
     // MARK: - Dependencies
 
     private let entitlements: Entitlements
-    private let analytics: AnalyticsLogger?
+    private let analytics: AnalyticsLogging?
     private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Store")
 
     // MARK: - Caching (catalog + entitlements)
@@ -97,7 +97,7 @@ public final class Store: ObservableObject {
     // MARK: - Init
 
     public init(entitlements: Entitlements,
-                analytics: AnalyticsLogger? = nil,
+                analytics: AnalyticsLogging? = nil,
                 defaults: UserDefaults = .standard) {
         self.entitlements = entitlements
         self.analytics = analytics
@@ -140,7 +140,7 @@ public final class Store: ObservableObject {
     /// Idempotent: loads and caches product metadata; uses on-disk cache on failure.
     public func loadProducts() async {
         state = .loading
-        analytics?.log(event: .paywallCatalogLoadStarted)
+        analytics?.record(event: .paywallCatalogLoadStarted)
 
         do {
             let ids = Set(ProductID.allCases.map(\.rawValue))
@@ -170,7 +170,7 @@ public final class Store: ObservableObject {
             self.state = .ready
             Self.saveCatalogCache(localized)
 
-            analytics?.log(event: .paywallCatalogLoadSucceeded)
+            analytics?.record(event: .paywallCatalogLoadSucceeded)
             await refreshEntitlementsFromAppStore(silent: true)
 
         } catch {
@@ -179,12 +179,12 @@ public final class Store: ObservableObject {
                !Self.isCatalogExpired() {
                 self.products = cached
                 self.state = .ready
-                analytics?.log(event: .paywallCatalogLoadRecoveredFromCache)
+                analytics?.record(event: .paywallCatalogLoadRecoveredFromCache)
                 log.notice("Product lookup failed; served cached catalog. \(error.localizedDescription, privacy: .public)")
             } else {
                 self.state = .failed(message: "Product lookup failed")
                 self.lastError = UXError.from(.unknown)
-                analytics?.log(event: .paywallCatalogLoadFailed, error: error)
+                analytics?.record(event: .paywallCatalogLoadFailed, error: error)
                 log.error("Product lookup failed: \(error.localizedDescription, privacy: .public)")
             }
         }
@@ -201,7 +201,7 @@ public final class Store: ObservableObject {
         purchaseTask = Task { [weak self] in
             guard let self else { return }
             self.state = .purchasing(id)
-            analytics?.log(event: .purchaseStarted(product: id.rawValue))
+            analytics?.record(event: .purchaseStarted(product: id.rawValue))
 
             do {
                 if !AppStore.canMakePayments { throw AppError.purchaseNotAllowed }
@@ -222,37 +222,37 @@ public final class Store: ObservableObject {
 
                     if transaction.productType == .consumable {
                         // Consumables are fire-and-forget. We don't add to entitlements.
-                        analytics?.log(event: .consumableDelivered(product: transaction.productID))
+                        analytics?.record(event: .consumableDelivered(product: transaction.productID))
                     } else {
                         self.applyPurchased(productId: transaction.productID)
                     }
 
                     self.state = .ready
-                    self.analytics?.log(event: .purchaseSucceeded(product: id.rawValue))
+                    self.analytics?.record(event: .purchaseSucceeded(product: id.rawValue))
 
                 case .userCancelled:
                     self.state = .ready
                     self.lastError = UXError.from(.purchaseCancelled)
-                    self.analytics?.log(event: .purchaseCancelled(product: id.rawValue))
+                    self.analytics?.record(event: .purchaseCancelled(product: id.rawValue))
 
                 case .pending:
                     self.state = .ready
-                    self.analytics?.log(event: .purchasePending(product: id.rawValue))
+                    self.analytics?.record(event: .purchasePending(product: id.rawValue))
                     self.log.debug("Purchase pending for \(id.rawValue, privacy: .public).")
 
                 @unknown default:
                     self.state = .failed(message: "Purchase failed")
                     self.lastError = UXError.from(.purchaseFailed)
-                    self.analytics?.log(event: .purchaseFailed(product: id.rawValue), error: nil)
+                    self.analytics?.record(event: .purchaseFailed(product: id.rawValue))
                 }
             } catch let appErr as AppError {
                 self.state = .ready
                 self.lastError = UXError.from(appErr)
-                self.analytics?.log(event: .purchaseFailed(product: id.rawValue), error: appErr)
+                self.analytics?.record(event: .purchaseFailed(product: id.rawValue), error: appErr)
             } catch {
                 self.state = .ready
                 self.lastError = UXError.from(.purchaseFailed)
-                self.analytics?.log(event: .purchaseFailed(product: id.rawValue), error: error)
+                self.analytics?.record(event: .purchaseFailed(product: id.rawValue), error: error)
                 self.log.error("Purchase failed: \(error.localizedDescription, privacy: .public)")
             }
 
@@ -264,22 +264,22 @@ public final class Store: ObservableObject {
     @discardableResult
     public func restore() async -> Result<Set<ProductID>, AppError> {
         state = .restoring
-        analytics?.log(event: .restoreStarted)
+        analytics?.record(event: .restoreStarted)
         do {
             let set = try await restorePurchases()
             applyPurchased(productIds: set)
             state = .ready
-            analytics?.log(event: .restoreSucceeded(count: set.count))
+            analytics?.record(event: .restoreSucceeded(count: set.count))
             return .success(set)
         } catch let err as AppError {
             state = .ready
             lastError = UXError.from(err)
-            analytics?.log(event: .restoreFailed, error: err)
+            analytics?.record(event: .restoreFailed, error: err)
             return .failure(err)
         } catch {
             state = .ready
             lastError = UXError.from(.restoreFailed)
-            analytics?.log(event: .restoreFailed, error: error)
+            analytics?.record(event: .restoreFailed, error: error)
             return .failure(.restoreFailed)
         }
     }
@@ -301,7 +301,7 @@ public final class Store: ObservableObject {
 
     /// Promotes Apple's code redemption sheet (offer codes).
     public func presentOfferCodeRedemption() {
-        analytics?.log(event: .offerCodeRedemptionShown)
+        analytics?.record(event: .offerCodeRedemptionShown)
         SKPaymentQueue.default().presentCodeRedemptionSheet()
     }
 
@@ -364,7 +364,7 @@ public final class Store: ObservableObject {
         Self.savePurchasedCache(purchased, defaults: defaults)
         entitlements.applyProducts(purchased)
         entitlementsSubject.send(purchased)
-        analytics?.log(event: .purchaseRevoked(product: product.rawValue))
+        analytics?.record(event: .purchaseRevoked(product: product.rawValue))
         log.notice("Revoked entitlement for \(product.rawValue, privacy: .public) at \(revocationDate.description, privacy: .public)")
     }
 
@@ -379,7 +379,7 @@ public final class Store: ObservableObject {
                 if let statuses = try? await product.subscription?.status {
                     // We don't need to persist details; this is a signal for paywall hints or UX affordances.
                     if statuses.contains(where: { $0.state == .expired || $0.state == .revoked }) {
-                        analytics?.log(event: .subscriptionInactive(product: product.id))
+                        analytics?.record(event: .subscriptionInactive(product: product.id))
                     }
                 }
             }
@@ -475,7 +475,7 @@ public final class Store: ObservableObject {
 #if DEBUG
 @MainActor
 public final class StoreFake: Store {
-    public init(entitlements: Entitlements, owned: Set<ProductID> = [], analytics: AnalyticsLogger? = nil) {
+    public init(entitlements: Entitlements, owned: Set<ProductID> = [], analytics: AnalyticsLogging? = nil) {
         super.init(entitlements: entitlements,
                    analytics: analytics,
                    defaults: UserDefaults(suiteName: "StoreFake-\(UUID().uuidString)")!)

@@ -9,6 +9,7 @@
 
 import SwiftUI
 import Combine
+import ServicesAnalytics
 
 // MARK: - Domain adapters (mirror Services/Challenges/LeaderboardService)
 
@@ -83,18 +84,6 @@ public protocol CityProviding {
     /// Coarse city code (e.g., YVR) for the user; nil if hidden by privacy.
     var currentCityCode: String? { get }
 }
-
-public protocol AnalyticsLogging {
-    func log(_ event: AnalyticsEvent)
-}
-public struct AnalyticsEvent: Sendable, Hashable {
-    public enum Category: String, Sendable { case leaderboard }
-    public let name: String
-    public let category: Category
-    public let params: [String: AnalyticsValue]
-    public init(name: String, category: Category, params: [String: AnalyticsValue]) { self.name = name; self.category = category; self.params = params }
-}
-public enum AnalyticsValue: Sendable, Hashable { case string(String), int(Int), bool(Bool), double(Double) }
 
 // MARK: - ViewModel
 

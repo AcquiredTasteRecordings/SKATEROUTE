@@ -181,6 +181,7 @@ public final class AnalyticsLogger: AnalyticsLogging {
     private let logLeaderboard = Logger(subsystem: "com.skateroute", category: "leaderboard")
     private let logComments    = Logger(subsystem: "com.skateroute", category: "comments")
     private let logFavorites   = Logger(subsystem: "com.skateroute", category: "favorites")
+    private let logErrors      = Logger(subsystem: "com.skateroute", category: "analytics.errors")
 
     private func osLogger(for cat: AnalyticsSpan.Category) -> OSLog {
         switch cat {
@@ -296,6 +297,36 @@ public final class AnalyticsLogger: AnalyticsLogging {
     }
 }
 
+private let fallbackAnalyticsErrorLogger = Logger(subsystem: "com.skateroute", category: "analytics.errors.fallback")
+
+fileprivate protocol AnalyticsErrorRecording {
+    func recordAnalyticsError(event: AnalyticsEvent, error: Error, file: StaticString, line: UInt)
+}
+
+public extension AnalyticsLogging {
+    func record(event: AnalyticsEvent,
+                error: Error? = nil,
+                file: StaticString = #fileID,
+                line: UInt = #line) {
+        log(event)
+        guard let error else { return }
+
+        if let recorder = self as? AnalyticsErrorRecording {
+            recorder.recordAnalyticsError(event: event, error: error, file: file, line: line)
+        } else {
+            let fileName = String(describing: file)
+            fallbackAnalyticsErrorLogger.error("[\(event.name)] \(error.localizedDescription, privacy: .public) file: \(fileName, privacy: .public):\(line)")
+        }
+    }
+}
+
+extension AnalyticsLogger: AnalyticsErrorRecording {
+    func recordAnalyticsError(event: AnalyticsEvent, error: Error, file: StaticString, line: UInt) {
+        let fileName = String(describing: file)
+        logErrors.error("[\(event.name)] \(error.localizedDescription, privacy: .public) file: \(fileName, privacy: .public):\(line)")
+    }
+}
+
 // MARK: - Convenience factories for common events (optional sugar)
 
 public extension AnalyticsEvent {
@@ -324,6 +355,7 @@ public extension AnalyticsEvent {
 public final class AnalyticsLoggerSpy: AnalyticsLogging {
     public private(set) var events: [AnalyticsEvent] = []
     public private(set) var spans: [AnalyticsSpanHandle: AnalyticsSpan] = [:]
+    public private(set) var errors: [(event: AnalyticsEvent, error: any Error, file: StaticString, line: UInt)] = []
     private var cfg: AnalyticsLogger.Config = .init()
     public init() {}
     public func updateConfig(_ config: AnalyticsLogger.Config) { cfg = config }
@@ -332,6 +364,12 @@ public final class AnalyticsLoggerSpy: AnalyticsLogging {
         let h = AnalyticsSpanHandle(id: UUID(), span: span); spans[h] = span; return h
     }
     public func endSpan(_ handle: AnalyticsSpanHandle) { spans.removeValue(forKey: handle) }
+}
+
+extension AnalyticsLoggerSpy: AnalyticsErrorRecording {
+    func recordAnalyticsError(event: AnalyticsEvent, error: Error, file: StaticString, line: UInt) {
+        errors.append((event: event, error: error, file: file, line: line))
+    }
 }
 #endif
 
