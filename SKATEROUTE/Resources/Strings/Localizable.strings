@@ -34,8 +34,10 @@
 ////////////////////////
 // Paywall
 ////////////////////////
-"paywall.title"               = "SkateRoute Plus";
-"paywall.offlinepacks.body"   = "Download offline packs, advanced editor exports, and premium badges. Safety features remain free.";
+"paywall.title"               = "SkateRoute Pro";
+"paywall.offlinepacks.body"   = "Unlock offline packs, safety overlays, and pro editor presets. Core safety remains free.";
+"Upgrade to SkateRoute Pro"   = "Upgrade to SkateRoute Pro";
+"Core safety remains free"    = "Core safety remains free.";
 "paywall.button.buy"          = "Upgrade";
 "paywall.button.restore"      = "Restore purchases";
 

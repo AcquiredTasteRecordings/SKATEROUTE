@@ -168,7 +168,7 @@ brakingZone = step.gradePercent <= -8 && step.length >= 50m
 ---
 
 ## 10. Monetization & Economics
-- **IAP (StoreKit 2):** `com.skateroute.pro.monthly`, `com.skateroute.pro.yearly`, `com.skateroute.event.pass.<slug>`.
+- **IAP (StoreKit 2):** `com.skateroute.app.pro.monthly`, `com.skateroute.app.pro.yearly`, `com.skateroute.event.pass.<slug>`.
 - **Pro entitlements:** Offline packs, advanced overlays, premium spots; event passes time‑bound.
 - **Payments:** Apple Pay/Stripe for merch & tickets; no gating of digital features outside IAP.
 - **Ads:** Contextual, privacy‑respecting; no tracking walls.
@@ -259,8 +259,8 @@ brakingZone = step.gradePercent <= -8 && step.length >= 50m
 - Examples: `skateroute://spot/<id>`, `skateroute://challenge/<id>`, `skateroute://refer/<code>`
 
 **B. IAP Catalog (placeholders)**  
-- `com.skateroute.pro.monthly`  
-- `com.skateroute.pro.yearly`  
+- `com.skateroute.app.pro.monthly`
+- `com.skateroute.app.pro.yearly`
 - `com.skateroute.event.pass.<slug>`
 
 **C. Logger categories**  

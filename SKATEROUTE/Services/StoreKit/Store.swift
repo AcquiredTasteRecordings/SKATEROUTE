@@ -73,17 +73,18 @@ public final class Store: ObservableObject {
 
     private let entitlements: Entitlements
     private let analytics: AnalyticsLogger?
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "Store")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "Store")
 
     // MARK: - Caching (catalog + entitlements)
 
     private let defaults: UserDefaults
-    private static let purchasedCacheKey = "Store.PurchasedProductIDs.payload.v2" // JSON payload (ids + updatedAt)
+    private static let purchasedCacheKey = "Store.PurchasedProductIDs.payload.v3" // bumped for canonical SKU rename
     private static let catalogCacheURL: URL = {
         let dir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
             .appendingPathComponent("StoreCatalog", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("catalog.json")
+        // v2 flushes stale payloads written before the canonical SKU rename.
+        return dir.appendingPathComponent("catalog.v2.json")
     }()
     private static let entitlementTTL: TimeInterval = 60 * 60 * 24 // 24h
     private static let catalogTTL: TimeInterval = 60 * 60 * 12    // 12h
