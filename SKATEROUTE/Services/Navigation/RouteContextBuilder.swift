@@ -88,7 +88,7 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)
 
-            let tags = idx < stepTags.count ? stepTags[idx] : StepTags()
+            let tags = idx < stepTags.count ? stepTags[idx] : .neutral
             let instruction = Self.makeInstruction(for: step, tags: tags)
 
             // Surface/roughness hints: placeholder.
