@@ -27,7 +27,7 @@ public final class OfflineTileManager: ObservableObject {
 
     // MARK: Dependencies
     private let cache = CacheManager.shared
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "OfflineTiles")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "OfflineTiles")
 
     // Background planning task for cancellation/debounce
     private var planningTask: Task<Void, Never>?
