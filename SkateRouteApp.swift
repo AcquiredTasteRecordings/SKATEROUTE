@@ -17,7 +17,7 @@ struct SkateRouteApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - Logging
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "app")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "app")
 
     init() {
         let container = LiveAppDI()
@@ -74,7 +74,7 @@ private extension SkateRouteApp {
         //  skateroute://map?dst=lat,lon  (from share sheet)
         //  https(s)://…/navigate?src=…&dst=… (universal link hand-off)
         guard let host = url.host?.lowercased() else {
-            Logger(subsystem: "com.yourcompany.skateroute", category: "deeplink")
+            Logger(subsystem: "com.skateroute.app", category: "deeplink")
                 .debug("Deep link host missing: \(url.absoluteString, privacy: .public)")
             return
         }
@@ -93,12 +93,12 @@ private extension SkateRouteApp {
                     coordinator.dismissToHome()
                 }
             } else {
-                Logger(subsystem: "com.yourcompany.skateroute", category: "deeplink")
+                Logger(subsystem: "com.skateroute.app", category: "deeplink")
                     .warning("Deep link missing dst param: \(url.absoluteString, privacy: .public)")
             }
         default:
             // Future: session/spot/profile routes
-            Logger(subsystem: "com.yourcompany.skateroute", category: "deeplink")
+            Logger(subsystem: "com.skateroute.app", category: "deeplink")
                 .debug("Unhandled deep link host \(host, privacy: .public)")
         }
     }

@@ -123,7 +123,7 @@ public actor OfflineRouteStore {
 
     public static let schemaVersion: Int = 1
     private let indexKey = "offline-route-index.json"
-    private let log = Logger(subsystem: "com.yourcompany.skateroute", category: "OfflineRouteStore")
+    private let log = Logger(subsystem: "com.skateroute.app", category: "OfflineRouteStore")
 
     // MARK: - Index Model
 

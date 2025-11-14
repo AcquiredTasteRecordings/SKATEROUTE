@@ -43,7 +43,7 @@ public final class RerouteController: ObservableObject {
     // MARK: Dependencies
 
     private let locationService: LocationManaging
-    private let logger = Logger(subsystem: "com.yourcompany.skateroute", category: "Reroute")
+    private let logger = Logger(subsystem: "com.skateroute.app", category: "Reroute")
 
     // MARK: Internals
 

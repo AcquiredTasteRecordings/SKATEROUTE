@@ -99,6 +99,7 @@ public final class AnalyticsLogger: AnalyticsLogging {
             // High-signal, safe, aggregate-friendly keys ONLY
             "reason", "mode", "variant", "grade_bucket", "duration_ms",
             "distance_m", "count", "result", "error_code", "status",
+            "product_id",
             "locale", "app_version", "sdk_version"
         ]
         /// Keys for which we always drop values completely (even for OSLog params).
