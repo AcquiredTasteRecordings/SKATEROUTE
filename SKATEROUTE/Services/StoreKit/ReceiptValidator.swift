@@ -57,7 +57,7 @@ public final class ReceiptValidator: ObservableObject {
     // MARK: - Config
 
     /// Product identifiers considered “premium” for entitlement evaluation.
-    /// Keep this in sync with App Store Connect and your Paywall wiring.
+    /// Keep this in sync with App Store Connect and your Paywall wiring (`com.skateroute.app.pro.<plan>`).
     private let premiumProductIDs: Set<String>
 
     /// Provides the current set of StoreKit entitlements to evaluate.
@@ -75,10 +75,8 @@ public final class ReceiptValidator: ObservableObject {
             "com.skateroute.pro.yearly",
             "com.skateroute.pro.lifetime"
         ],
-        cacheKey: String = "premium.status.cache",
-        userDefaults: UserDefaults = .standard,
-        entitlementsProvider: @escaping @Sendable () async throws -> [EntitlementSnapshot] = ReceiptValidator.makeDefaultEntitlementsProvider(),
-        autoRefreshOnInit: Bool = true
+        cacheKey: String = "premium.status.cache.v2",
+        userDefaults: UserDefaults = .standard
     ) {
         self.premiumProductIDs = premiumProductIDs
         self.cacheKey = cacheKey

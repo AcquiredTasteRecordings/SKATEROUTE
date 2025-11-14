@@ -12,6 +12,9 @@ import Foundation
 import Combine
 import os.log
 import MetricKit
+#if DEBUG
+import ServicesAnalytics
+#endif
 
 // MARK: - Budgets (defaults match product goals)
 
@@ -306,11 +309,12 @@ public final class MetricSinkSpy: MetricEventsSink {
 }
 
 public final class AnalyticsLoggerNoop: AnalyticsLogging {
+    private let spanStore = AnalyticsLoggerSpy()
     public init() {}
     public func log(_ event: AnalyticsEvent) {}
-    public func updateConfig(_ config: Any) {}
-    public func beginSpan(_ span: AnalyticsSpan) -> AnalyticsSpanHandle { AnalyticsSpanHandle() }
-    public func endSpan(_ handle: AnalyticsSpanHandle) {}
+    public func updateConfig(_ config: AnalyticsLogger.Config) {}
+    public func beginSpan(_ span: AnalyticsSpan) -> AnalyticsSpanHandle { spanStore.beginSpan(span) }
+    public func endSpan(_ handle: AnalyticsSpanHandle) { spanStore.endSpan(handle) }
 }
 #endif
 
