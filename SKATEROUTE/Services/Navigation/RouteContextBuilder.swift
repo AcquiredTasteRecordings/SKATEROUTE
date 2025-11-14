@@ -3,6 +3,7 @@
 
 import Foundation
 import MapKit
+import StepTags
 
 // MARK: - Models
 
