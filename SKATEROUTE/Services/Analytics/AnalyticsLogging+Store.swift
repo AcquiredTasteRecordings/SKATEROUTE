@@ -1,172 +1,159 @@
 // Services/Analytics/AnalyticsLogging+Store.swift
-// StoreKit commerce/paywall analytics helpers.
-// Provides typed sugar for Store to log structured events with minimal duplication.
+// Typed analytics helpers for StoreKit flows.
+// Centralizes paywall commerce event names & params to avoid drift.
 
 import Foundation
 
-public extension AnalyticsEvent {
-    static var paywallCatalogLoadStarted: AnalyticsEvent {
-        .init(name: "paywall_catalog_load_started", category: .paywall)
-    }
-
-    static var paywallCatalogLoadSucceeded: AnalyticsEvent {
-        .init(name: "paywall_catalog_load_succeeded", category: .paywall)
-    }
-
-    static var paywallCatalogLoadRecoveredFromCache: AnalyticsEvent {
-        .init(name: "paywall_catalog_load_recovered_from_cache", category: .paywall)
-    }
-
-    static func paywallCatalogLoadFailed(error: Error?) -> AnalyticsEvent {
-        .init(name: "paywall_catalog_load_failed",
-              category: .paywall,
-              params: storeParams(error: error))
-    }
-
-    static func purchaseStarted(product: String) -> AnalyticsEvent {
-        .init(name: "purchase_started",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func consumableDelivered(product: String) -> AnalyticsEvent {
-        .init(name: "consumable_delivered",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func purchaseSucceeded(product: String) -> AnalyticsEvent {
-        .init(name: "purchase_succeeded",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func purchaseCancelled(product: String) -> AnalyticsEvent {
-        .init(name: "purchase_cancelled",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func purchasePending(product: String) -> AnalyticsEvent {
-        .init(name: "purchase_pending",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func purchaseFailed(product: String, error: Error? = nil) -> AnalyticsEvent {
-        .init(name: "purchase_failed",
-              category: .commerce,
-              params: storeParams(product: product, error: error))
-    }
-
-    static var restoreStarted: AnalyticsEvent {
-        .init(name: "restore_started", category: .commerce)
-    }
-
-    static func restoreSucceeded(count: Int) -> AnalyticsEvent {
-        .init(name: "restore_succeeded",
-              category: .commerce,
-              params: ["count": .int(count)])
-    }
-
-    static func restoreFailed(error: Error? = nil) -> AnalyticsEvent {
-        .init(name: "restore_failed",
-              category: .commerce,
-              params: storeParams(error: error))
-    }
-
-    static var offerCodeRedemptionShown: AnalyticsEvent {
-        .init(name: "offer_code_redemption_shown", category: .paywall)
-    }
-
-    static func purchaseRevoked(product: String) -> AnalyticsEvent {
-        .init(name: "purchase_revoked",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-
-    static func subscriptionInactive(product: String) -> AnalyticsEvent {
-        .init(name: "subscription_inactive",
-              category: .commerce,
-              params: storeParams(product: product))
-    }
-}
-
 public extension AnalyticsLogging {
-    func logPaywallCatalogLoadStarted() {
-        log(.paywallCatalogLoadStarted)
+    func logPaywallCatalog(event: AnalyticsEvent.PaywallCatalogEvent) {
+        log(event.analyticsEvent)
     }
 
-    func logPaywallCatalogLoadSucceeded() {
-        log(.paywallCatalogLoadSucceeded)
+    func logPaywallPurchase(event: AnalyticsEvent.PaywallPurchaseEvent) {
+        log(event.analyticsEvent)
     }
 
-    func logPaywallCatalogLoadRecoveredFromCache() {
-        log(.paywallCatalogLoadRecoveredFromCache)
+    func logPaywallRestore(event: AnalyticsEvent.PaywallRestoreEvent) {
+        log(event.analyticsEvent)
     }
 
-    func logPaywallCatalogLoadFailed(_ error: Error?) {
-        log(.paywallCatalogLoadFailed(error: error))
+    func logPaywallSubscription(event: AnalyticsEvent.PaywallSubscriptionEvent) {
+        log(event.analyticsEvent)
     }
 
-    func logPurchaseStarted(product: String) {
-        log(.purchaseStarted(product: product))
-    }
-
-    func logConsumableDelivered(product: String) {
-        log(.consumableDelivered(product: product))
-    }
-
-    func logPurchaseSucceeded(product: String) {
-        log(.purchaseSucceeded(product: product))
-    }
-
-    func logPurchaseCancelled(product: String) {
-        log(.purchaseCancelled(product: product))
-    }
-
-    func logPurchasePending(product: String) {
-        log(.purchasePending(product: product))
-    }
-
-    func logPurchaseFailed(product: String, error: Error? = nil) {
-        log(.purchaseFailed(product: product, error: error))
-    }
-
-    func logRestoreStarted() {
-        log(.restoreStarted)
-    }
-
-    func logRestoreSucceeded(count: Int) {
-        log(.restoreSucceeded(count: count))
-    }
-
-    func logRestoreFailed(error: Error? = nil) {
-        log(.restoreFailed(error: error))
-    }
-
-    func logOfferCodeRedemptionShown() {
-        log(.offerCodeRedemptionShown)
-    }
-
-    func logPurchaseRevoked(product: String) {
-        log(.purchaseRevoked(product: product))
-    }
-
-    func logSubscriptionInactive(product: String) {
-        log(.subscriptionInactive(product: product))
+    func logPaywallOfferCode(event: AnalyticsEvent.PaywallOfferCodeEvent) {
+        log(event.analyticsEvent)
     }
 }
 
-private func storeParams(product: String? = nil, error: Error? = nil) -> [String: AnalyticsValue] {
-    var params: [String: AnalyticsValue] = [:]
-    if let product {
-        params["product_id"] = .string(product)
+public extension AnalyticsEvent {
+    enum PaywallCatalogEvent: Sendable {
+        case loadStarted
+        case loadSucceeded(productCount: Int)
+        case loadRecoveredFromCache(productCount: Int)
+        case loadFailed(errorCode: String?)
     }
-    if let error {
-        let nsError = error as NSError
-        params["error_domain"] = .string(nsError.domain)
-        params["error_code"] = .int(nsError.code)
+
+    enum PaywallPurchaseEvent: Sendable {
+        case started(productID: String)
+        case succeeded(productID: String)
+        case cancelled(productID: String)
+        case pending(productID: String)
+        case failed(productID: String, errorCode: String?)
+        case consumableDelivered(productID: String)
+        case revoked(productID: String)
     }
-    return params
+
+    enum PaywallRestoreEvent: Sendable {
+        case started
+        case succeeded(restoredCount: Int)
+        case failed(errorCode: String?)
+    }
+
+    enum PaywallSubscriptionEvent: Sendable {
+        case inactive(productID: String)
+    }
+
+    enum PaywallOfferCodeEvent: Sendable {
+        case redemptionSheetShown
+    }
+}
+
+private extension AnalyticsEvent.PaywallCatalogEvent {
+    var analyticsEvent: AnalyticsEvent {
+        switch self {
+        case .loadStarted:
+            return AnalyticsEvent(name: "paywall_catalog_load_started", category: .paywall)
+        case .loadSucceeded(let productCount):
+            return AnalyticsEvent(name: "paywall_catalog_load_succeeded",
+                                  category: .paywall,
+                                  params: ["count": .int(productCount)])
+        case .loadRecoveredFromCache(let productCount):
+            return AnalyticsEvent(name: "paywall_catalog_load_recovered_from_cache",
+                                  category: .paywall,
+                                  params: ["count": .int(productCount)])
+        case .loadFailed(let errorCode):
+            var params: [String: AnalyticsValue] = [:]
+            if let errorCode {
+                params["error_code"] = .string(errorCode)
+            }
+            return AnalyticsEvent(name: "paywall_catalog_load_failed", category: .paywall, params: params)
+        }
+    }
+}
+
+private extension AnalyticsEvent.PaywallPurchaseEvent {
+    var analyticsEvent: AnalyticsEvent {
+        switch self {
+        case .started(let productID):
+            return AnalyticsEvent(name: "paywall_purchase_started",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        case .succeeded(let productID):
+            return AnalyticsEvent(name: "paywall_purchase_succeeded",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        case .cancelled(let productID):
+            return AnalyticsEvent(name: "paywall_purchase_cancelled",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        case .pending(let productID):
+            return AnalyticsEvent(name: "paywall_purchase_pending",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        case .failed(let productID, let errorCode):
+            var params: [String: AnalyticsValue] = ["product_id": .string(productID)]
+            if let errorCode {
+                params["error_code"] = .string(errorCode)
+            }
+            return AnalyticsEvent(name: "paywall_purchase_failed", category: .paywall, params: params)
+        case .consumableDelivered(let productID):
+            return AnalyticsEvent(name: "paywall_consumable_delivered",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        case .revoked(let productID):
+            return AnalyticsEvent(name: "paywall_purchase_revoked",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        }
+    }
+}
+
+private extension AnalyticsEvent.PaywallRestoreEvent {
+    var analyticsEvent: AnalyticsEvent {
+        switch self {
+        case .started:
+            return AnalyticsEvent(name: "paywall_restore_started", category: .paywall)
+        case .succeeded(let restoredCount):
+            return AnalyticsEvent(name: "paywall_restore_succeeded",
+                                  category: .paywall,
+                                  params: ["count": .int(restoredCount)])
+        case .failed(let errorCode):
+            var params: [String: AnalyticsValue] = [:]
+            if let errorCode {
+                params["error_code"] = .string(errorCode)
+            }
+            return AnalyticsEvent(name: "paywall_restore_failed", category: .paywall, params: params)
+        }
+    }
+}
+
+private extension AnalyticsEvent.PaywallSubscriptionEvent {
+    var analyticsEvent: AnalyticsEvent {
+        switch self {
+        case .inactive(let productID):
+            return AnalyticsEvent(name: "paywall_subscription_inactive",
+                                  category: .paywall,
+                                  params: ["product_id": .string(productID)])
+        }
+    }
+}
+
+private extension AnalyticsEvent.PaywallOfferCodeEvent {
+    var analyticsEvent: AnalyticsEvent {
+        switch self {
+        case .redemptionSheetShown:
+            return AnalyticsEvent(name: "paywall_offer_code_redemption_shown", category: .paywall)
+        }
+    }
 }

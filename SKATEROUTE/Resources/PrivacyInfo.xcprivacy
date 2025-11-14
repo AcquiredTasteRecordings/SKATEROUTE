@@ -1,6 +1,7 @@
 {
   "privacyManifestVersion": "1.0",
   "NSPrivacyTracking": false,
+  "NSPrivacyTrackingDomains": [],
   "NSPrivacyCollectedDataTypes": [],
   "NSPrivacyAccessedAPITypes": []
 }

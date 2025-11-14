@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                1C2D2B002EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,7 +32,8 @@
 		1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SKATEROUTE.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteContextBuilderInstructionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -40,7 +42,7 @@
 			membershipExceptions = (
 				Features/Rewards/RewardsWalletView.swift,
 				Resources/Legal/TermsOfUse.md,
-				Resources/PrivacyInfo.json,
+				Resources/PrivacyInfo.xcprivacy,
 			);
 			target = 1C2D2A5A2EB20E7C00BCB90A /* SKATEROUTE */;
 		};
@@ -52,7 +54,7 @@
 			buildPhase = 1C2D2A572EB20E7C00BCB90A /* Sources */;
 			membershipExceptions = (
 				Resources/Legal/TermsOfUse.md,
-				Resources/PrivacyInfo.json,
+				Resources/PrivacyInfo.xcprivacy,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -94,25 +96,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1C2D2A522EB20E7C00BCB90A = {
-			isa = PBXGroup;
-			children = (
-				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5C2EB20E7C00BCB90A /* Products */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
-			);
-			sourceTree = "<group>";
-		};
-		1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
-				1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
-				1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+                1C2D2A522EB20E7C00BCB90A = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
+                                1C2D2A5C2EB20E7C00BCB90A /* Products */,
+                                1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
+                                1C2D2AFE2EB2400000BCB90A /* SKATEROUTETests */,
+                        );
+                        sourceTree = "<group>";
+                };
+                1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
+                                1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
+                                1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
+                        );
+                        name = Products;
+                        sourceTree = "<group>";
+                };
+                1C2D2AFE2EB2400000BCB90A /* SKATEROUTETests */ = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */,
+                        );
+                        path = SKATEROUTETests;
+                        sourceTree = "<group>";
+                };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -281,13 +292,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1C2D2A682EB20E7E00BCB90A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                1C2D2A682EB20E7E00BCB90A /* Sources */ = {
+                        isa = PBXSourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                                1C2D2B002EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift in Sources */,
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 		1C2D2A722EB20E7E00BCB90A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -321,13 +333,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+                               GENERATE_INFOPLIST_FILE = NO;
+                               INFOPLIST_FILE = Info/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -335,7 +342,7 @@
 				MARKETING_VERSION = 1.0;
 				NEW_SETTING = "";
 				"OTHER_SWIFT_FLAGS[arch=*]" = "$(inherited) -Xfrontend -continue-building-after-errors";
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -353,20 +360,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+                               GENERATE_INFOPLIST_FILE = NO;
+                               INFOPLIST_FILE = Info/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
 				NEW_SETTING = "";
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTE;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -507,7 +509,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTETests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.appTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -526,7 +528,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTETests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.appTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -543,7 +545,7 @@
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTEUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.appUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -560,7 +562,7 @@
 				DEVELOPMENT_TEAM = AWY366A8S4;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AcquiredTaste.SKATEROUTEUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.appUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
