@@ -40,6 +40,7 @@ public enum AppError: Error, Equatable, Sendable {
     // Entitlements / Purchases
     case purchaseNotAllowed
     case purchaseCancelled
+    case productUnavailable
     case purchaseFailed
     case restoreFailed
     case notEntitled(feature: ProFeature)
@@ -104,6 +105,7 @@ extension AppError: LocalizedError {
         // Entitlements
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
         case .notEntitled(let feature):
@@ -157,6 +159,8 @@ extension AppError: LocalizedError {
             return NSLocalizedString("Check your connection and try again.", comment: "suggestion")
         case .purchaseNotAllowed:
             return NSLocalizedString("Purchases may be disabled by Screen Time or your profile.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Try again later or choose a different item.", comment: "suggestion")
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
         case .notEntitled:
@@ -208,6 +212,7 @@ extension AppError: CustomNSError {
         case .purchaseFailed:                return 503
         case .restoreFailed:                 return 504
         case .notEntitled:                   return 505
+        case .productUnavailable:            return 506
 
         case .cameraUnavailable:             return 601
         case .microphonePermissionDenied:    return 602
@@ -325,6 +330,7 @@ public enum ErrorBridge {
             case 1:  return .purchaseCancelled
             case 2:  return .purchaseFailed
             case 4:  return .purchaseNotAllowed
+            case 5:  return .productUnavailable
             default: return .purchaseFailed
             }
         }
