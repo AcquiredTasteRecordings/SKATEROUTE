@@ -8,6 +8,18 @@ import StoreKit
 import Combine
 import OSLog
 
+#if DEBUG
+enum StoreTestOverrides {
+    static var fetchProducts: (@Sendable (Set<String>) async throws -> [Product])?
+    static var purchase: (@Sendable (Product) async throws -> Product.PurchaseResult)?
+
+    static func reset() {
+        fetchProducts = nil
+        purchase = nil
+    }
+}
+#endif
+
 @MainActor
 public final class Store: ObservableObject {
 
@@ -145,7 +157,12 @@ public final class Store: ObservableObject {
 
         do {
             let ids = Set(ProductID.allCases.map(\.rawValue))
-            let skProducts = try await Product.products(for: ids)
+            #if DEBUG
+            let fetch = StoreTestOverrides.fetchProducts ?? { try await Product.products(for: $0) }
+            #else
+            let fetch: @Sendable (Set<String>) async throws -> [Product] = { try await Product.products(for: $0) }
+            #endif
+            let skProducts = try await fetch(ids)
 
             // Deterministic order to keep UI stable.
             let ordering = ProductID.allCases.enumerated().reduce(into: [String: Int]()) { $0[$1.element.rawValue] = $1.offset }
@@ -210,11 +227,22 @@ public final class Store: ObservableObject {
                 // If we don't have a live Product (e.g., from cache-only), try to reload just this SKU.
                 var product = item.rawProduct
                 if product == nil {
-                    product = try await Product.products(for: [id.rawValue]).first
+                    let ids = Set([id.rawValue])
+                    #if DEBUG
+                    let fetch = StoreTestOverrides.fetchProducts ?? { try await Product.products(for: $0) }
+                    #else
+                    let fetch: @Sendable (Set<String>) async throws -> [Product] = { try await Product.products(for: $0) }
+                    #endif
+                    product = try await fetch(ids).first
                 }
                 guard let product else { throw AppError.productUnavailable }
 
-                let result = try await product.purchase()
+                #if DEBUG
+                let performPurchase = StoreTestOverrides.purchase ?? { try await $0.purchase() }
+                #else
+                let performPurchase: @Sendable (Product) async throws -> Product.PurchaseResult = { try await $0.purchase() }
+                #endif
+                let result = try await performPurchase(product)
 
                 switch result {
                 case .success(let verification):

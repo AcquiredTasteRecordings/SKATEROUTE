@@ -39,6 +39,7 @@ public enum AppError: Error, Equatable, Sendable {
 
     // Entitlements / Purchases
     case purchaseNotAllowed
+    case productUnavailable
     case purchaseCancelled
     case productUnavailable
     case purchaseFailed
@@ -105,6 +106,7 @@ extension AppError: LocalizedError {
 
         // Entitlements
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
         case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
@@ -294,7 +296,7 @@ public extension AppError {
     var isRetriable: Bool {
         switch self {
         case .routingTimeout, .routingUnavailable, .locationTemporarilyUnavailable,
-             .network, .server, .offline, .exportFailed, .tilepackPlanningFailed,
+             .network, .server, .offline, .productUnavailable, .exportFailed, .tilepackPlanningFailed,
              .hazardSubmissionFailed, .spotSubmissionFailed:
             return true
         default:
