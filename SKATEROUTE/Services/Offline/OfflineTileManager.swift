@@ -315,17 +315,3 @@ private extension Double {
     func clamped(_ lo: Double, _ hi: Double) -> Double { max(lo, min(hi, self)) }
 }
 
-// MARK: - MKPolyline convenience
-
-private extension MKPolyline {
-    /// Extract coordinates as an array without leaking mutable buffers across threads.
-    func coordinates() async -> [CLLocationCoordinate2D] {
-        let n = pointCount
-        guard n > 0 else { return [] }
-        var coords = [CLLocationCoordinate2D](repeating: .init(), count: n)
-        getCoordinates(&coords, range: NSRange(location: 0, length: n))
-        return coords
-    }
-}
-
-
