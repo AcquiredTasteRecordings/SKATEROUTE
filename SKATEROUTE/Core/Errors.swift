@@ -39,6 +39,7 @@ public enum AppError: Error, Equatable, Sendable {
 
     // Entitlements / Purchases
     case purchaseNotAllowed
+    case productUnavailable
     case purchaseCancelled
     case purchaseFailed
     case restoreFailed
@@ -103,6 +104,7 @@ extension AppError: LocalizedError {
 
         // Entitlements
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
@@ -157,6 +159,8 @@ extension AppError: LocalizedError {
             return NSLocalizedString("Check your connection and try again.", comment: "suggestion")
         case .purchaseNotAllowed:
             return NSLocalizedString("Purchases may be disabled by Screen Time or your profile.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Try again in a bit or choose another product.", comment: "suggestion")
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
         case .notEntitled:
@@ -204,10 +208,11 @@ extension AppError: CustomNSError {
         case .notFound:                      return 404
 
         case .purchaseNotAllowed:            return 501
-        case .purchaseCancelled:             return 502
-        case .purchaseFailed:                return 503
-        case .restoreFailed:                 return 504
-        case .notEntitled:                   return 505
+        case .productUnavailable:            return 502
+        case .purchaseCancelled:             return 503
+        case .purchaseFailed:                return 504
+        case .restoreFailed:                 return 505
+        case .notEntitled:                   return 506
 
         case .cameraUnavailable:             return 601
         case .microphonePermissionDenied:    return 602
@@ -281,7 +286,7 @@ public extension AppError {
     var isRetriable: Bool {
         switch self {
         case .routingTimeout, .routingUnavailable, .locationTemporarilyUnavailable,
-             .network, .server, .offline, .exportFailed, .tilepackPlanningFailed,
+             .network, .server, .offline, .productUnavailable, .exportFailed, .tilepackPlanningFailed,
              .hazardSubmissionFailed, .spotSubmissionFailed:
             return true
         default:
@@ -325,6 +330,7 @@ public enum ErrorBridge {
             case 1:  return .purchaseCancelled
             case 2:  return .purchaseFailed
             case 4:  return .purchaseNotAllowed
+            case 5:  return .productUnavailable
             default: return .purchaseFailed
             }
         }
