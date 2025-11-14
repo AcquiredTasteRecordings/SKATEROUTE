@@ -550,6 +550,7 @@ public extension Store {
 private extension UXError {
     static var purchaseCancelled: UXError { UXError.from(.purchaseCancelled) }
     static var purchaseFailed: UXError { UXError.from(.purchaseFailed) }
+    static var productUnavailable: UXError { UXError.from(.productUnavailable) }
 }
 
 // MARK: - AppStore capability

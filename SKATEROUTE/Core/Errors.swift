@@ -108,6 +108,7 @@ extension AppError: LocalizedError {
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
         case .productUnavailable:            return NSLocalizedString("That item isn’t available right now.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .notEntitled(let feature):
             return String(format: NSLocalizedString("This feature requires %@.", comment: "error"), feature.displayName)
 
@@ -144,6 +145,7 @@ extension AppError: LocalizedError {
             return NSLocalizedString("A network error occurred.", comment: "reason")
         case .productUnavailable:            return NSLocalizedString("The item is temporarily unavailable.", comment: "reason")
         case .notEntitled(let feature):      return String(format: NSLocalizedString("%@ is a Pro feature.", comment: "reason"), feature.displayName)
+        case .productUnavailable:            return NSLocalizedString("The App Store isn’t currently listing this item.", comment: "reason")
         default: return nil
         }
     }
@@ -266,6 +268,7 @@ public extension UXError {
         let title: String = {
             switch err {
             case .notEntitled: return NSLocalizedString("Locked Feature", comment: "title")
+            case .productUnavailable: return NSLocalizedString("Store Unavailable", comment: "title")
             case .offline, .network: return NSLocalizedString("Network Issue", comment: "title")
             case .locationDenied, .motionPermissionDenied: return NSLocalizedString("Permissions Needed", comment: "title")
             default: return NSLocalizedString("Something Went Wrong", comment: "title")
@@ -330,6 +333,7 @@ public enum ErrorBridge {
             case 0:  return .unknown
             case 1:  return .purchaseCancelled
             case 2:  return .purchaseFailed
+            case 3:  return .productUnavailable
             case 4:  return .purchaseNotAllowed
             default: return .purchaseFailed
             }
