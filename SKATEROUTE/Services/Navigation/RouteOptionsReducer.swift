@@ -82,20 +82,20 @@ public final class RouteOptionsReducer: RouteOptionsReducing {
         // Choose labels: fastest gets “Fastest”, highest score gets “Best Surface”.
         // If they’re the same, keep “Best Route”.
         let fastestId = enriched
-            .min(by: { $0.0.route.expectedTravelTime < $1.0.route.expectedTravelTime })?.0.id
+            .min(by: { $0.0.metadata.expectedTravelTimeSeconds < $1.0.metadata.expectedTravelTimeSeconds })?.0.id
         let bestScoreId = enriched
             .max(by: { $0.1 < $1.1 })?.0.id
 
         var out: [String: Presentation] = [:]
         for (idx, item) in enriched.enumerated() {
             let cand = item.0
-            let route = cand.route
             let score = item.1
             let scoreLabel = item.3
             let tint = item.2
+            let metadata = cand.metadata
 
-            let distanceText = Self.formatDistance(route.distance)
-            let etaText = Self.formatETA(route.expectedTravelTime)
+            let distanceText = Self.formatDistance(metadata.distanceMeters)
+            let etaText = Self.formatETA(metadata.expectedTravelTimeSeconds)
 
             let title: String = {
                 switch cand.id {
