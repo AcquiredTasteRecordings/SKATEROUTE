@@ -247,7 +247,12 @@ extension SessionLogger: SessionLogging {}
 // Removed SkateRouteScorer extension conforming to SkateRouteScoring with per-step helpers
 
 extension OfflineTileManager: @MainActor OfflineTileManaging {
-    public func ensureTiles(for polyline: MKPolyline, identifier: String) async { }
+    public func ensureTiles(for polyline: MKPolyline, identifier: String) async {
+        ensureTiles(for: polyline,
+                    identifier: identifier,
+                    zoomRange: 12...17,
+                    corridorMeters: 120)
+    }
     
     public var statePublisher: AnyPublisher<OfflineTileManager.DownloadState, Never> {
         $state.eraseToAnyPublisher()
@@ -259,7 +264,9 @@ extension OfflineTileManager: @MainActor OfflineTileManaging {
 }
 
 extension OfflineRouteStore: @preconcurrency OfflineRouteStoring {
-    public func store(_ snapshots: [Snapshot], for key: RequestKey) { }
+    public nonisolated func store(_ snapshots: [Snapshot], for key: RequestKey) {
+        Task { await self.store(snapshots, for: key, ttl: nil) }
+    }
 }
 
 extension RerouteController: RerouteControlling {}
