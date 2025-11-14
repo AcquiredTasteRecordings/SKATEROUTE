@@ -181,7 +181,7 @@ This checklist is the single source of truth used by engineering, QA, and produc
 ## 12) Appendix — Config Keys Quick Reference
 **`App-Shared.xcconfig`** (examples):
 ```ini
-PRODUCT_BUNDLE_IDENTIFIER = com.yourco.skateroute
+PRODUCT_BUNDLE_IDENTIFIER = com.skateroute.app
 INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = Downhill Navigator uses your location to find smooth, safe skate routes while you’re using the app.
 INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = Allows accurate ETAs and continuous guidance with the screen off.
 INFOPLIST_KEY_NSLocationTemporaryUsageDescriptionDictionary_NavigationPrecision = Used briefly to improve route accuracy during active navigation.

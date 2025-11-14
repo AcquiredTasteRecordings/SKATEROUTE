@@ -40,8 +40,10 @@ public enum AppError: Error, Equatable, Sendable {
     // Entitlements / Purchases
     case purchaseNotAllowed
     case purchaseCancelled
+    case productUnavailable
     case purchaseFailed
     case restoreFailed
+    case productUnavailable
     case notEntitled(feature: ProFeature)
 
     // Media
@@ -104,8 +106,11 @@ extension AppError: LocalizedError {
         // Entitlements
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That item isn’t available right now.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .notEntitled(let feature):
             return String(format: NSLocalizedString("This feature requires %@.", comment: "error"), feature.displayName)
 
@@ -140,7 +145,9 @@ extension AppError: LocalizedError {
         case .network(let code):
             if let code { return String(format: NSLocalizedString("Network error: %@.", comment: "reason"), code.debugName) }
             return NSLocalizedString("A network error occurred.", comment: "reason")
+        case .productUnavailable:            return NSLocalizedString("The item is temporarily unavailable.", comment: "reason")
         case .notEntitled(let feature):      return String(format: NSLocalizedString("%@ is a Pro feature.", comment: "reason"), feature.displayName)
+        case .productUnavailable:            return NSLocalizedString("The App Store isn’t currently listing this item.", comment: "reason")
         default: return nil
         }
     }
@@ -157,8 +164,12 @@ extension AppError: LocalizedError {
             return NSLocalizedString("Check your connection and try again.", comment: "suggestion")
         case .purchaseNotAllowed:
             return NSLocalizedString("Purchases may be disabled by Screen Time or your profile.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Try again later or choose a different item.", comment: "suggestion")
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Pick another product for now or try again later.", comment: "suggestion")
         case .notEntitled:
             return NSLocalizedString("Unlock on the paywall to use this feature.", comment: "suggestion")
         case .tilepackMissing:
@@ -176,7 +187,7 @@ extension AppError: LocalizedError {
 // MARK: - CustomNSError (stable domain/codes)
 
 extension AppError: CustomNSError {
-    public static var errorDomain: String { "com.yourcompany.skateroute" }
+    public static var errorDomain: String { "com.skateroute.app" }
 
     public var errorCode: Int {
         switch self {
@@ -208,6 +219,7 @@ extension AppError: CustomNSError {
         case .purchaseFailed:                return 503
         case .restoreFailed:                 return 504
         case .notEntitled:                   return 505
+        case .productUnavailable:            return 506
 
         case .cameraUnavailable:             return 601
         case .microphonePermissionDenied:    return 602
@@ -260,6 +272,7 @@ public extension UXError {
         let title: String = {
             switch err {
             case .notEntitled: return NSLocalizedString("Locked Feature", comment: "title")
+            case .productUnavailable: return NSLocalizedString("Store Unavailable", comment: "title")
             case .offline, .network: return NSLocalizedString("Network Issue", comment: "title")
             case .locationDenied, .motionPermissionDenied: return NSLocalizedString("Permissions Needed", comment: "title")
             default: return NSLocalizedString("Something Went Wrong", comment: "title")
@@ -324,7 +337,9 @@ public enum ErrorBridge {
             case 0:  return .unknown
             case 1:  return .purchaseCancelled
             case 2:  return .purchaseFailed
+            case 3:  return .productUnavailable
             case 4:  return .purchaseNotAllowed
+            case 5:  return .productUnavailable
             default: return .purchaseFailed
             }
         }

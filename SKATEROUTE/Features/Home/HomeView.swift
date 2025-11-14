@@ -31,6 +31,7 @@ struct HomeView: View {
 
     @State private var isSearching = false
     @State private var showStats = false
+    @State private var showSpotCreationGate = false
     @State private var asphaltOffset: CGFloat = 0
     @State private var cancellables: Set<AnyCancellable> = []
 
@@ -48,6 +49,8 @@ struct HomeView: View {
     init(dependencies: any AppDependencyContainer) {
         self.dependencies = dependencies
     }
+
+    private var isSpotCreationEnabled: Bool { Env.flag("ENABLE_SPOT_CREATION") }
 
     var body: some View {
         ZStack {
@@ -129,10 +132,19 @@ struct HomeView: View {
 
                     Button {
                         Haptics.selection()
-                        if UIAccessibility.isVoiceOverRunning {
-                            UIAccessibility.post(notification: .announcement, argument: "Drop a spot coming soon")
+                        if isSpotCreationEnabled {
+                            if UIAccessibility.isVoiceOverRunning {
+                                UIAccessibility.post(notification: .announcement,
+                                                      argument: "Opening spot submission")
+                            }
+                            coordinator.presentSpotCreate()
+                        } else {
+                            showSpotCreationGate = true
+                            if UIAccessibility.isVoiceOverRunning {
+                                UIAccessibility.post(notification: .announcement,
+                                                      argument: "Spot submissions coming soon")
+                            }
                         }
-                        // TODO: Hook to quick-spot capture or a sheet
                     } label: {
                         Text("Drop a Spot")
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
@@ -146,6 +158,18 @@ struct HomeView: View {
                             )
                     }
                     .accessibilityLabel("Drop a Spot button")
+                    .accessibilityHint(isSpotCreationEnabled
+                        ? "Opens the spot submission flow."
+                        : "Spot submissions are coming soon once the community backend is online.")
+                    .opacity(isSpotCreationEnabled ? 1 : 0.6)
+
+                    if !isSpotCreationEnabled {
+                        Text("Spot submissions are coming soon while we bring the community backend online.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
+                    }
 
                     Button {
                         Haptics.light()
@@ -222,6 +246,15 @@ struct HomeView: View {
                 }
             )
             .accessibilityAddTraits(.isModal)
+        }
+        .alert(Text("Spot submissions coming soon"), isPresented: $showSpotCreationGate) {
+            Button(role: .cancel) {
+                showSpotCreationGate = false
+            } label: {
+                Text("Got it")
+            }
+        } message: {
+            Text("We’re still bringing the community backend online before opening spot submissions.")
         }
     }
 }

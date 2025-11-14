@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 import StoreKit
 import UIKit
+import ServicesAnalytics
 
 // MARK: - DI seams (keep narrow and testable)
 
@@ -251,16 +252,16 @@ public struct PaywallView: View {
         )
         .overlay(toastOverlay)
         .onAppear {
-            UIAccessibility.post(notification: .screenChanged, argument: NSLocalizedString("Upgrade to Pro", comment: "VO screen title"))
+            UIAccessibility.post(notification: .screenChanged, argument: NSLocalizedString("Upgrade to SkateRoute Pro", comment: "VO screen title"))
         }
         .accessibilityElement(children: .contain)
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(NSLocalizedString("Upgrade to Pro", comment: "paywall title"))
+            Text(NSLocalizedString("Upgrade to SkateRoute Pro", comment: "paywall title"))
                 .font(.largeTitle.bold())
-                .accessibilityLabel(Text(NSLocalizedString("Upgrade to Pro", comment: "")))
+                .accessibilityLabel(Text(NSLocalizedString("Upgrade to SkateRoute Pro", comment: "")))
             Text(NSLocalizedString("Unlock offline maps, safer routes, and pro-level tools. Never blocks safety features.", comment: "subtitle"))
                 .font(.body)
                 .foregroundColor(.secondary)
@@ -442,8 +443,6 @@ private struct RulesFake: PaywallRuling {
     func placement(for context: PaywallContext) -> PaywallPlacement { .sheet }
 }
 
-private struct AnalyticsNoop: AnalyticsLogging { func log(_ event: AnalyticsEvent) {} }
-
 // Lightweight product shim for previews (we cannot construct StoreKit.Product directly; build a struct wrapper if needed).
 // Here we provide a tiny proxy that mimics the properties we use via an extension.
 extension Product {
@@ -457,7 +456,7 @@ struct PaywallView_Previews: PreviewProvider {
         // or showing the redacted price row.
         let store = StoreFake()
         let ctx = PaywallContext(location: .onboarding, sessionCount: 1, isNavigating: false)
-        let vm = PaywallViewModel(store: store, rules: RulesFake(), analytics: AnalyticsNoop(), context: ctx)
+        let vm = PaywallViewModel(store: store, rules: RulesFake(), analytics: AnalyticsLoggerSpy(), context: ctx)
         return Group {
             PaywallView(viewModel: vm)
                 .environment(\.colorScheme, .light)
