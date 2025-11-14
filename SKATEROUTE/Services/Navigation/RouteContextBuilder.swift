@@ -1,6 +1,9 @@
 // Services/RouteContextBuilder.swift
 // Builds per-step contexts for scoring and overlay paint.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import MapKit
 
@@ -82,7 +85,7 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
         for (idx, step) in route.steps.enumerated() {
             let poly = step.polyline
-            let distance = step.distance > 0 ? step.distance : poly.distanceMetersFallback()
+            let distance = step.distance > 0 ? step.distance : poly.totalLengthMeters()
             let eta = step.expectedTravelTime > 0 ? step.expectedTravelTime : Self.estimateETA(distance)
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)
@@ -171,27 +174,6 @@ private func headingDegrees(from: CLLocationCoordinate2D, to: CLLocationCoordina
     let θ = atan2(y, x) * 180 / .pi
     let deg = fmod(θ + 360, 360)
     return deg.isNaN ? 0 : deg
-}
-
-private extension MKPolyline {
-    func coordinates() -> [CLLocationCoordinate2D] {
-        var coords = [CLLocationCoordinate2D](repeating: kCLLocationCoordinate2DInvalid, count: pointCount)
-        getCoordinates(&coords, range: NSRange(location: 0, length: pointCount))
-        return coords
-    }
-
-    /// In case step.distance is 0 (rare but happens), compute from geometry.
-    func distanceMetersFallback() -> CLLocationDistance {
-        let pts = coordinates()
-        guard pts.count > 1 else { return 0 }
-        var d: CLLocationDistance = 0
-        for i in 0..<(pts.count - 1) {
-            let a = MKMapPoint(pts[i])
-            let b = MKMapPoint(pts[i + 1])
-            d += MKMetersBetweenMapPoints(a, b)
-        }
-        return d
-    }
 }
 
 

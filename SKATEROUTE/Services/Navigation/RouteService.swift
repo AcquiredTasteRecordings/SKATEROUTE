@@ -2,6 +2,9 @@
 // MapKit-first routing with grade summaries + step contexts.
 // Async/await, memory-cached, privacy-safe, no secrets.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import CoreLocation
 import MapKit
@@ -243,16 +246,6 @@ private extension RideMode {
     var transportType: MKDirectionsTransportType {
         // Default to walking; conservative and skate-legal.
         return .walking
-    }
-}
-
-// MARK: - MKPolyline helpers (lightweight)
-
-private extension MKPolyline {
-    func coordinates() -> [CLLocationCoordinate2D] {
-        var coords = [CLLocationCoordinate2D](repeating: kCLLocationCoordinate2DInvalid, count: pointCount)
-        getCoordinates(&coords, range: NSRange(location: 0, length: pointCount))
-        return coords
     }
 }
 

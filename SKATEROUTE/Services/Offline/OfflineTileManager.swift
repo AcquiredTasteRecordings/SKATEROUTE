@@ -5,6 +5,9 @@
 // NOTE: This does NOT fetch Apple Map tiles (ToS). It only plans/stores manifests
 // so your UI can reflect offline readiness and your own tile source (if any) can plug in.
 
+#if canImport(Support)
+import Support
+#endif
 import Foundation
 import MapKit
 import OSLog
@@ -189,7 +192,7 @@ extension OfflineTileManager {
         try Task.checkCancellation()
 
         // 1) Sample the polyline into geodesic points ~ every 120 m (cheap and adequate).
-        let coords = await polyline.coordinates()
+        let coords = polyline.coordinates()
         let sampled = sampleCoordinates(coords, strideMeters: 120)
 
         // 2) For each zoom, add the central tile and neighbors that cover the corridor radius.
@@ -313,19 +316,6 @@ private extension JSONDecoder {
 
 private extension Double {
     func clamped(_ lo: Double, _ hi: Double) -> Double { max(lo, min(hi, self)) }
-}
-
-// MARK: - MKPolyline convenience
-
-private extension MKPolyline {
-    /// Extract coordinates as an array without leaking mutable buffers across threads.
-    func coordinates() async -> [CLLocationCoordinate2D] {
-        let n = pointCount
-        guard n > 0 else { return [] }
-        var coords = [CLLocationCoordinate2D](repeating: .init(), count: n)
-        getCoordinates(&coords, range: NSRange(location: 0, length: n))
-        return coords
-    }
 }
 
 
