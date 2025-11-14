@@ -190,13 +190,12 @@ public final class RerouteController: ObservableObject {
 
     /// Pre-extract MKMapPoints for quick segment-distance calculations.
     private func cachePolylinePoints(_ polyline: MKPolyline) {
-        let n = polyline.pointCount
+        var pts = polyline.mapPoints()
+        let n = pts.count
         guard n > 1 else {
             cachedPolylinePoints = []
             return
         }
-        var pts = [MKMapPoint](repeating: .init(), count: n)
-        polyline.getPoints(pts)
         if n > cfg.maxVertexScan {
             // Uniformly subsample to keep evaluation cheap on monster polylines.
             let step = Double(n - 1) / Double(cfg.maxVertexScan - 1)
@@ -240,17 +239,6 @@ public final class RerouteController: ObservableObject {
         t = max(0, min(1, t))
         let proj = MKMapPoint(x: a.x + t * dx, y: a.y + t * dy)
         return p.distance(to: proj)
-    }
-}
-
-// MARK: - MKPolyline convenience (points extraction)
-
-private extension MKPolyline {
-    func getPoints(_ buffer: inout [MKMapPoint]) {
-        buffer.withUnsafeMutableBufferPointer { ptr in
-            let range = NSRange(location: 0, length: pointCount)
-            getPoints(ptr.baseAddress!, range: range)
-        }
     }
 }
 

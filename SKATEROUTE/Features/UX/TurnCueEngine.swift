@@ -388,16 +388,14 @@ private extension String {
 private extension MKPolyline {
     func firstCoordinate() -> CLLocationCoordinate2D? {
         guard pointCount > 0 else { return nil }
-        var p = [MKMapPoint](repeating: .init(), count: 1)
-        getPoints(&p, range: NSRange(location: 0, length: 1))
-        return p.first.map { $0.coordinate }
+        let pointer = points()
+        return pointer.pointee.coordinate
     }
 
     func lastCoordinate() -> CLLocationCoordinate2D? {
         guard pointCount > 0 else { return nil }
-        var p = [MKMapPoint](repeating: .init(), count: 1)
-        getPoints(&p, range: NSRange(location: pointCount - 1, length: 1))
-        return p.first.map { $0.coordinate }
+        let pointer = points().advanced(by: pointCount - 1)
+        return pointer.pointee.coordinate
     }
 }
 
