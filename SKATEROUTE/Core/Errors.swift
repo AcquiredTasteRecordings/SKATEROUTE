@@ -40,6 +40,7 @@ public enum AppError: Error, Equatable, Sendable {
     // Entitlements / Purchases
     case purchaseNotAllowed
     case purchaseCancelled
+    case productUnavailable
     case purchaseFailed
     case restoreFailed
     case productUnavailable
@@ -105,6 +106,7 @@ extension AppError: LocalizedError {
         // Entitlements
         case .purchaseNotAllowed:            return NSLocalizedString("Purchases aren’t allowed on this device.", comment: "error")
         case .purchaseCancelled:             return NSLocalizedString("Purchase was cancelled.", comment: "error")
+        case .productUnavailable:            return NSLocalizedString("That product isn’t available right now.", comment: "error")
         case .purchaseFailed:                return NSLocalizedString("Purchase failed.", comment: "error")
         case .productUnavailable:            return NSLocalizedString("That item isn’t available right now.", comment: "error")
         case .restoreFailed:                 return NSLocalizedString("Restore failed.", comment: "error")
@@ -162,6 +164,8 @@ extension AppError: LocalizedError {
             return NSLocalizedString("Check your connection and try again.", comment: "suggestion")
         case .purchaseNotAllowed:
             return NSLocalizedString("Purchases may be disabled by Screen Time or your profile.", comment: "suggestion")
+        case .productUnavailable:
+            return NSLocalizedString("Try again later or choose a different item.", comment: "suggestion")
         case .purchaseFailed, .restoreFailed:
             return NSLocalizedString("Try again in a minute. If it continues, contact support.", comment: "suggestion")
         case .productUnavailable:
@@ -335,6 +339,7 @@ public enum ErrorBridge {
             case 2:  return .purchaseFailed
             case 3:  return .productUnavailable
             case 4:  return .purchaseNotAllowed
+            case 5:  return .productUnavailable
             default: return .purchaseFailed
             }
         }
