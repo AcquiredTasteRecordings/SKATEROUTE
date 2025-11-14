@@ -316,9 +316,14 @@ private final class PaintedPolyline: MKPolyline {
     fileprivate var color: UIColor = .systemBlue
     fileprivate var stepIndex: Int?
     convenience init(points: MKPolyline) {
-        var buf = [MKMapPoint](repeating: .init(), count: points.pointCount)
-        points.getPoints(&buf, range: NSRange(location: 0, length: points.pointCount))
-        self.init(points: buf, count: buf.count)
+        let mapPoints = points.mapPoints()
+        if mapPoints.isEmpty {
+            self.init()
+        } else {
+            mapPoints.withUnsafeBufferPointer { buffer in
+                self.init(points: buffer.baseAddress!, count: buffer.count)
+            }
+        }
     }
 }
 

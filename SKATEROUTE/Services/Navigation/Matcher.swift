@@ -108,9 +108,8 @@ private func segmentProjection(p: MKMapPoint, a: MKMapPoint, b: MKMapPoint)
 
 private extension MKPolyline {
     func withUnsafeMapPoints(_ body: (_ pts: UnsafeBufferPointer<MKMapPoint>) -> Void) {
-        var buf = [MKMapPoint](repeating: .init(), count: pointCount)
-        getPoints(&buf, range: NSRange(location: 0, length: pointCount))
-        buf.withUnsafeBufferPointer { body($0) }
+        let mapPoints = mapPoints()
+        mapPoints.withUnsafeBufferPointer { body($0) }
     }
 }
 

@@ -153,15 +153,3 @@ public enum AccuracyProfile: String, CaseIterable, Sendable {
     /// Suggest a profile for deep background idling.
     public static var forDeepBackground: AccuracyProfile { .background }
 }
-
-// MARK: - Convenience for LocationManaging wrappers
-
-public extension CLLocationManager {
-    /// Safe, explicit reset of deferral (wrapped for clarity).
-    func disallowDeferredLocationUpdates() {
-        // No-op on simulators/hardware that doesn’t support.
-        self.disallowDeferredLocationUpdates()
-    }
-}
-
-
