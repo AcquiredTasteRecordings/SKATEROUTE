@@ -22,23 +22,20 @@ public struct RoutePlannerView: View {
                 .frame(width: 38, height: 4)
                 .padding(.top, 8)
 
-            LayerToggleBar(layers: RoutePlannerViewModel.PlannerLayer.allCases,
-                           selection: $viewModel.activeLayers)
-
-            if let error = viewModel.errorMessage {
-                Text(error)
+            if case .error(let message) = viewModel.state {
+                Text(message)
                     .font(.footnote)
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if viewModel.isLoading && viewModel.options.isEmpty {
+            if case .loading = viewModel.state, orderedOptions.isEmpty {
                 ProgressView("Loading routes…")
                     .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
+            } else if !orderedOptions.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        ForEach(viewModel.options) { option in
+                        ForEach(orderedOptions, id: \.id) { option in
                             optionCard(for: option)
                         }
                     }
@@ -46,7 +43,14 @@ public struct RoutePlannerView: View {
                 }
             }
 
-            ElevationProfileView(summary: viewModel.slopeSummary)
+            if let banner = viewModel.bannerText {
+                Text(banner)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            ElevationProfileView(summary: selectedGradeSummary)
 
             actionRow
         }
@@ -56,50 +60,57 @@ public struct RoutePlannerView: View {
         .shadow(radius: 12)
     }
 
-    private func optionCard(for option: RouteOptionModel) -> some View {
-        let isSelected = viewModel.selectedOption?.id == option.id
+    private var orderedOptions: [RouteOption] {
+        viewModel.orderedCandidateIDs.compactMap { id in
+            guard let presentation = viewModel.presentations[id] else { return nil }
+            return RouteOption(id: id, presentation: presentation)
+        }
+    }
+
+    private var selectedGradeSummary: GradeSummary? {
+        guard let id = viewModel.selectedCandidateID else { return nil }
+        return viewModel.gradeSummaries[id]
+    }
+
+    private func optionCard(for option: RouteOption) -> some View {
+        let isSelected = viewModel.selectedCandidateID == option.id
         return Button {
-            viewModel.select(option: option)
+            viewModel.selectCandidate(id: option.id)
         } label: {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text(option.title)
+                    Text(option.presentation.title)
                         .font(.headline)
                     Spacer()
-                    Text(String(format: "%.0f", option.score * 100))
+                    Text(String(format: "%.0f", option.presentation.score))
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.accentColor.opacity(0.12))
+                        .background(Color(option.presentation.tintColor).opacity(0.12))
                         .clipShape(Capsule())
+                        .foregroundColor(Color(option.presentation.tintColor))
                 }
 
-                Text(option.detail)
+                Text(option.presentation.subtitle)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
                 HStack(spacing: 12) {
-                    Label(option.distanceString, systemImage: "map")
+                    Label(option.presentation.distanceText, systemImage: "map")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Label(option.etaString, systemImage: "clock")
+                    Label(option.presentation.etaText, systemImage: "clock")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text(option.scoreLabel)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-
-                if option.mkRoute == nil {
-                    Text("Offline snapshot")
+                    Text(option.presentation.scoreLabel)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
             }
             .padding(12)
             .frame(width: 220)
-            .background(isSelected ? Color.accentColor.opacity(0.15) : Color(UIColor.secondarySystemBackground))
+            .background(isSelected ? Color(option.presentation.tintColor).opacity(0.18) : Color(UIColor.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
@@ -118,7 +129,7 @@ public struct RoutePlannerView: View {
                 .background(Color(UIColor.secondarySystemBackground))
                 .clipShape(Capsule())
             }
-            .disabled(viewModel.selectedOption == nil)
+            .disabled(viewModel.selectedCandidateID == nil)
 
             Spacer()
 
@@ -134,13 +145,14 @@ public struct RoutePlannerView: View {
                 .foregroundColor(.white)
                 .clipShape(Capsule())
             }
-            .disabled(viewModel.selectedOption == nil)
+            .disabled(viewModel.selectedCandidateID == nil)
         }
     }
 
     private var iconForDownloadState: String {
-        switch viewModel.downloadState {
+        switch viewModel.offlineState {
         case .idle: return "tray.and.arrow.down"
+        case .preparing: return "clock"
         case .downloading: return "arrow.down.circle"
         case .cached: return "checkmark.circle.fill"
         case .failed: return "exclamationmark.triangle"
@@ -148,17 +160,24 @@ public struct RoutePlannerView: View {
     }
 
     private var titleForDownloadState: String {
-        switch viewModel.downloadState {
+        switch viewModel.offlineState {
         case .idle:
             return "Download for offline"
+        case .preparing:
+            return "Preparing tiles…"
         case .downloading(let progress):
             return "Downloading \(Int(progress * 100))%"
-        case .cached:
-            return "Offline ready"
+        case .cached(let count):
+            return count > 0 ? "Offline ready (\(count))" : "Offline ready"
         case .failed:
             return "Retry download"
         }
     }
+}
+
+private struct RouteOption: Identifiable {
+    let id: String
+    let presentation: RouteOptionsReducer.Presentation
 }
 
 
