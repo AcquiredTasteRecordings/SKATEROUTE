@@ -194,7 +194,8 @@ public final class Store: ObservableObject {
     public func purchase(_ id: ProductID) {
         guard purchaseTask == nil else { return }
         guard let item = products.first(where: { $0.id == id }) else {
-            lastError = UXError.from(.unknown)
+            lastError = .productUnavailable
+            analytics?.log(event: .purchaseFailed(product: id.rawValue), error: AppError.productUnavailable)
             return
         }
 
@@ -521,6 +522,7 @@ public extension Store {
 private extension UXError {
     static var purchaseCancelled: UXError { UXError.from(.purchaseCancelled) }
     static var purchaseFailed: UXError { UXError.from(.purchaseFailed) }
+    static var productUnavailable: UXError { UXError.from(.productUnavailable) }
 }
 
 // MARK: - AppStore capability
