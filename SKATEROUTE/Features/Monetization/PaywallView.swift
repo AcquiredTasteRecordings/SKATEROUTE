@@ -252,16 +252,16 @@ public struct PaywallView: View {
         )
         .overlay(toastOverlay)
         .onAppear {
-            UIAccessibility.post(notification: .screenChanged, argument: NSLocalizedString("Upgrade to Pro", comment: "VO screen title"))
+            UIAccessibility.post(notification: .screenChanged, argument: NSLocalizedString("Upgrade to SkateRoute Pro", comment: "VO screen title"))
         }
         .accessibilityElement(children: .contain)
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(NSLocalizedString("Upgrade to Pro", comment: "paywall title"))
+            Text(NSLocalizedString("Upgrade to SkateRoute Pro", comment: "paywall title"))
                 .font(.largeTitle.bold())
-                .accessibilityLabel(Text(NSLocalizedString("Upgrade to Pro", comment: "")))
+                .accessibilityLabel(Text(NSLocalizedString("Upgrade to SkateRoute Pro", comment: "")))
             Text(NSLocalizedString("Unlock offline maps, safer routes, and pro-level tools. Never blocks safety features.", comment: "subtitle"))
                 .font(.body)
                 .foregroundColor(.secondary)

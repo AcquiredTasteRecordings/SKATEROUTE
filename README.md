@@ -173,10 +173,17 @@ swift-format --configuration .swift-format.json --in-place --recursive .
 ---
 
 ## Monetization
-**StoreKit 2 (placeholders)**
-- `com.skateroute.pro.monthly`
-- `com.skateroute.pro.yearly`
-- `com.skateroute.event.pass.<slug>`
+**StoreKit 2 SKUs**
+
+| SKU | Purpose |
+| --- | --- |
+| `com.skateroute.app.pro.offline` | Offline packs entitlement |
+| `com.skateroute.app.pro.analytics` | Advanced analytics entitlement |
+| `com.skateroute.app.pro.editor` | Pro editor entitlement |
+| `com.skateroute.app.pro.monthly` | SkateRoute Pro monthly subscription |
+| `com.skateroute.app.pro.yearly` | SkateRoute Pro yearly subscription |
+| `com.skateroute.app.pro.lifetime` | Lifetime unlock (non-renewing) |
+| `com.skateroute.event.pass.<slug>` | Event-specific consumables |
 
 **Entitlements**
 - Pro unlocks offline packs, advanced overlays, premium spots. Event passes are time‑bound.

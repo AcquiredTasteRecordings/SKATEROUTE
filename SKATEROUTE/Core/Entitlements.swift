@@ -49,7 +49,7 @@ public extension ProFeature {
 // MARK: - Product identifiers
 
 /// Centralizes StoreKit product identifiers so there’s one source of truth.
-/// Keep them short and deterministic; they will be referenced in App Store Connect.
+/// Canonical format matches App Store Connect SKUs: `com.skateroute.app.pro.<feature>`.
 public enum ProductID: String, CaseIterable, Sendable {
     // Non-consumables (one-time unlocks)
     case offlinePacks = "com.skateroute.pro.offline"

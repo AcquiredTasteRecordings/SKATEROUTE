@@ -337,7 +337,14 @@ This checklist is the single source of truth used by engineering, QA, product, a
 ---
 
 ## 8) Monetization & Commerce
-- [ ] **StoreKit 2** products configured: `com.skateroute.pro.monthly`, `com.skateroute.pro.yearly`, `com.skateroute.event.pass.<slug>`.
+- [ ] **StoreKit 2** products configured:
+    - `com.skateroute.app.pro.offline`
+    - `com.skateroute.app.pro.analytics`
+    - `com.skateroute.app.pro.editor`
+    - `com.skateroute.app.pro.monthly`
+    - `com.skateroute.app.pro.yearly`
+    - `com.skateroute.app.pro.lifetime`
+    - `com.skateroute.event.pass.<slug>`
 - [ ] **Paywall** copy accurate; **Restore Purchases** path works.
 - [ ] **Entitlements** unlock Pro features (offline packs, advanced overlays, premium spots).
 - [ ] **Apple Pay/Stripe** limited to **physical goods/services** (merch, tickets); no digital paywalls outside IAP.
