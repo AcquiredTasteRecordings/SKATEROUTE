@@ -12,11 +12,16 @@
 import SwiftUI
 import Combine
 import CoreLocation
+import UIKit
 
 // Minimal router enum to resolve missing type and case references.
 public enum AppRouter: Hashable {
     case home
     case map(source: CLLocationCoordinate2D, destination: CLLocationCoordinate2D)
+}
+
+public enum AppDestination: Hashable {
+    case spotCreate
 }
 
 // Manual Equatable/Hashable because CLLocationCoordinate2D is not Hashable by default.
@@ -113,6 +118,18 @@ public final class AppCoordinator: ObservableObject {
         goHome()
     }
 
+    public func presentSpotCreate() {
+        if route != .home {
+            goHome()
+        }
+        navPath.append(AppDestination.spotCreate)
+    }
+
+    public func dismissSpotCreate() {
+        guard navPath.count > 0 else { return }
+        navPath.removeLast()
+    }
+
     // MARK: - Deep Link Handling
     // Accepts URLs like:
     // skateroute://map?src=49.2827,-123.1207&dst=49.2756,-123.1236
@@ -174,6 +191,9 @@ public struct CoordinatorView: View {
         // Single NavigationStack for push flows inside the current route.
         NavigationStack(path: $coordinator.navPath) {
             content
+                .navigationDestination(for: AppDestination.self) { destination in
+                    coordinator.destination(for: destination)
+                }
                 .onOpenURL { url in
                     coordinator.handle(url: url)
                 }
@@ -206,6 +226,14 @@ public struct CoordinatorView: View {
 public extension AppCoordinator {
     func makeRootView() -> some View {
         CoordinatorView(coordinator: self)
+    }
+
+    @ViewBuilder
+    func destination(for destination: AppDestination) -> some View {
+        switch destination {
+        case .spotCreate:
+            SpotCreateScreen(viewModel: makeSpotCreateViewModel())
+        }
     }
 }
 
@@ -248,6 +276,86 @@ private extension AppCoordinator {
         guard parts.count == 2, let lat = Double(parts[0]), let lon = Double(parts[1]) else { return nil }
         guard (-90.0...90.0).contains(lat), (-180.0...180.0).contains(lon) else { return nil }
         return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+
+    func makeSpotCreateViewModel() -> SpotCreateViewModel {
+        SpotCreateViewModel(
+            creator: SpotCreateLocalCreator(),
+            uploader: SpotCreateUploadStub(),
+            locationPicker: SpotCreateCurrentLocationPicker(locationManager: dependencies.locationManager),
+            analytics: nil,
+            userIdProvider: { SpotCreateUserDefaults.shared.userId }
+        )
+    }
+}
+
+// MARK: - Spot Create Destination & helpers
+
+private struct SpotCreateScreen: View {
+    @EnvironmentObject private var coordinator: AppCoordinator
+    @StateObject private var viewModel: SpotCreateViewModel
+
+    init(viewModel: SpotCreateViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
+    var body: some View {
+        SpotCreateView(viewModel: viewModel)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(NSLocalizedString("Close", comment: "close")) {
+                        coordinator.dismissSpotCreate()
+                    }
+                }
+            }
+    }
+}
+
+private final class SpotCreateLocalCreator: SpotCreating {
+    func create(creatorUserId: String, draft: SpotDraft) async throws -> String {
+        // Simulate optimistic local insert while backend wiring is disabled.
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        return "local-\(UUID().uuidString)"
+    }
+}
+
+private final class SpotCreateUploadStub: UploadServicing {
+    func uploadAvatarSanitized(data: Data, key: String, contentType: String) async throws -> URL {
+        let safeKey = key.replacingOccurrences(of: "/", with: "-")
+        let dir = Env.cachesRoot().appendingPathComponent("SpotUploads", isDirectory: true)
+        Env.ensureDir(dir)
+        let fileURL = dir.appendingPathComponent(safeKey)
+        try data.write(to: fileURL, options: .atomic)
+        return fileURL
+    }
+}
+
+private final class SpotCreateCurrentLocationPicker: LocationPicking {
+    private let locationManager: LocationManaging
+
+    init(locationManager: LocationManaging) {
+        self.locationManager = locationManager
+    }
+
+    func pickCoordinate(initial: CLLocationCoordinate2D?) async -> CLLocationCoordinate2D? {
+        if let current = locationManager.currentLocation?.coordinate {
+            return current
+        }
+        return initial
+    }
+}
+
+private final class SpotCreateUserDefaults {
+    static let shared = SpotCreateUserDefaults()
+    private let key = "spot_create_user_id"
+
+    var userId: String {
+        if let existing = UserDefaults.standard.string(forKey: key) {
+            return existing
+        }
+        let value = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        UserDefaults.standard.set(value, forKey: key)
+        return value
     }
 }
 
