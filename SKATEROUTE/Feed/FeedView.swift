@@ -198,16 +198,16 @@ fileprivate struct VideoCard: View {
     let onTap: () -> Void
 
     @State private var player: AVPlayer?
-    @State private var isVisibleEnough = false
+    @StateObject private var visibility = VideoVisibilityMonitor(threshold: 0.6)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack(alignment: .bottomLeading) {
-                VideoViewport(player: $player, isVisibleEnough: $isVisibleEnough)
+                VideoViewport(player: $player, visibility: visibility)
                     .frame(height: 280)
                     .onAppear { setupPlayerIfNeeded() }
                     .onDisappear { pauseAndTearDown() }
-                    .onChange(of: isVisibleEnough) { visible in
+                    .onReceive(visibility.$isVisibleEnough.removeDuplicates()) { visible in
                         // Auto-play/pause logic
                         if visible { player?.play() } else { player?.pause() }
                     }
@@ -260,22 +260,23 @@ fileprivate struct VideoCard: View {
         // Loop
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: p.currentItem, queue: .main) { _ in
             p.seek(to: .zero)
-            if self.isVisibleEnough { p.play() }
+            if self.visibility.isVisibleEnough { p.play() }
         }
         self.player = p
-        if isVisibleEnough { p.play() }
+        if visibility.isVisibleEnough { p.play() }
     }
 
     private func pauseAndTearDown() {
         player?.pause()
         player = nil
+        visibility.markHidden()
     }
 }
 
-// Visible fraction detector: plays when ≥60% visible.
+// Visible fraction detector: plays when ≥ threshold of the viewport is visible.
 fileprivate struct VideoViewport: View {
     @Binding var player: AVPlayer?
-    @Binding var isVisibleEnough: Bool
+    @ObservedObject var visibility: VideoVisibilityMonitor
 
     var body: some View {
         GeometryReader { geo in
@@ -283,22 +284,58 @@ fileprivate struct VideoViewport: View {
                 .overlay(
                     GeometryReader { inner in
                         Color.clear
-                            .onChange(of: inner.frame(in: .global)) { _ in
-                                updateVisibility(container: geo.frame(in: .global), content: inner.frame(in: .global))
+                            .onChange(of: inner.frame(in: .global)) { newFrame in
+                                visibility.update(containerFrame: geo.frame(in: .global), contentFrame: newFrame)
                             }
-                            .onAppear { updateVisibility(container: geo.frame(in: .global), content: inner.frame(in: .global)) }
+                            .onAppear {
+                                visibility.update(containerFrame: geo.frame(in: .global), contentFrame: inner.frame(in: .global))
+                            }
                     }
                 )
         }
         .clipped()
     }
+}
 
-    private func updateVisibility(container: CGRect, content: CGRect) {
-        let intersection = container.intersection(content)
-        let visible = max(0, intersection.height * intersection.width)
-        let total = max(1, content.height * content.width)
-        let fraction = visible / total
-        isVisibleEnough = fraction >= 0.6
+// MARK: - Video visibility monitor
+
+@MainActor
+final class VideoVisibilityMonitor: ObservableObject {
+    @Published private(set) var isVisibleEnough: Bool = false
+
+    private let threshold: CGFloat
+
+    init(threshold: CGFloat = 0.6) {
+        self.threshold = threshold
+    }
+
+    func update(containerFrame: CGRect, contentFrame: CGRect) {
+        guard containerFrame.width > 0, containerFrame.height > 0,
+              contentFrame.width > 0, contentFrame.height > 0 else {
+            setVisible(false)
+            return
+        }
+
+        let intersection = containerFrame.intersection(contentFrame)
+        guard !intersection.isNull else {
+            setVisible(false)
+            return
+        }
+
+        let visibleArea = max(0, intersection.width * intersection.height)
+        let totalArea = max(1, contentFrame.width * contentFrame.height)
+        let fraction = visibleArea / totalArea
+        setVisible(fraction >= threshold)
+    }
+
+    func markHidden() {
+        setVisible(false)
+    }
+
+    private func setVisible(_ newValue: Bool) {
+        if newValue != isVisibleEnough {
+            isVisibleEnough = newValue
+        }
     }
 }
 

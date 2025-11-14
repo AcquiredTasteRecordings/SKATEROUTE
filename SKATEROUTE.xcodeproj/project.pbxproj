@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                E1FBF4202FFF000100000011 /* VideoVisibilityMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FBF4202FFF000100000001 /* VideoVisibilityMonitorTests.swift */; };
+                E1FBF4202FFF000100000012 /* FeedViewModelFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FBF4202FFF000100000002 /* FeedViewModelFlowTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,8 +32,10 @@
 /* Begin PBXFileReference section */
 		1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SKATEROUTE.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                E1FBF4202FFF000100000001 /* VideoVisibilityMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoVisibilityMonitorTests.swift; sourceTree = "<group>"; };
+                E1FBF4202FFF000100000002 /* FeedViewModelFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewModelFlowTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -94,25 +98,43 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1C2D2A522EB20E7C00BCB90A = {
-			isa = PBXGroup;
-			children = (
-				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5C2EB20E7C00BCB90A /* Products */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
-			);
-			sourceTree = "<group>";
-		};
-		1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
-				1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
-				1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+                1C2D2A522EB20E7C00BCB90A = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
+                                E1FBF4202FFF000100000021 /* SKATEROUTETests */,
+                                1C2D2A5C2EB20E7C00BCB90A /* Products */,
+                                1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
+                        );
+                        sourceTree = "<group>";
+                };
+                1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
+                                1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
+                                1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
+                        );
+                        name = Products;
+                        sourceTree = "<group>";
+                };
+                E1FBF4202FFF000100000020 /* Feed */ = {
+                        isa = PBXGroup;
+                        children = (
+                                E1FBF4202FFF000100000001 /* VideoVisibilityMonitorTests.swift */,
+                                E1FBF4202FFF000100000002 /* FeedViewModelFlowTests.swift */,
+                        );
+                        path = Feed;
+                        sourceTree = "<group>";
+                };
+                E1FBF4202FFF000100000021 /* SKATEROUTETests */ = {
+                        isa = PBXGroup;
+                        children = (
+                                E1FBF4202FFF000100000020 /* Feed */,
+                        );
+                        path = SKATEROUTETests;
+                        sourceTree = "<group>";
+                };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -281,13 +303,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1C2D2A682EB20E7E00BCB90A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                1C2D2A682EB20E7E00BCB90A /* Sources */ = {
+                        isa = PBXSourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                                E1FBF4202FFF000100000011 /* VideoVisibilityMonitorTests.swift in Sources */,
+                                E1FBF4202FFF000100000012 /* FeedViewModelFlowTests.swift in Sources */,
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 		1C2D2A722EB20E7E00BCB90A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
