@@ -82,12 +82,12 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
         for (idx, step) in route.steps.enumerated() {
             let poly = step.polyline
-            let distance = step.distance > 0 ? step.distance : poly.distanceMetersFallback()
+            let distance = step.distance > 0 ? step.distance : poly.totalLengthMeters()
             let eta = step.expectedTravelTime > 0 ? step.expectedTravelTime : Self.estimateETA(distance)
 
             let (bearing, isDown) = Self.primaryBearingAndDownhillGuess(for: poly, avgGradePercent: routeAvg)
 
-            let tags = idx < stepTags.count ? stepTags[idx] : StepTags()
+            let tags = idx < stepTags.count ? stepTags[idx] : .neutral
             let instruction = Self.makeInstruction(for: step, tags: tags)
 
             // Surface/roughness hints: placeholder.
@@ -118,10 +118,13 @@ public final class RouteContextBuilder: RouteContextBuilding {
 
 // MARK: - Utilities
 
-private extension RouteContextBuilder {
+extension RouteContextBuilder {
     static func makeInstruction(for step: MKRoute.Step, tags: StepTags) -> String? {
         let base = step.instructions.isEmpty ? nil : step.instructions
+        return composeInstruction(base: base, tags: tags)
+    }
 
+    static func composeInstruction(base: String?, tags: StepTags) -> String? {
         var hints: [String] = []
         if tags.hasProtectedLane {
             hints.append("Protected lane")
@@ -140,7 +143,9 @@ private extension RouteContextBuilder {
 
         guard !hints.isEmpty else { return base }
         let summary = hints.joined(separator: ", ")
-        if let base { return "\(base) – \(summary)" }
+        if let base {
+            return "\(base) – \(summary)"
+        }
         return summary
     }
 
@@ -172,26 +177,4 @@ private func headingDegrees(from: CLLocationCoordinate2D, to: CLLocationCoordina
     let deg = fmod(θ + 360, 360)
     return deg.isNaN ? 0 : deg
 }
-
-private extension MKPolyline {
-    func coordinates() -> [CLLocationCoordinate2D] {
-        var coords = [CLLocationCoordinate2D](repeating: kCLLocationCoordinate2DInvalid, count: pointCount)
-        getCoordinates(&coords, range: NSRange(location: 0, length: pointCount))
-        return coords
-    }
-
-    /// In case step.distance is 0 (rare but happens), compute from geometry.
-    func distanceMetersFallback() -> CLLocationDistance {
-        let pts = coordinates()
-        guard pts.count > 1 else { return 0 }
-        var d: CLLocationDistance = 0
-        for i in 0..<(pts.count - 1) {
-            let a = MKMapPoint(pts[i])
-            let b = MKMapPoint(pts[i + 1])
-            d += MKMetersBetweenMapPoints(a, b)
-        }
-        return d
-    }
-}
-
 

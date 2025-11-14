@@ -118,7 +118,7 @@ public actor LocalAttributionProvider: StepAttributesProvider {
     // MARK: Public
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
-        guard let mid = midpoint(of: step.polyline) else { return StepTags() }
+        guard let mid = midpoint(of: step.polyline) else { return .neutral }
         let key = CoordinateKey(mid)
 
         // Cache hit (respect TTL)
@@ -154,7 +154,7 @@ public actor LocalAttributionProvider: StepAttributesProvider {
                 surface:          candidate.surface
             )
         } else {
-            tags = StepTags()
+            tags = .neutral
         }
 
         insertCache(key: key, value: tags)
@@ -223,7 +223,7 @@ public actor CompositeAttributionProvider: StepAttributesProvider {
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
         // Merge across providers with a deterministic strategy.
-        var merged = StepTags()
+        var merged: StepTags = .neutral
         for p in providers {
             let t = await p.tags(for: step)
             merged = merge(merged, t)
@@ -232,7 +232,7 @@ public actor CompositeAttributionProvider: StepAttributesProvider {
     }
 
     public func tags(for steps: [MKRoute.Step]) async -> [StepTags] {
-        var out: [StepTags] = Array(repeating: StepTags(), count: steps.count)
+        var out: [StepTags] = Array(repeating: .neutral, count: steps.count)
         // For each provider, merge its batch result into the shared array
         for p in providers {
             let incoming = await p.tags(for: steps)
@@ -272,7 +272,7 @@ public struct StaticAttributionProvider: StepAttributesProvider {
     }
 
     public func tags(for step: MKRoute.Step) async -> StepTags {
-        guard let mid = midpoint(of: step.polyline) else { return StepTags() }
+        guard let mid = midpoint(of: step.polyline) else { return .neutral }
         let key = CoordinateKey(mid)
         // If exact key not present, do a cheap linear scan (test scale only)
         if let t = map[key] { return t }
@@ -286,7 +286,7 @@ public struct StaticAttributionProvider: StepAttributesProvider {
             if d < bestDist { bestDist = d; best = (k, v) }
         }
         if bestDist <= radius, let hit = best { return hit.1 }
-        return StepTags()
+        return .neutral
     }
 
     public func tags(for steps: [MKRoute.Step]) async -> [StepTags] {

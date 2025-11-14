@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                1C2D2AC32EB222B100BCB90A /* App-Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */; };
+                1C2D2B002EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,7 +32,8 @@
 		1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SKATEROUTE.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SKATEROUTEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "App-Shared.xcconfig"; sourceTree = "<group>"; };
+                1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteContextBuilderInstructionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -94,25 +96,34 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1C2D2A522EB20E7C00BCB90A = {
-			isa = PBXGroup;
-			children = (
-				1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
-				1C2D2A5C2EB20E7C00BCB90A /* Products */,
-				1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
-			);
-			sourceTree = "<group>";
-		};
-		1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
-				1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
-				1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+                1C2D2A522EB20E7C00BCB90A = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AC22EB222B100BCB90A /* App-Shared.xcconfig */,
+                                1C2D2A5C2EB20E7C00BCB90A /* Products */,
+                                1C2D2A5D2EB20E7C00BCB90A /* SKATEROUTE */,
+                                1C2D2AFE2EB2400000BCB90A /* SKATEROUTETests */,
+                        );
+                        sourceTree = "<group>";
+                };
+                1C2D2A5C2EB20E7C00BCB90A /* Products */ = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2A5B2EB20E7C00BCB90A /* SKATEROUTE.app */,
+                                1C2D2A6C2EB20E7E00BCB90A /* SKATEROUTETests.xctest */,
+                                1C2D2A762EB20E7E00BCB90A /* SKATEROUTEUITests.xctest */,
+                        );
+                        name = Products;
+                        sourceTree = "<group>";
+                };
+                1C2D2AFE2EB2400000BCB90A /* SKATEROUTETests */ = {
+                        isa = PBXGroup;
+                        children = (
+                                1C2D2AFF2EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift */,
+                        );
+                        path = SKATEROUTETests;
+                        sourceTree = "<group>";
+                };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -281,13 +292,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1C2D2A682EB20E7E00BCB90A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
+                1C2D2A682EB20E7E00BCB90A /* Sources */ = {
+                        isa = PBXSourcesBuildPhase;
+                        buildActionMask = 2147483647;
+                        files = (
+                                1C2D2B002EB2400000BCB90A /* RouteContextBuilderInstructionTests.swift in Sources */,
+                        );
+                        runOnlyForDeploymentPostprocessing = 0;
+                };
 		1C2D2A722EB20E7E00BCB90A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
