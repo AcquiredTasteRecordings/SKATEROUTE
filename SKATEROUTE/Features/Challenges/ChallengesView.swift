@@ -110,12 +110,14 @@ public final class ChallengesViewModel: ObservableObject {
 
     private let reader: ChallengeReading
     private let actor: ChallengeActing
+    private let analytics: AnalyticsLogging?
     private var cancellables = Set<AnyCancellable>()
     private var progressCancellables: [String: AnyCancellable] = [:]
 
-    public init(reader: ChallengeReading, actor: ChallengeActing) {
+    public init(reader: ChallengeReading, actor: ChallengeActing, analytics: AnalyticsLogging? = nil) {
         self.reader = reader
         self.actor = actor
+        self.analytics = analytics
         bind()
     }
 
@@ -164,30 +166,36 @@ public final class ChallengesViewModel: ObservableObject {
 
     public func join(_ ch: ChallengeSummary) {
         guard !ch.isJoined else { return }
+        logChallengeEvent("challenge_join_attempt", challenge: ch)
         optimisticToggle(ch, toJoin: true)
 
         Task {
             do {
                 try await actor.join(challengeId: ch.id)
                 infoMessage = NSLocalizedString("You’re in. Have a solid week!", comment: "join ok")
+                logChallengeEvent("challenge_join_result", challenge: ch, extra: ["result": .string("joined")])
             } catch {
                 rollbackToggle(ch)
                 errorMessage = NSLocalizedString("Couldn’t join right now.", comment: "join fail")
+                logChallengeEvent("challenge_join_result", challenge: ch, extra: ["result": .string("failed")])
             }
         }
     }
 
     public func leave(_ ch: ChallengeSummary) {
         guard ch.isJoined else { return }
+        logChallengeEvent("challenge_leave_attempt", challenge: ch)
         optimisticToggle(ch, toJoin: false)
 
         Task {
             do {
                 try await actor.leave(challengeId: ch.id)
                 infoMessage = NSLocalizedString("Left the challenge.", comment: "leave ok")
+                logChallengeEvent("challenge_leave_result", challenge: ch, extra: ["result": .string("left")])
             } catch {
                 rollbackToggle(ch)
                 errorMessage = NSLocalizedString("Couldn’t leave right now.", comment: "leave fail")
+                logChallengeEvent("challenge_leave_result", challenge: ch, extra: ["result": .string("failed")])
             }
         }
     }
@@ -229,11 +237,24 @@ public final class ChallengesViewModel: ObservableObject {
     }
 
     public func openRules(_ ch: ChallengeSummary) {
+        logChallengeEvent("challenge_rules_opened", challenge: ch)
         showingRulesFor = ch
     }
 
     public func rulesText(for ch: ChallengeSummary) async -> String {
         await actor.rulesText(challengeId: ch.id)
+    }
+
+    private func logChallengeEvent(_ name: String, challenge: ChallengeSummary, extra: [String: AnalyticsValue] = [:]) {
+        guard let analytics else { return }
+        var params: [String: AnalyticsValue] = [
+            "challenge_id": .string(challenge.id),
+            "kind": .string(challenge.kind.rawValue),
+            "week": .int(challenge.weekNumber),
+            "premium": .bool(challenge.isPremiumGated)
+        ]
+        for (k, v) in extra { params[k] = v }
+        analytics.log(.init(name: name, category: .challenges, params: params))
     }
 }
 
@@ -585,9 +606,10 @@ fileprivate struct RulesSheet: View {
 public extension ChallengesView {
     static func make(
         reader: ChallengeReading,
-        actor: ChallengeActing
+        actor: ChallengeActing,
+        analytics: AnalyticsLogging? = nil
     ) -> ChallengesView {
-        ChallengesView(viewModel: .init(reader: reader, actor: actor))
+        ChallengesView(viewModel: .init(reader: reader, actor: actor, analytics: analytics))
     }
 }
 
